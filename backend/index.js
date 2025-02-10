@@ -282,6 +282,19 @@ app.post('/work-schedule/:workScheduleId/schedules', async (req, res) => {
             return res.status(404).json({ message: "Cuadrante mensual no encontrado." });
         }
 
+        // Validar que todos los horarios coincidan con el mes y año del work_schedule
+        const invalidSchedules = schedules.filter(schedule => {
+            const scheduleMonth = new Date(schedule.date).getMonth() + 1; // El mes de la fecha del horario (getMonth devuelve 0-11)
+            return scheduleMonth !== workSchedule.month;  // Compara el mes con el mes del work_schedule
+        });
+
+        if (invalidSchedules.length > 0) {
+            return res.status(400).json({
+                message: "Algunos horarios no coinciden con el mes del cuadrante mensual.",
+                invalidSchedules
+            });
+        }
+
         // Crear los horarios con los valores proporcionados en la petición
         const schedulesToSave = await Promise.all(schedules.map(async schedule => {
             // Buscar la instalación correspondiente (facility)
@@ -313,6 +326,7 @@ app.post('/work-schedule/:workScheduleId/schedules', async (req, res) => {
         res.status(500).json({ message: "Error al crear los horarios.", error: error.message });
     }
 });
+
 
 
 
