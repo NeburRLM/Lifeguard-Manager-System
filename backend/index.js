@@ -4,6 +4,7 @@ import { EmployeeSchema } from './postgresql/schemas/employee-schema.js';
 import { FacilitySchema } from './postgresql/schemas/facility-schema.js';
 import { WorkScheduleSchema } from './postgresql/schemas/work-schedule.js';  // Ajusta la ruta según tu proyecto
 import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';  // Ajusta la ruta según tu proyecto
+import { IncidentSchema } from './postgresql/schemas/incident-schema.js';  // Ajusta la ruta según tu proyecto
 
 //import bcrypt from 'bcrypt';
 //import jwt from 'jsonwebtoken';  // Para generar un token JWT
@@ -462,6 +463,77 @@ app.put('/schedule/:id/time', async (req, res) => {
     }
 });
 
+
+
+
+
+// POST para crear un incidente
+app.post('/incident', async (req, res) => {
+    const { type, description, facilityId, reportedById } = req.body;
+
+    // Validar los datos requeridos
+    if (!type || !description || !facilityId || !reportedById) {
+        return res.status(400).json({ message: "Todos los campos son requeridos." });
+    }
+
+    try {
+        const facilityRepository = dataSource.getRepository(FacilitySchema);
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+
+        // Buscar la instalación y el empleado
+        const facility = await facilityRepository.findOne({ where: { id: facilityId } });
+        const employee = await employeeRepository.findOne({ where: { id: reportedById } });
+
+        if (!facility) {
+            return res.status(404).json({ message: "Instalación no encontrada." });
+        }
+        if (!employee) {
+            return res.status(404).json({ message: "Empleado no encontrado." });
+        }
+
+        // Crear el incidente
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        const newIncident = incidentRepository.create({
+            type,
+            description,
+            facility,  // Asociamos la instalación
+            reported_by: employee  // Asociamos al empleado que reporta
+        });
+
+        // Guardar el incidente en la base de datos
+        await incidentRepository.save(newIncident);
+
+        res.status(201).json(newIncident);
+    } catch (error) {
+        console.error("Error al crear el incidente:", error);
+        res.status(500).json({ message: "Error al crear el incidente.", error: error.message });
+    }
+});
+
+
+
+
+// GET para obtener todos los incidentes
+app.get('/incidents', async (req, res) => {
+    try {
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        // Obtener todos los incidentes, con sus relaciones
+        const incidents = await incidentRepository.find({
+            relations: ['facility', 'reported_by']  // Incluir las relaciones de facility y reported_by
+        });
+
+        if (incidents.length === 0) {
+            return res.status(404).json({ message: 'No incidents found' });
+        }
+
+        res.status(200).json(incidents);
+    } catch (error) {
+        console.error("Error al obtener los incidentes:", error);
+        res.status(500).json({ message: "Error al obtener los incidentes.", error: error.message });
+    }
+});
 
 
 
