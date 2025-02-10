@@ -1,4 +1,4 @@
-import { EntitySchema } from "typeorm";
+import { EntitySchema } from 'typeorm';
 
 export const ScheduleSchema = new EntitySchema({
     name: "schedule",
@@ -19,14 +19,6 @@ export const ScheduleSchema = new EntitySchema({
         end_time: {
             type: "time",
             default: "19:00:00"
-        },
-        check_in: {
-            type: "timestamp",
-            nullable: true
-        },
-        check_out: {
-            type: "timestamp",
-            nullable: true
         }
     },
     relations: {

@@ -5,17 +5,17 @@ export const EmployeeSchema = new EntitySchema({
     tableName: "employees",
     columns: {
         id: {
-            type: "uuid",
+            type: "varchar",
             primary: true,
-            generated: "uuid"
+            length: 9,
         },
         name: {
             type: "varchar",
             length: 100
         },
         role: {
-            type: "varchar",
-            length: 50
+            type: "enum",
+            enum: ["Boss", "Lifeguard", "Coordinator"],
         },
         email: {
             type: "varchar",
@@ -25,20 +25,22 @@ export const EmployeeSchema = new EntitySchema({
         password: {
             type: "varchar",
             length: 255
-        }
-
-    },
-    relations: {
-        facility: {
-            type: 'many-to-one',
-            target: 'facility',
-            joinColumn: true,
-            onDelete: 'SET NULL',
+        },
+        birthdate: {
+            type: "date",  // Fecha de nacimiento
             nullable: true
         },
-        schedule: {
+        phone_number: {
+            type: "varchar", // Número de teléfono
+            length: 15,
+            nullable: true
+        }
+    },
+    relations: {
+        // Relación con el cuadrante mensual (Work Schedule)
+        work_schedule: {
             type: 'one-to-many',
-            target: 'schedule',
+            target: 'work_schedule',
             inverseSide: 'employee',
             cascade: true
         }
