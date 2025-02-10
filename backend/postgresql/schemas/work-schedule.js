@@ -1,3 +1,5 @@
+import { EntitySchema } from 'typeorm';
+
 export const WorkScheduleSchema = new EntitySchema({
     name: "work_schedule",
     tableName: "work_schedules",

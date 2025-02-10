@@ -1,7 +1,7 @@
-import { EntitySchema } from 'typeorm';
+import { EntitySchema } from "typeorm";
 
 export const IncidentSchema = new EntitySchema({
-    name: "Incident",
+    name: "incident",
     tableName: "incidents",
     columns: {
         id: {
@@ -22,15 +22,15 @@ export const IncidentSchema = new EntitySchema({
         }
     },
     relations: {
-        beach: {
+        facility: {
             type: 'many-to-one',
-            target: 'Beach',
+            target: 'facility',
             joinColumn: true,
             onDelete: 'CASCADE'
         },
-        reportedBy: {
+        reported_by: {
             type: 'many-to-one',
-            target: 'Employee',
+            target: 'employee',
             joinColumn: true,
             onDelete: 'SET NULL'
         }

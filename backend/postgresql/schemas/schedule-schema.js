@@ -1,8 +1,8 @@
-import { EntitySchema } from 'typeorm';
+import { EntitySchema } from "typeorm";
 
-export const ShiftSchema = new EntitySchema({
-    name: "Shift",
-    tableName: "shifts",
+export const ScheduleSchema = new EntitySchema({
+    name: "schedule",
+    tableName: "schedules",
     columns: {
         id: {
             type: "uuid",
@@ -12,31 +12,33 @@ export const ShiftSchema = new EntitySchema({
         date: {
             type: "date"
         },
-        startTime: {
-            type: "time"
+        start_time: {
+            type: "time",
+            default: "10:00:00"
         },
-        endTime: {
-            type: "time"
+        end_time: {
+            type: "time",
+            default: "19:00:00"
         },
-        checkIn: {
+        check_in: {
             type: "timestamp",
             nullable: true
         },
-        checkOut: {
+        check_out: {
             type: "timestamp",
             nullable: true
         }
     },
     relations: {
-        employee: {
+        work_schedule: {
             type: 'many-to-one',
-            target: 'Employee',
+            target: 'work_schedule',
             joinColumn: true,
             onDelete: 'CASCADE'
         },
-        beach: {
+        facility: {
             type: 'many-to-one',
-            target: 'Beach',
+            target: 'facility',
             joinColumn: true,
             onDelete: 'CASCADE'
         }

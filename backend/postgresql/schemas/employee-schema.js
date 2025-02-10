@@ -1,7 +1,7 @@
 import { EntitySchema } from 'typeorm';
 
 export const EmployeeSchema = new EntitySchema({
-    name: "Employee",
+    name: "employee",
     tableName: "employees",
     columns: {
         id: {
@@ -26,18 +26,19 @@ export const EmployeeSchema = new EntitySchema({
             type: "varchar",
             length: 255
         }
+
     },
     relations: {
         facility: {
             type: 'many-to-one',
-            target: 'Beach',
+            target: 'facility',
             joinColumn: true,
-            cascade: true,
-            onDelete: 'SET NULL'
+            onDelete: 'SET NULL',
+            nullable: true
         },
-        Schedule: {
+        schedule: {
             type: 'one-to-many',
-            target: 'Shift',
+            target: 'schedule',
             inverseSide: 'employee',
             cascade: true
         }

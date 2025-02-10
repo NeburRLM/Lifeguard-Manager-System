@@ -1,8 +1,8 @@
-import { EntitySchema } from 'typeorm';
+import { EntitySchema } from "typeorm";
 
-export const BeachSchema = new EntitySchema({
-    name: "Beach",
-    tableName: "beaches",
+export const FacilitySchema = new EntitySchema({
+    name: "facility",
+    tableName: "facilities",
     columns: {
         id: {
             type: "uuid",
@@ -17,22 +17,30 @@ export const BeachSchema = new EntitySchema({
             type: "varchar",
             length: 255
         },
-        facility: {
+        facility_type: {
             type: "enum",
-            enum: ["Instalación Deportiva", "Playa"]
+            enum: ["Pool", "Beach"]
         }
     },
+
+    uniqueConstraints: [
+            {
+                name: "facility_name_location_unique",
+                columns: ["name", "location"]
+            }
+        ],
+
     relations: {
         employees: {
             type: 'one-to-many',
-            target: 'Employee',
-            inverseSide: 'beach',
+            target: 'employee',
+            inverseSide: 'facility',
             cascade: true
         },
         incidents: {
             type: 'one-to-many',
-            target: 'Incident',
-            inverseSide: 'beach',
+            target: 'incident',
+            inverseSide: 'facility',
             cascade: true
         }
     }
