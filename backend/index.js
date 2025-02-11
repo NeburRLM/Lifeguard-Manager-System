@@ -5,8 +5,10 @@ import { FacilitySchema } from './postgresql/schemas/facility-schema.js';
 import { WorkScheduleSchema } from './postgresql/schemas/work-schedule.js';  // Ajusta la ruta según tu proyecto
 import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';  // Ajusta la ruta según tu proyecto
 import { IncidentSchema } from './postgresql/schemas/incident-schema.js';  // Ajusta la ruta según tu proyecto
+import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
-//import bcrypt from 'bcrypt';
 //import jwt from 'jsonwebtoken';  // Para generar un token JWT
 const app = express()
 const port = 4000
@@ -62,7 +64,18 @@ app.get('/employees', async (req, res) => {
 
 
 
-
+function calcularSueldoPorHora(role) {
+    switch (role) {
+        case "Boss":
+            return 30.00; // Ejemplo: sueldo por hora del jefe
+        case "Coordinator":
+            return 20.00; // Ejemplo: sueldo por hora de un coordinador
+        case "Lifeguard":
+            return 15.00; // Ejemplo: sueldo por hora de un socorrista
+        default:
+            return 10.00; // Sueldo por hora por defecto
+    }
+}
 
 
 
@@ -86,8 +99,14 @@ app.post('/employee', async (req, res) => {
         for (const employee of employees) {
             const { id, name, role, email, password, birthdate, phone_number, facilityId } = employee;
 
+            // Usamos el id (DNI) como la contraseña en texto plano
+            const rawPassword = id;  // El DNI es la contraseña
+
+            // Encriptar la contraseña antes de guardarla en la base de datos
+            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
             // Validar que todos los campos estén presentes
-            if (!id || !name || !role || !email || !password || !birthdate || !phone_number) {
+            if (!id || !name || !role || !email || !birthdate || !phone_number) {
                 return res.status(400).send("Todos los campos son requeridos.");
             }
 
@@ -115,10 +134,11 @@ app.post('/employee', async (req, res) => {
                 name,
                 role,
                 email,
-                password,
+                password: hashedPassword,
                 birthdate,
                 phone_number,
-                facility: facility || null,  // Asignamos la instalación si existe
+                hourlyRate: calcularSueldoPorHora(role),
+                //facility: facility || null,  // Asignamos la instalación si existe
             });
 
             // Guardar el nuevo empleado en la base de datos
@@ -624,6 +644,76 @@ app.get('/incidents/type/:type', async (req, res) => {
 
 
 
+app.post('/payroll/generate', async (req, res) => {
+    const { employeeId, month, year } = req.body;  // Se espera mes y año en el cuerpo de la solicitud
+
+        // Validar que los datos estén presentes
+        if (!month || !year) {
+            return res.status(400).send("Se requiere el mes y el año para generar la nómina.");
+        }
+
+        try {
+            // Buscar el empleado con el ID proporcionado
+            const employeeRepository = dataSource.getRepository(EmployeeSchema);
+            const employee = await employeeRepository.findOne({ where: { id: employeeId } });
+
+            if (!employee) {
+                return res.status(404).send(`Empleado con ID ${employeeId} no encontrado.`);
+            }
+
+            // Obtener el cuadrante de trabajo del empleado para el mes y año
+            const workScheduleRepository = dataSource.getRepository(WorkScheduleSchema);
+            const workSchedule = await workScheduleRepository.findOne({
+                where: { employee: { id: employeeId }, month, year },
+                relations: ['schedules']  // Obtener los horarios asociados
+            });
+
+            if (!workSchedule) {
+                return res.status(404).send(`No se encontró el cuadrante de trabajo para el mes ${month} y año ${year} para el empleado ${employeeId}.`);
+            }
+
+            // Calcular las horas trabajadas en el mes
+            let totalHours = 0;
+            workSchedule.schedules.forEach(schedule => {
+                const start = new Date(`${schedule.date} ${schedule.start_time}`);
+                const end = new Date(`${schedule.date} ${schedule.end_time}`);
+                const workedHours = (end - start) / (1000 * 60 * 60);  // Calcular las horas trabajadas
+                totalHours += workedHours;
+            });
+
+            // Calcular el monto total según las horas trabajadas y la tarifa por hora
+            const hourlyRate = employee.hourlyRate || calcularSueldoPorHora(employee.role);  // Usar la tarifa por hora del empleado
+            const amount = totalHours * hourlyRate;
+
+            // Crear la nómina
+            const payrollRepository = dataSource.getRepository(PayrollSchema);
+            const newPayroll = payrollRepository.create({
+                month,
+                year,
+                total_hours: totalHours,
+                amount,
+                employee  // Asociar la nómina con el empleado
+            });
+
+            // Guardar la nómina en la base de datos
+            await payrollRepository.save(newPayroll);
+
+            res.status(201).json(newPayroll);  // Devolver la nómina creada
+        } catch (error) {
+            console.error("Error al crear la nómina:", error);
+            res.status(500).send("Error al crear la nómina.");
+        }
+    });
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -638,29 +728,31 @@ app.get('/incidents/type/:type', async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //LOGIN/////////////////
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { id, password } = req.body;
 
-    // Validar que se haya enviado email y password
-    if (!email || !password) {
-        return res.status(400).send("Email y contraseña son requeridos.");
+    // Validar que se haya enviado id y password
+    if (!id || !password) {
+        return res.status(400).send("Id y contraseña son requeridos.");
     }
 
     try {
         const employeeRepository = dataSource.getRepository(EmployeeSchema);
 
-        // Buscar al empleado por email
-        const employee = await employeeRepository.findOne({ where: { email } });
+        // Buscar al empleado por el DNI (id)
+        const employee = await employeeRepository.findOne({ where: { id } });
 
         if (!employee) {
             return res.status(404).send("Empleado no encontrado.");
         }
 
-        // Verificar que la contraseña sea correcta (asegúrate de usar alguna librería de encriptación como bcrypt)
-        if (employee.password !== password) {
+        // Verificar que la contraseña (DNI) proporcionada coincida con la almacenada (encriptada) usando bcrypt
+        const isPasswordValid = await bcrypt.compare(password, employee.password);
+
+        if (!isPasswordValid) {
             return res.status(401).send("Contraseña incorrecta.");
         }
 
-        // Verificar el rol del empleado
+        // Verificar que el rol del empleado sea "Boss"
         if (employee.role !== "Boss") {
             return res.status(403).send("No tienes acceso al sistema.");
         }
@@ -672,56 +764,6 @@ app.post('/login', async (req, res) => {
         res.status(500).send("Error al autenticar al empleado.");
     }
 });
-
-
-
-
-
-
-app.post('/login', async (req, res) => {
-    const { dni, password } = req.body;
-
-    // Validar que ambos campos (DNI y contraseña) estén presentes
-    if (!dni || !password) {
-        return res.status(400).send("El DNI y la contraseña son requeridos.");
-    }
-
-    try {
-        const employeeRepository = dataSource.getRepository(EmployeeSchema);
-
-        // Buscar al empleado con el DNI proporcionado
-        const employee = await employeeRepository.findOne({ where: { id: dni } });
-        if (!employee) {
-            return res.status(404).send("Empleado no encontrado.");
-        }
-
-        // Verificar la contraseña con bcrypt
-        const isPasswordValid = await bcrypt.compare(password, employee.password);
-        if (!isPasswordValid) {
-            return res.status(401).send("Contraseña incorrecta.");
-        }
-
-        // Verificar si el empleado es el Jefe
-        if (employee.role !== "Jefe") {
-            return res.status(403).send("Acceso denegado. Solo el Jefe puede acceder al sistema.");
-        }
-
-        // Si la contraseña es válida y el rol es Jefe, generar un token JWT para la sesión
-        const token = jwt.sign(
-            { id: employee.id, role: employee.role },
-            'tu_clave_secreta', // La clave secreta para firmar el token
-            { expiresIn: '1h' }  // El token expirará en 1 hora
-        );
-
-        // Enviar el token como respuesta
-        res.status(200).json({ message: 'Inicio de sesión exitoso', token });
-    } catch (error) {
-        console.error("Error al iniciar sesión:", error);
-        res.status(500).send("Error en el servidor.");
-    }
-});
-
-
 
 
 

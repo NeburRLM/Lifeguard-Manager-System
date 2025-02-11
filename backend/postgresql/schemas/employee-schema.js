@@ -34,6 +34,11 @@ export const EmployeeSchema = new EntitySchema({
             type: "varchar", // Número de teléfono
             length: 15,
             nullable: true
+        },
+        hourlyRate: {
+            type: "decimal",
+            precision: 10,
+            scale: 2
         }
     },
     relations: {
