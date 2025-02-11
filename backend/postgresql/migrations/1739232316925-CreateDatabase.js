@@ -1,13 +1,14 @@
 //const { MigrationInterface, QueryRunner } = require("typeorm");
 
-export class CreateDatabase1739228247681 {
-    name = 'CreateDatabase1739228247681'
+export class CreateDatabase1739232316925 {
+    name = 'CreateDatabase1739232316925'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "work_schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_f5251879700e5ca0d2e353fa34f" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" date NOT NULL, "start_time" TIME NOT NULL DEFAULT '10:00:00', "end_time" TIME NOT NULL DEFAULT '19:00:00', "workScheduleId" uuid, "facilityId" uuid, CONSTRAINT "PK_7e33fc2ea755a5765e3564e66dd" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "payrolls" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" character varying(10) NOT NULL, "year" integer NOT NULL, "total_hours" integer NOT NULL, "amount" numeric(10,2) NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_4fc19dcf3522661435565b5ecf3" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "incidents" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "type" character varying(100) NOT NULL, "description" text NOT NULL, "date" TIMESTAMP NOT NULL DEFAULT now(), "facilityId" uuid, "reportedById" character varying(9), CONSTRAINT "PK_ccb34c01719889017e2246469f9" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TYPE "public"."incidents_type_enum" AS ENUM('Heridas en la piel y cortes', 'Picaduras de medusa', 'Picaduras de pez araña', 'Picadura desconocida', 'Quemaduras solares', 'Golpes de calor', 'Ahogamiento en la playa', 'Atragantamiento', 'Insolación')`);
+        await queryRunner.query(`CREATE TABLE "incidents" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "type" "public"."incidents_type_enum" NOT NULL, "description" text NOT NULL, "date" TIMESTAMP NOT NULL DEFAULT now(), "facilityId" uuid, "reportedById" character varying(9), CONSTRAINT "PK_ccb34c01719889017e2246469f9" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."facilities_facility_type_enum" AS ENUM('Pool', 'Beach')`);
         await queryRunner.query(`CREATE TABLE "facilities" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying(100) NOT NULL, "location" character varying(255) NOT NULL, "facility_type" "public"."facilities_facility_type_enum" NOT NULL, CONSTRAINT "PK_2e6c685b2e1195e6d6394a22bc7" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."employees_role_enum" AS ENUM('Boss', 'Lifeguard', 'Coordinator')`);
@@ -32,6 +33,7 @@ export class CreateDatabase1739228247681 {
         await queryRunner.query(`DROP TABLE "facilities"`);
         await queryRunner.query(`DROP TYPE "public"."facilities_facility_type_enum"`);
         await queryRunner.query(`DROP TABLE "incidents"`);
+        await queryRunner.query(`DROP TYPE "public"."incidents_type_enum"`);
         await queryRunner.query(`DROP TABLE "payrolls"`);
         await queryRunner.query(`DROP TABLE "schedules"`);
         await queryRunner.query(`DROP TABLE "work_schedules"`);

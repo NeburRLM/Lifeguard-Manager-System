@@ -10,8 +10,19 @@ export const IncidentSchema = new EntitySchema({
             generated: "uuid"
         },
         type: {
-            type: "varchar",
-            length: 100
+            type: "enum",
+            enum: [
+                "Heridas en la piel y cortes",
+                "Picaduras de medusa",
+                "Picaduras de pez araña",
+                "Picadura desconocida",
+                "Quemaduras solares",
+                "Golpes de calor",
+                "Ahogamiento en la playa",
+                "Atragantamiento",
+                "Insolación"
+            ],
+            nullable: false  // Asegura que no se puedan insertar valores nulos
         },
         description: {
             type: "text"

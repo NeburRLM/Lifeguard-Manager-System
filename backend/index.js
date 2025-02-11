@@ -467,13 +467,29 @@ app.put('/schedule/:id/time', async (req, res) => {
 
 
 
-// POST para crear un incidente
 app.post('/incident', async (req, res) => {
     const { type, description, facilityId, reportedById } = req.body;
 
     // Validar los datos requeridos
     if (!type || !description || !facilityId || !reportedById) {
         return res.status(400).json({ message: "Todos los campos son requeridos." });
+    }
+
+    // Validar que el tipo de incidente sea uno de los valores permitidos
+    const validIncidentTypes = [
+        "Heridas en la piel y cortes",
+        "Picaduras de medusa",
+        "Picaduras de pez araña",
+        "Picadura desconocida",
+        "Quemaduras solares",
+        "Golpes de calor",
+        "Ahogamiento en la playa",
+        "Atragantamiento",
+        "Insolación"
+    ];
+
+    if (!validIncidentTypes.includes(type)) {
+        return res.status(400).json({ message: "Tipo de incidente no válido." });
     }
 
     try {
@@ -514,6 +530,7 @@ app.post('/incident', async (req, res) => {
 
 
 
+
 // GET para obtener todos los incidentes
 app.get('/incidents', async (req, res) => {
     try {
@@ -536,6 +553,74 @@ app.get('/incidents', async (req, res) => {
 });
 
 
+app.get('/facility/:facilityId/incidents', async (req, res) => {
+    const { facilityId } = req.params;
+
+    try {
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        const incidents = await incidentRepository.find({
+            where: { facility: { id: facilityId } },
+            relations: ['facility', 'reported_by'],
+        });
+
+        if (incidents.length === 0) {
+            return res.status(404).json({ message: "No se encontraron incidencias para esta instalación." });
+        }
+
+        res.status(200).json(incidents);
+    } catch (error) {
+        console.error("Error al obtener las incidencias:", error);
+        res.status(500).json({ message: "Error al obtener las incidencias.", error: error.message });
+    }
+});
+
+
+
+
+app.get('/incidents/type/:type', async (req, res) => {
+    const { type } = req.params;  // Obtenemos el tipo de incidente desde la URL
+
+    // Lista de tipos de incidentes válidos
+    const validIncidentTypes = [
+        "Heridas en la piel y cortes",
+        "Picaduras de medusa",
+        "Picaduras de pez araña",
+        "Picadura desconocida",
+        "Quemaduras solares",
+        "Golpes de calor",
+        "Ahogamiento en la playa",
+        "Atragantamiento",
+        "Insolación"
+    ];
+
+    // Verificamos si el tipo de incidente es válido
+    if (!validIncidentTypes.includes(type)) {
+        return res.status(400).json({ message: "Tipo de incidente no válido." });
+    }
+
+    try {
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        // Buscamos los incidentes filtrados por el tipo
+        const incidents = await incidentRepository.find({
+            where: { type },  // Filtramos por el tipo de incidente
+            relations: ['facility', 'reported_by'], // Incluimos las relaciones de facility y reported_by
+            order: { date: "DESC" } // Ordenamos por fecha descendente (más recientes primero)
+        });
+
+        // Si no se encuentran incidentes de ese tipo
+        if (incidents.length === 0) {
+            return res.status(404).json({ message: "No se encontraron incidentes de este tipo." });
+        }
+
+        // Devolvemos los incidentes encontrados
+        res.status(200).json(incidents);
+    } catch (error) {
+        console.error("Error al obtener los incidentes por tipo:", error);
+        res.status(500).json({ message: "Error al obtener los incidentes.", error: error.message });
+    }
+});
 
 
 
