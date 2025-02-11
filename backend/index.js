@@ -64,7 +64,7 @@ app.get('/employees', async (req, res) => {
 
 
 
-function calcularSueldoPorHora(role) {
+function calculateAmount(role) {
     switch (role) {
         case "Boss":
             return 30.00; // Ejemplo: sueldo por hora del jefe
@@ -137,7 +137,7 @@ app.post('/employee', async (req, res) => {
                 password: hashedPassword,
                 birthdate,
                 phone_number,
-                hourlyRate: calcularSueldoPorHora(role),
+                hourlyRate: calculateAmount(role),
                 //facility: facility || null,  // Asignamos la instalación si existe
             });
 
@@ -682,7 +682,7 @@ app.post('/payroll/generate', async (req, res) => {
             });
 
             // Calcular el monto total según las horas trabajadas y la tarifa por hora
-            const hourlyRate = employee.hourlyRate || calcularSueldoPorHora(employee.role);  // Usar la tarifa por hora del empleado
+            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);  // Usar la tarifa por hora del empleado
             const amount = totalHours * hourlyRate;
 
             // Crear la nómina
