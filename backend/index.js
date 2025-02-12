@@ -37,6 +37,27 @@ dataSource.initialize()
         console.error("Error al conectar con la base de datos:", err);
     });
 
+
+// Middleware de autenticación para verificar el token
+const authenticateToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];  // Obtener el token desde el encabezado
+
+    if (!token) {
+        return res.status(401).send("Token no proporcionado.");
+    }
+
+    // Verificar el token
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).send("Token no válido.");
+        }
+
+        req.user = decoded;  // Decodificar el token y añadir la info al request
+        next();  // Continuar con la solicitud si el token es válido
+    });
+};
+
+
 app.get('/employees', async (req, res) => {
     try {
         const employees = await dataSource.getRepository(EmployeeSchema)
@@ -90,7 +111,7 @@ function calculateAmount(role) {
 
 
 // Ruta para crear un nuevo empleado
-app.post('/employee', async (req, res) => {
+app.post('/employee', authenticateToken, async (req, res) => {
     let employees = req.body;
 
     // Si solo se envía un solo objeto (no un arreglo), lo convertimos en un arreglo de un solo elemento
