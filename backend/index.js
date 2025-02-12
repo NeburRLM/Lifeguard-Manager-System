@@ -8,17 +8,27 @@ import { IncidentSchema } from './postgresql/schemas/incident-schema.js';  // Aj
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 //import jwt from 'jsonwebtoken';  // Para generar un token JWT
 const app = express()
 const port = 4000
 
+app.use(cookieParser())
+dotenv.config();
 /*app.get('/', (req, res) => {
     res.send('<html><head></head><body><h1>Hello!</h1></body></html>');
 })*/
 
 app.use(express.json());
-
+app.use((request, response, next) => {
+    response.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    response.header('Access-Control-Allow-Headers', 'content-type');
+    response.header('Access-Control-Allow-Credentials', 'true');
+    response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
+    next();
+});
 dataSource.initialize()
     .then(() => {
         console.log("Conexión a la base de datos establecida.");
@@ -757,13 +767,23 @@ app.post('/login', async (req, res) => {
             return res.status(403).send("No tienes acceso al sistema.");
         }
 
-        // Aquí puedes crear un token de sesión o JWT si usas autenticación basada en token
-        res.status(200).send("Login exitoso.");
+        // Verificar si la clave secreta está definida
+        if (!process.env.JWT_SECRET_KEY) {
+            return res.status(500).send("Se requiere una clave secreta para generar el token.");
+        }
+
+        // Crear un token de sesión o JWT con el rol
+        const token = jwt.sign({ role: "Boss" }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+
+        return res.json({ Status: "Success", Token: token });
+
     } catch (error) {
         console.error("Error al autenticar al empleado:", error);
         res.status(500).send("Error al autenticar al empleado.");
     }
 });
+
+
 
 
 
