@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faUserTie, faBuilding } from "@fortawesome/free-solid-svg-icons"; // Íconos para empleados, jefes y facility
+import { faUsers, faUserTie, faBuilding } from "@fortawesome/free-solid-svg-icons";
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -41,38 +41,42 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="logo">Admin Dashboard</h2>
         <nav>
           <ul>
-            <li><Link to="/">Dashboard</Link></li>
-            <li><Link to="/employee">Manage Employees</Link></li>
+            <li><Link to="/dashboard">Dashboard</Link></li>
+            <li><Link to="/employees">Manage Employees</Link></li>
             <li><Link to="/profile">Profile</Link></li>
             <li><button className="logout-btn" onClick={signOut}>Sign Out</button></li>
           </ul>
         </nav>
       </aside>
 
+      {/* Contenido principal */}
       <main className="content">
         <header className="header">
           <h4>Employee Management System</h4>
         </header>
+
+        {/* Sección principal con las tarjetas */}
         <section className="main-section">
           <div className="stats-container">
             <div className="stat-card">
-              <FontAwesomeIcon icon={faUsers} />
+              <FontAwesomeIcon icon={faUsers} className="stat-icon" />
               <h4>Employees</h4>
-              <p>{employeeCount}</p>
+              <p className="number">{employeeCount}</p>
             </div>
             <div className="stat-card">
-              <FontAwesomeIcon icon={faUserTie} />
+              <FontAwesomeIcon icon={faUserTie} className="stat-icon" />
               <h4>Bosses</h4>
-              <p>{bossCount}</p>
+              <p className="number">{bossCount}</p>
             </div>
             <div className="stat-card">
-              <FontAwesomeIcon icon={faBuilding} />
+              <FontAwesomeIcon icon={faBuilding} className="stat-icon" />
               <h4>Facilities</h4>
-              <p>{facilityCount}</p>
+              <p className="number">{facilityCount}</p>
             </div>
           </div>
           <Outlet />

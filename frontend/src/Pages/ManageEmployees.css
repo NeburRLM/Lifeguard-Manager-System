@@ -1,0 +1,80 @@
+.employee-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto 20px auto;  /* Elimina el margen superior */
+}
+
+.add-btn-container {
+  text-align: center; /* Centra el contenido dentro de este contenedor */
+  margin-bottom: 15px;
+}
+
+.add-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 15px; /* Mantén el tamaño actual del botón */
+  text-decoration: none;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+.add-btn:hover {
+  background-color: #218838;
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;  /* Reduce el margen superior de la tabla */
+}
+
+.employee-table th,
+.employee-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.employee-table th {
+  background-color: #007bff;
+  color: white;
+}
+
+.employee-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.employee-table tr:hover {
+  background-color: #ddd;
+}
+
+.edit-btn {
+  background-color: #ffc107;
+  color: white;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #e0a800;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* Centrar el título */
+.employee-container h2 {
+  text-align: center;
+}
