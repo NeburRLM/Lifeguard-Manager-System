@@ -361,6 +361,20 @@ app.get('/employee/:id/schedule', async (req, res) => {
     }
 });
 
+// Backend - Ruta para obtener el número total de facilities
+
+app.get('/facilityCount', async (req, res) => {
+    try {
+        const facilityCount = await dataSource.getRepository(FacilitySchema)
+            .createQueryBuilder("facility")
+            .getCount();
+
+        res.json({ facility: facilityCount });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error retrieving facilities count', error: error.message });
+    }
+});
 
 
 
