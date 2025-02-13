@@ -27,6 +27,8 @@ app.use((request, response, next) => {
     response.header('Access-Control-Allow-Headers', 'content-type');
     response.header('Access-Control-Allow-Credentials', 'true');
     response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
+    // Configuración Content-Security-Policy
+    //response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self'; script-src 'self';");
     next();
 });
 dataSource.initialize()
@@ -49,7 +51,8 @@ const authenticateToken = (req, res, next) => {
     // Verificar el token
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
         if (err) {
-            return res.status(401).send("Token no válido.");
+            //return res.status(401).send("Token no válido.");
+            return res.status(401).json({ message: "Token inválido o expirado." });
         }
 
         req.user = decoded;  // Decodificar el token y añadir la info al request
@@ -92,6 +95,53 @@ app.get('/employees', async (req, res) => {
         res.status(500).json({ message: 'Error retrieving employees', error: error.message });
     }
 });
+
+
+
+
+// Ruta para obtener el número total de empleados con los roles "Lifeguard" y "Coordinator"
+app.get('/employeeCount', async (req, res) => {
+    try {
+        // Contamos los empleados que tienen el rol "Lifeguard" o "Coordinator"
+        const employeeCount = await dataSource.getRepository(EmployeeSchema)
+            .createQueryBuilder("employee")
+            .where("employee.role IN (:...roles)", { roles: ["Lifeguard", "Coordinator"] })
+            .getCount(); // Contamos el número de registros que coinciden con los roles
+
+        // Responder con el conteo de empleados
+        res.json({ employee: employeeCount });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error retrieving employee count', error: error.message });
+    }
+});
+
+// Ruta para obtener el número total de empleados con el rol "Boss"
+app.get('/bossCount', async (req, res) => {
+    try {
+        // Contamos los empleados que tienen el rol "Boss"
+        const bossCount = await dataSource.getRepository(EmployeeSchema)
+            .createQueryBuilder("employee")
+            .where("employee.role = :role", { role: "Boss" })
+            .getCount(); // Contamos el número de registros que coinciden con el rol
+
+        // Responder con el conteo de jefes
+        res.json({ boss: bossCount });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error retrieving boss count', error: error.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -805,7 +855,10 @@ app.post('/login', async (req, res) => {
 });
 
 
-
+// Usar el middleware en rutas protegidas
+app.get("/dashboard", authenticateToken, (req, res) => {
+    res.json({ message: "Bienvenido al Dashboard", user: req.user });
+});
 
 
 app.listen(port, async () => {

@@ -1,5 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // 📌 Instala con: npm install jwt-decode
 
 // Guardar el token en localStorage
 /*export const setToken = (token) => {
@@ -22,8 +23,23 @@ export function RequireToken({ children }) {
   let location = useLocation();
 
   if (!auth) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
+
+  try {
+          const decoded = jwtDecode(auth);
+          const currentTime = Date.now() / 1000; // Convertir a segundos
+
+          if (decoded.exp < currentTime) {
+              // Si el token expiró, redirigir al login
+              sessionStorage.removeItem("Token");
+              return <Navigate to="/" state={{ from: location }} replace />;
+          }
+      } catch (error) {
+          console.error("Error al decodificar el token:", error);
+          sessionStorage.removeItem("Token");
+          return <Navigate to="/" state={{ from: location }} replace />;
+      }
 
   return children;
 }

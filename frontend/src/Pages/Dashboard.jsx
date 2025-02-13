@@ -6,7 +6,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const signOut = () => {
-    localStorage.removeItem("Token");
+    sessionStorage.removeItem("Token");
     navigate("/login");
   };
 
