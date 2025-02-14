@@ -8,12 +8,15 @@ function ManageEmployees() {
   const navigate = useNavigate();
 
   const [employees, setEmployees] = useState([]);
+  const [user, setUser] = useState(null); // Estado para el usuario logueado
 
     const signOut = () => {
             sessionStorage.removeItem("Token");
+            sessionStorage.removeItem("userId"); // También eliminamos el ID del usuario
             navigate("/");
           };
   useEffect(() => {
+    fetchData();
     fetch("http://localhost:4000/employees")
       .then((response) => response.json())
       .then((data) => {
@@ -25,6 +28,21 @@ function ManageEmployees() {
       })
       .catch((error) => console.log("Error fetching employees:", error));
   }, []);
+
+
+
+    const fetchData = () => {
+        // Obtener el ID del usuario almacenado en sessionStorage
+        const userId = sessionStorage.getItem("userId");
+        if (userId) {
+          fetch(`http://localhost:4000/employee/${userId}`)
+            .then((response) => response.json())
+            .then((data) => setUser(data))
+            .catch((err) => console.log("Error fetching user data:", err));
+        }
+      };
+
+
 
   const handleDelete = (id) => {
     fetch(`http://localhost:4000/delete/${id}`, { method: "DELETE" })
@@ -44,6 +62,15 @@ function ManageEmployees() {
       {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="logo">Admin Dashboard</h2>
+
+        {/* Imagen del usuario logueado */}
+                {user && (
+                  <div className="user-profile">
+                    <img src={user.image || "/default-avatar.jpg"} alt={user.name} className="profile-image" />
+                    <p className="user-name">{user.name}</p>
+                  </div>
+                )}
+
         <nav>
           <ul>
             <li><Link to="/dashboard">Dashboard</Link></li>

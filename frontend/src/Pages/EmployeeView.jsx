@@ -7,6 +7,7 @@ const EmployeeView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
+    const [user, setUser] = useState(null); // Estado para el usuario logueado
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -15,11 +16,24 @@ const EmployeeView = () => {
   };
 
   useEffect(() => {
+    fetchData();
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => setEmployee(data))
       .catch((error) => console.log("Error fetching employee data:", error));
   }, [id]);
+
+
+    const fetchData = () => {
+            // Obtener el ID del usuario almacenado en sessionStorage
+            const userId = sessionStorage.getItem("userId");
+            if (userId) {
+              fetch(`http://localhost:4000/employee/${userId}`)
+                .then((response) => response.json())
+                .then((data) => setUser(data))
+                .catch((err) => console.log("Error fetching user data:", err));
+            }
+          };
 
   if (!employee) return <div className="loading">Loading...</div>;
 
@@ -28,6 +42,14 @@ const EmployeeView = () => {
       {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="logo">Admin Dashboard</h2>
+
+        {/* Imagen del usuario logueado */}
+                        {user && (
+                          <div className="user-profile">
+                            <img src={user.image || "/default-avatar.jpg"} alt={user.name} className="profile-image" />
+                            <p className="user-name">{user.name}</p>
+                          </div>
+                        )}
         <nav>
           <ul>
             <li><Link to="/dashboard">Dashboard</Link></li>
