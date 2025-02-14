@@ -26,6 +26,7 @@ const Login = () => {
       if (response.ok) {
         //localStorage.setItem("Token", data.Token);
         sessionStorage.setItem("Token", data.Token);
+        sessionStorage.setItem("userId", id); // Guarda el ID del usuario
         navigate("/dashboard"); // Redirige a la página principal del sistema
       } else {
         setError(data.message || "Error al iniciar sesión.");

@@ -7,6 +7,7 @@ export const EmployeeSchema = new EntitySchema({
         id: {
             type: "varchar",
             primary: true,
+            unique: true,
             length: 9,
         },
         name: {
@@ -33,12 +34,18 @@ export const EmployeeSchema = new EntitySchema({
         phone_number: {
             type: "varchar", // Número de teléfono
             length: 15,
+            unique: true,
             nullable: true
         },
         hourlyRate: {
             type: "decimal",
             precision: 10,
             scale: 2
+        },
+        image: {
+            type: String,
+            nullable: true,
+            unique: true,
         }
     },
     relations: {

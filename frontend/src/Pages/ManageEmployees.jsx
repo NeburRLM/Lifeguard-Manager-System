@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaSignOutAlt } from "react-icons/fa"; // Añadir iconos
 import "./ManageEmployees.css"; // Archivo CSS
 
 function ManageEmployees() {
+
+  const navigate = useNavigate();
+
   const [employees, setEmployees] = useState([]);
 
+    const signOut = () => {
+            sessionStorage.removeItem("Token");
+            navigate("/");
+          };
   useEffect(() => {
     fetch("http://localhost:4000/employees")
       .then((response) => response.json())
@@ -41,7 +49,7 @@ function ManageEmployees() {
             <li><Link to="/dashboard">Dashboard</Link></li>
             <li><Link to="/employees">Manage Employees</Link></li>
             <li><Link to="/profile">Profile</Link></li>
-            <li><button className="logout-btn">Sign Out</button></li>
+            <li><button className="logout-btn" onClick={signOut}><FaSignOutAlt /> Sign Out</button></li>
           </ul>
         </nav>
       </aside>
@@ -62,6 +70,7 @@ function ManageEmployees() {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -70,8 +79,9 @@ function ManageEmployees() {
                 <tr key={index}>
                   <td>{employee.name}</td>
                   <td>{employee.email}</td>
+                  <td>{employee.role}</td>
                   <td>
-                    <Link to={`/employeeedit/${employee.id}`} className="edit-btn">✏ Edit</Link>
+                    <Link to={`/employeeview/${employee.id}`} className="edit-btn">👁 View</Link>
                     <button onClick={() => handleDelete(employee.id)} className="delete-btn">🗑 Delete</button>
                   </td>
                 </tr>

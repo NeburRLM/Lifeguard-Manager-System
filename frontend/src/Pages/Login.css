@@ -9,7 +9,12 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f0f2f5;
+  background-image: url('../../public/1.jpg'); /* Aquí puedes poner la URL de tu imagen */
+    background-size: cover; /* Hace que la imagen cubra toda la pantalla */
+    background-position: center; /* Centra la imagen */
+    background-attachment: fixed; /* Hace que la imagen no se desplace al hacer scroll */
+    padding: 0 20px; /* Para agregar un pequeño margen si es necesario */
+
 }
 
 .login-card {
