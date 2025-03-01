@@ -48,7 +48,7 @@
   background-color: #ddd;
 }
 
-.edit-btn {
+.view-btn {
   background-color: #ffc107;
   color: white;
   padding: 5px 10px;
@@ -57,7 +57,7 @@
   margin-right: 5px;
 }
 
-.edit-btn:hover {
+.view-btn:hover {
   background-color: #e0a800;
 }
 

@@ -31,7 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use((request, response, next) => {
     response.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    response.header('Access-Control-Allow-Headers', 'content-type');
+    response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     response.header('Access-Control-Allow-Credentials', 'true');
     response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
     // Configuración Content-Security-Policy
@@ -331,7 +331,7 @@ app.post('/employee', authenticateToken, async (req, res) => {
 
 
 
-app.put('/employee/:id', async (req, res) => {
+/*app.put('/employee/:id', async (req, res) => {
     const { id } = req.params;
     const { facilityId } = req.body;
 
@@ -372,6 +372,61 @@ app.put('/employee/:id', async (req, res) => {
         res.status(500).json({ message: 'Error al asignar el facility al empleado.', error: error.message });
     }
 });
+*/
+
+
+
+// Ruta para actualizar los datos de un empleado (incluyendo la imagen)
+app.put('/employee/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, email, role, birthdate, phone_number, hourlyRate } = req.body;
+
+  try {
+    const employeeRepository = dataSource.getRepository(EmployeeSchema);
+    const scheduleRepository = dataSource.getRepository(WorkScheduleSchema);
+
+    const employee = await employeeRepository.findOneBy({ id });
+    if (!employee) {
+      return res.status(404).send(`No se encontró ningún empleado con el ID "${id}".`);
+    }
+
+    // Actualizar los campos de texto
+    if (name) employee.name = name;
+    if (email) employee.email = email;
+    if (role) employee.role = role;
+    if (birthdate) employee.birthdate = birthdate;
+    if (phone_number) employee.phone_number = phone_number;
+    if (hourlyRate) employee.hourlyRate = hourlyRate;
+
+    // Aquí podrías agregar más lógica si necesitas manejar imágenes de otra manera
+    // Si tienes un campo 'image', también podrías actualizarlo aquí
+    if (req.body.image) {
+      const imagePath = req.body.image;  // Aquí puedes recibir la URL de la imagen directamente
+      employee.image = imagePath;
+    }
+    else
+    {
+        employee.image = null;
+    }
+
+    // Guardar los datos del empleado
+    await employeeRepository.save(employee);
+
+    res.status(200).json({
+      message: "Empleado actualizado correctamente",
+      employee,
+    });
+  } catch (error) {
+    console.error("Error al actualizar los datos del empleado:", error);
+    res.status(500).send("Error interno al actualizar los datos del empleado.");
+  }
+});
+
+
+
+
+
+
 
 
 

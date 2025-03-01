@@ -108,7 +108,7 @@ function ManageEmployees() {
                   <td>{employee.email}</td>
                   <td>{employee.role}</td>
                   <td>
-                    <Link to={`/employeeview/${employee.id}`} className="edit-btn">👁 View</Link>
+                    <Link to={`/employeeview/${employee.id}`} className="view-btn">👁 View</Link>
                     <button onClick={() => handleDelete(employee.id)} className="delete-btn">🗑 Delete</button>
                   </td>
                 </tr>
