@@ -34,6 +34,7 @@ app.use((request, response, next) => {
     response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     response.header('Access-Control-Allow-Credentials', 'true');
     response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
+
     // Configuración Content-Security-Policy
     //response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self'; script-src 'self';");
     next();
@@ -1078,34 +1079,72 @@ app.post('/payroll/generate', async (req, res) => {
 
 
 
-app.post('/employee/:id/work_schedule/:scheduleId/add_schedule', (req, res) => {
-  const { id, scheduleId } = req.params;
-  const { date, start_time, end_time, facilityId } = req.body;
+app.post('/employee/:id/work_schedule/:scheduleId/add_schedule', async (req, res) => {
+    const { id, scheduleId } = req.params;  // Obtenemos el ID del empleado y el scheduleId
+    const { date, start_time, end_time, facilityId } = req.body; // Datos del nuevo horario
 
-  // Encontrar al empleado por ID y el scheduleId correspondiente
-  const employee = employees.find(emp => emp.id === id);
-  const workSchedule = employee.work_schedule.find(schedule => schedule.id === scheduleId);
+    // Validación de datos: Aseguramos que se reciban los campos obligatorios
+    if (!date || !start_time || !end_time || !facilityId) {
+        return res.status(400).json({ message: "Faltan datos necesarios (date, start_time, end_time, facilityId)." });
+    }
 
-  // Si no se encuentra el work_schedule, devolver un error
-  if (!workSchedule) {
-    return res.status(404).send('Work schedule no encontrado');
-  }
+    try {
+        const workScheduleRepository = dataSource.getRepository(WorkScheduleSchema);
+        const scheduleRepository = dataSource.getRepository(ScheduleSchema);
+        const facilityRepository = dataSource.getRepository(FacilitySchema); // Repositorio para Facility
 
-  // Crear el nuevo horario y añadirlo al work_schedule
-  const newSchedule = {
-    id: generateNewScheduleId(),
-    date,
-    start_time,
-    end_time,
-    facility: { id: facilityId, name: getFacilityNameById(facilityId) },  // Dependiendo de cómo se manejen las instalaciones
-  };
+        // Buscar el work schedule correspondiente
+        const workSchedule = await workScheduleRepository.findOne({
+            where: { id: scheduleId },
+            relations: ['employee', 'schedules', 'employee.work_schedule', 'schedules.facility'],  // Traemos relaciones necesarias
+        });
 
-  // Agregar el nuevo horario al array de schedules
-  workSchedule.schedules.push(newSchedule);
+        if (!workSchedule) {
+            return res.status(404).json({ message: "Work schedule no encontrado." });
+        }
 
-  // Devolver el nuevo horario creado
-  res.status(201).json(newSchedule);
+        // Verificar que el work schedule corresponde al empleado que estamos pasando
+        if (workSchedule.employee.id !== id) {
+            return res.status(400).json({ message: "El work schedule no pertenece al empleado especificado." });
+        }
+
+        // Buscar la instalación correspondiente
+        const facility = await facilityRepository.findOne({ where: { id: facilityId } });
+
+        if (!facility) {
+            return res.status(404).json({ message: "Instalación no encontrada." });
+        }
+
+        // Crear el nuevo horario
+        const newSchedule = scheduleRepository.create({
+            date,
+            start_time,
+            end_time,
+            work_schedule: workSchedule,  // Relacionar con el work schedule encontrado
+            facility: facility,  // Relacionar con la instalación encontrada
+        });
+
+        // Guardar el nuevo horario en la base de datos
+        await scheduleRepository.save(newSchedule);
+
+        // Agregar el nuevo horario al array de schedules del workSchedule
+        workSchedule.schedules.push(newSchedule);
+
+        // Guardar los cambios en el workSchedule
+        await workScheduleRepository.save(workSchedule);
+
+        // Devolver el nuevo horario creado como respuesta
+        res.status(201).json({
+            message: "Horario agregado exitosamente.",
+            schedule: newSchedule
+        });
+    } catch (error) {
+        console.error("Error al agregar el horario:", error);
+        res.status(500).json({ message: "Error al agregar el horario.", error: error.message });
+    }
 });
+
+
 
 
 
