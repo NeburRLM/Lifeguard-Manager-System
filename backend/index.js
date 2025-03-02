@@ -1078,6 +1078,34 @@ app.post('/payroll/generate', async (req, res) => {
 
 
 
+app.post('/employee/:id/work_schedule/:scheduleId/add_schedule', (req, res) => {
+  const { id, scheduleId } = req.params;
+  const { date, start_time, end_time, facilityId } = req.body;
+
+  // Encontrar al empleado por ID y el scheduleId correspondiente
+  const employee = employees.find(emp => emp.id === id);
+  const workSchedule = employee.work_schedule.find(schedule => schedule.id === scheduleId);
+
+  // Si no se encuentra el work_schedule, devolver un error
+  if (!workSchedule) {
+    return res.status(404).send('Work schedule no encontrado');
+  }
+
+  // Crear el nuevo horario y añadirlo al work_schedule
+  const newSchedule = {
+    id: generateNewScheduleId(),
+    date,
+    start_time,
+    end_time,
+    facility: { id: facilityId, name: getFacilityNameById(facilityId) },  // Dependiendo de cómo se manejen las instalaciones
+  };
+
+  // Agregar el nuevo horario al array de schedules
+  workSchedule.schedules.push(newSchedule);
+
+  // Devolver el nuevo horario creado
+  res.status(201).json(newSchedule);
+});
 
 
 

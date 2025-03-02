@@ -17,9 +17,8 @@ const ScheduleView = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({ start: "", end: "", facility: "" });
 
-  // Obtener los datos del empleado y las instalaciones disponibles
-  useEffect(() => {
-    // Obtener datos del empleado y su horario
+  // Función para obtener los datos del empleado y su horario
+  const fetchEmployeeData = () => {
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => {
@@ -40,17 +39,25 @@ const ScheduleView = () => {
         setEvents(formattedEvents);
       })
       .catch((error) => console.log("Error fetching employee data:", error));
+  };
 
-    // Obtener las instalaciones disponibles
+  // Obtener las instalaciones disponibles
+  const fetchFacilities = () => {
     fetch("http://localhost:4000/facility")
       .then((response) => response.json())
       .then((data) => setFacilities(data))
       .catch((error) => console.log("Error fetching facilities:", error));
+  };
+
+  // Llamar a las funciones al cargar los datos
+  useEffect(() => {
+    fetchEmployeeData();
+    fetchFacilities();
   }, [id, scheduleId]);
 
   const handleSelectEvent = (event) => {
     console.log("Evento seleccionado:", event); // 👀 Verifica toda la info del evento
-      console.log("ID del schedule seleccionado:", event.id); // 🔥 Este es el ID que buscamos
+    console.log("ID del schedule seleccionado:", event.id); // 🔥 Este es el ID que buscamos
 
     setSelectedEvent(event);
     setFormData({
@@ -92,6 +99,8 @@ const ScheduleView = () => {
       setEvents(events.map((ev) => (ev.id === selectedEvent.id ? updatedEvent : ev)));
       setShowModal(false);
 
+      // Llamamos a fetchEmployeeData nuevamente para obtener los datos más recientes
+      fetchEmployeeData();
     } catch (error) {
       console.error("Error guardando el evento:", error);
     }
