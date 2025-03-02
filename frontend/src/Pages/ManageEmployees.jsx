@@ -45,17 +45,48 @@ function ManageEmployees() {
 
 
   const handleDelete = (id) => {
-    fetch(`http://localhost:4000/delete/${id}`, { method: "DELETE" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.Status === "Success") {
-          setEmployees(employees.filter((employee) => employee.id !== id)); // Eliminamos del estado
+    // Obtener el token del sessionStorage
+    const token = sessionStorage.getItem("Token");
+
+    // Verificar si el token está presente
+    if (!token) {
+      alert("No token found, please log in again.");
+      return;
+    }
+
+    // Configuración de la solicitud con el token en los encabezados
+    fetch(`http://localhost:4000/employee/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`, // Pasar el token en el encabezado Authorization
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        // Verificamos si la respuesta es exitosa
+        if (!response.ok) {
+          return Promise.reject("Error deleting employee");
+        }
+        return response.text();  // Cambiar .json() por .text()
+      })
+      .then((message) => {
+        // Verificamos el mensaje de la respuesta
+        if (message.includes("eliminado correctamente")) {  // Verificamos si el mensaje contiene "eliminado correctamente"
+          // Si la eliminación fue exitosa, actualizamos el estado de los empleados
+          setEmployees(employees.filter((employee) => employee.id !== id));
+          alert("Empleado eliminado correctamente");  // Ventanita emergente de éxito
         } else {
           alert("Error deleting employee");
         }
       })
-      .catch((error) => console.log("Error deleting employee:", error));
+      .catch((error) => {
+        console.log("Error deleting employee:", error);
+        alert("Error deleting employee");
+      });
   };
+
+
+
 
   return (
     <div className="dashboard-container">

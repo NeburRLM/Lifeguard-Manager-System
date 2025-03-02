@@ -1,38 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave } from "react-icons/fa"; // Añadir iconos
-import "./EmployeeView.css"; // Archivo CSS mejorado
+import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave } from "react-icons/fa";
+import "./EmployeeView.css";
 
 const EmployeeView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
-  const [user, setUser] = useState(null); // Estado para el usuario logueado
+  const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
-  const [originalEmployee, setOriginalEmployee] = useState(null); // Para almacenar los datos originales
+  const [originalEmployee, setOriginalEmployee] = useState(null);
 
-  // Función para cerrar sesión
   const signOut = () => {
     sessionStorage.removeItem("Token");
     sessionStorage.removeItem("userId");
     navigate("/");
   };
 
-  // Cargar datos del empleado
   useEffect(() => {
     fetchData();
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setEmployee(data);
-        setFormData(data); // Inicializa los datos del formulario
-        setOriginalEmployee({ ...data }); // Guardamos los datos originales para restaurarlos si es necesario
+        setFormData(data);
+        setOriginalEmployee({ ...data });
       })
       .catch((error) => console.log("Error fetching employee data:", error));
   }, [id]);
 
-  // Cargar datos del usuario logueado
   const fetchData = () => {
     const userId = sessionStorage.getItem("userId");
     if (userId) {
@@ -43,33 +40,60 @@ const EmployeeView = () => {
     }
   };
 
-  // Manejar cambios en los campos del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Manejar cambios en la imagen
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    const imageUrl = URL.createObjectURL(file);
-    setFormData({ ...formData, image: imageUrl });
+    if (file) {
+      setFormData((prevData) => ({
+        ...prevData,
+        file,
+        previewImage: URL.createObjectURL(file),
+      }));
+    }
   };
 
-  // Manejar el botón de eliminar imagen
   const handleDeleteImage = () => {
-    setFormData({ ...formData, image: "" }); // Sólo actualizamos la vista local, no el backend
+    setFormData({ ...formData, image: "", previewImage: null });
   };
 
-  // Manejar la cancelación de la edición
   const handleCancelEdit = () => {
-    setFormData({ ...originalEmployee }); // Restauramos los datos originales si se cancela la edición
+    setFormData({
+      ...employee,
+      previewImage: null,
+    });
     setIsEditing(false);
   };
 
-  // Manejar la acción de guardar
   const handleSave = async () => {
     try {
+      const token = sessionStorage.getItem("Token");
+      let imageUrl = formData.image;
+
+      // Si hay una nueva imagen, subirla primero
+      if (formData.file) {
+        const formDataImage = new FormData();
+        formDataImage.append("image", formData.file);
+
+        const uploadResponse = await fetch(`http://localhost:4000/employee/upload/${id}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formDataImage,
+        });
+
+        if (!uploadResponse.ok) {
+          console.error("Error al subir la imagen");
+          return;
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.employee.image;
+      }
+
+      // Datos que se enviarán en la actualización
       const dataToSend = {
         name: formData.name,
         email: formData.email,
@@ -77,48 +101,51 @@ const EmployeeView = () => {
         birthdate: formData.birthdate,
         phone_number: formData.phone_number,
         hourlyRate: formData.hourlyRate,
-        image: formData.image,  // Aquí solo mandamos la imagen que el usuario ha modificado o dejado vacía
+        image: imageUrl,
       };
 
       const response = await fetch(`http://localhost:4000/employee/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
-        // Después de guardar, actualizamos los datos del empleado
+        // 🛠️ *SOLUCIÓN*: Hacer una nueva petición para obtener los datos actualizados
         fetch(`http://localhost:4000/employee/${id}`)
           .then((res) => res.json())
           .then((updatedEmployee) => {
-            setEmployee(updatedEmployee); // Actualizamos el estado del empleado
-            setFormData(updatedEmployee);  // Restauramos los datos
-            setIsEditing(false);  // Terminamos el modo de edición
+            setEmployee(updatedEmployee);
+            setFormData(updatedEmployee);
+            setIsEditing(false);
           })
-          .catch((err) => console.log("Error fetching updated employee data:", err));
+          .catch((err) => console.error("Error al recargar los datos del empleado:", err));
       } else {
-        console.log("Error al guardar los cambios");
+        console.error("Error al guardar los cambios");
       }
     } catch (error) {
-      console.error("Error updating employee data:", error);
+      console.error("Error al actualizar el empleado:", error);
     }
   };
 
-  // Verificación de datos cargados
+
   if (!employee) return <div className="loading">Loading...</div>;
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="logo">Admin Dashboard</h2>
 
-        {/* Imagen del usuario logueado */}
         {user && (
           <div className="user-profile">
-            <img src={user.image || "/default-avatar.jpg"} alt={user.name} className="profile-image" />
+            <img
+              src={formData.previewImage || user.image || "/default-avatar.jpg"}
+              alt={user.name}
+              className="profile-image"
+            />
             <p className="user-name">{user.name}</p>
           </div>
         )}
@@ -128,24 +155,30 @@ const EmployeeView = () => {
             <li><Link to="/dashboard">Dashboard</Link></li>
             <li><Link to="/employees">Manage Employees</Link></li>
             <li><Link to="/profile">Profile</Link></li>
-            <li><button className="logout-btn" onClick={signOut}><FaSignOutAlt /> Sign Out</button></li>
+            <li>
+              <button className="logout-btn" onClick={signOut}>
+                <FaSignOutAlt /> Sign Out
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
 
-      {/* Contenido principal */}
       <main className="content">
         <header className="header">
           <h4>Employee Details</h4>
         </header>
 
-        {/* Detalles del empleado con imagen */}
         <div className="employee-details-container">
           <div className="employee-info">
             {isEditing ? (
               <>
                 <input type="file" accept="image/*" onChange={handleFileChange} />
-                <img src={formData.image || "/default-avatar.jpg"} alt="Employee" className="employee-image" />
+                <img
+                  src={formData.previewImage || formData.image || "/default-avatar.jpg"}
+                  alt="Employee"
+                  className="employee-image"
+                />
                 {formData.image && (
                   <button className="delete-image-btn" onClick={handleDeleteImage}>
                     Eliminar Imagen
@@ -191,7 +224,6 @@ const EmployeeView = () => {
           </div>
         </div>
 
-        {/* Cuadrantes de trabajo */}
         <div className="schedule-container">
           <h3>Work Schedule for {employee.name}</h3>
           <ul className="schedule-list">

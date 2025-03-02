@@ -265,7 +265,10 @@ app.post('/employee', authenticateToken, async (req, res) => {
 
     // Verificar que los datos no estén vacíos
     if (!employees || employees.length === 0) {
-        return res.status(400).send("Se requiere una lista de empleados.");
+        return res.status(400).json({
+            status: "Error",
+            message: "Se requiere una lista de empleados."
+        });
     }
 
     try {
@@ -282,13 +285,19 @@ app.post('/employee', authenticateToken, async (req, res) => {
 
             // Validar que todos los campos estén presentes
             if (!id || !name || !role || !email || !birthdate || !phone_number) {
-                return res.status(400).send("Todos los campos son requeridos.");
+                return res.status(400).json({
+                    status: "Error",
+                    message: "Todos los campos son requeridos."
+                });
             }
 
             // Verificar si ya existe un empleado con el mismo dni
             const existingEmployee = await employeeRepository.findOneBy({ id });
             if (existingEmployee) {
-                return res.status(409).send(`El empleado con el DNI "${id}" ya existe.`);
+                return res.status(409).json({
+                    status: "Error",
+                    message: `El empleado con el DNI "${id}" ya existe.`
+                });
             }
 
             // Verificar si el facilityId existe en la base de datos (si se proporcionó)
@@ -299,7 +308,10 @@ app.post('/employee', authenticateToken, async (req, res) => {
 
                 // Si no existe el facilityId, retornar error
                 if (!facility) {
-                    return res.status(404).send("El facility con el ID proporcionado no existe.");
+                    return res.status(404).json({
+                        status: "Error",
+                        message: "El facility con el ID proporcionado no existe."
+                    });
                 }
             }
 
@@ -320,15 +332,45 @@ app.post('/employee', authenticateToken, async (req, res) => {
             await employeeRepository.save(newEmployee);
         }
 
-        res.status(201).send("Empleados guardados correctamente.");
+        res.status(201).json({
+            status: "Success",
+            message: "Empleados guardados correctamente."
+        });
 
     } catch (error) {
         console.error("Error al guardar el empleado:", error);
-        res.status(500).send("Error al guardar el empleado.");
+        res.status(500).json({
+            status: "Error",
+            message: "Error al guardar el empleado."
+        });
     }
 });
 
 
+
+app.delete('/employee/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params; // Obtenemos el id del empleado desde los parámetros de la URL
+
+  try {
+    const employeeRepository = dataSource.getRepository(EmployeeSchema);
+
+    // Verificar si el empleado existe
+    const employee = await employeeRepository.findOne({ where: { id } });
+
+    if (!employee) {
+      return res.status(404).send(`Empleado con ID ${id} no encontrado.`);
+    }
+
+    // Eliminar el empleado
+    await employeeRepository.remove(employee);
+
+    // Respuesta exitosa
+    res.status(200).send(`Empleado con ID ${id} eliminado correctamente.`);
+  } catch (error) {
+    console.error("Error al eliminar el empleado:", error);
+    res.status(500).send("Error al eliminar el empleado.");
+  }
+});
 
 
 /*app.put('/employee/:id', async (req, res) => {

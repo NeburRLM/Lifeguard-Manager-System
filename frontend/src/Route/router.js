@@ -6,6 +6,7 @@ import ManageEmployees from "../Pages/ManageEmployees";
 import { RequireToken } from "../Components/Auth"; // Importamos la autenticación
 import EmployeeView from "../Pages/EmployeeView";
 import ScheduleView from "../Pages/ScheduleView";
+import AddEmployee from "../Pages/AddEmployee.jsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       path: "/employeeview/:id/schedule/:scheduleId", // Ruta para ver el empleado, con parámetro `id`
       element: <RequireToken><ScheduleView /></RequireToken>, // Protegemos la ruta
   },
+  {
+      path: "/create", // Ruta para agregar un nuevo empleado
+      element: <RequireToken><AddEmployee /></RequireToken>, // Protegemos la ruta
+    },
 
 ]);
 
