@@ -67,6 +67,11 @@ const AddEmployee = () => {
       });
   };
 
+  // Función para manejar el botón de cancelar
+  const handleCancel = () => {
+    navigate(-1); // Regresa a la página anterior sin agregar un empleado
+  };
+
   return (
     <div className="add-employee-container">
       <h2>Add New Employee</h2>
@@ -131,7 +136,12 @@ const AddEmployee = () => {
             required
           />
         </div>
-        <button type="submit">Add Employee</button>
+        <div className="button-group">
+          <button type="submit">Add Employee</button>
+          <button type="button" className="cancel-button" onClick={handleCancel}>
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );

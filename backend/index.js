@@ -770,6 +770,90 @@ app.put('/schedule/:id/time', async (req, res) => {
 });
 
 
+app.put('/employee/:employeeId/work_schedule/:scheduleId', async (req, res) => {
+    const { employeeId, scheduleId } = req.params;
+    const { start_time, end_time, facilityId } = req.body;
+
+    try {
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const scheduleRepository = dataSource.getRepository(ScheduleSchema);
+        const facilityRepository = dataSource.getRepository(FacilitySchema);
+
+        // Cargar el empleado con su work_schedule y schedules
+        const employee = await employeeRepository.findOne({
+            where: { id: employeeId },
+            relations: ['work_schedule', 'work_schedule.schedules']  // Cargar las schedules dentro del work_schedule
+        });
+
+        console.log("Empleado encontrado:", employee);  // Verifica que se recupere correctamente
+        console.log("Work schedule del empleado:", JSON.stringify(employee.work_schedule, null, 2));  // Verifica que se recupere el work_schedule
+
+        if (!employee) {
+            return res.status(404).send("Empleado no encontrado.");
+        }
+
+        // Buscar el work_schedule correspondiente al mes y año
+        const workSchedule = employee.work_schedule.find(work => {
+            console.log(`Comparando: ${work.month}-${work.year} con 3-2025`);
+            return work.month === 3 && work.year === 2025;  // Ajustar para el mes y año deseado
+        });
+
+        console.log("Work schedule encontrado:", JSON.stringify(workSchedule, null, 2));  // Verifica que se haya encontrado el work schedule
+
+        if (!workSchedule) {
+            return res.status(404).send("Work schedule no encontrado.");
+        }
+
+        // Verificar que el scheduleId recibido coincide con los ids de schedules
+        console.log("scheduleId recibido:", scheduleId);  // Imprimir el scheduleId recibido
+        console.log("Todos los horarios del work schedule:");
+        workSchedule.schedules.forEach(schedule => {
+            console.log(`- ${schedule.id} (Fecha: ${schedule.date})`);
+        });
+
+        // Buscar el horario específico dentro de work_schedule.schedules
+        const schedule = workSchedule.schedules.find(s => s.id === scheduleId);
+        console.log("Horario encontrado:", JSON.stringify(schedule, null, 2));  // Verifica que se haya encontrado el horario
+
+        if (!schedule) {
+            return res.status(404).send("Horario no encontrado dentro del work schedule.");
+        }
+
+        // Actualizar los valores del horario
+        if (start_time) schedule.start_time = start_time;
+        if (end_time) schedule.end_time = end_time;
+
+        // Buscar la instalación por el ID y actualizarla
+        if (facilityId) {
+            const facility = await facilityRepository.findOne({ where: { id: facilityId } });
+            console.log("Facility encontrado:", JSON.stringify(facility, null, 2));  // Verifica que la instalación esté bien
+            if (!facility) {
+                return res.status(404).send("Facility no encontrado.");
+            }
+            schedule.facility = facility;  // Actualizamos la instalación del evento
+        }
+
+        // Guardar el horario actualizado
+        await scheduleRepository.save(schedule);
+
+        // Devolver el horario actualizado
+        res.status(200).json(schedule);
+
+    } catch (error) {
+        console.error("Error al modificar el horario:", error);
+        res.status(500).send("Error interno del servidor.");
+    }
+});
+
+
+
+
+
+
+
+
+
+
 
 
 

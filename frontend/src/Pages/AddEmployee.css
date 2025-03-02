@@ -1,22 +1,57 @@
 .add-employee-container {
+  width: 400px; /* Ancho máximo de la tarjeta */
+  margin: 50px auto; /* Centrar la tarjeta */
   padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra para un efecto elegante */
+  text-align: center;
 }
 
 .form-group {
   margin-bottom: 15px;
+  text-align: left;
 }
 
-form input {
+.add-employee-container input {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
   margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
-button {
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.add-employee-container button {
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-employee-container .submit-button {
   background-color: #4CAF50;
   color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
+}
+
+.add-employee-container .submit-button:hover {
+  background-color: #45a049;
+}
+
+.add-employee-container .cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.add-employee-container .cancel-button:hover {
+  background-color: #d32f2f;
 }
