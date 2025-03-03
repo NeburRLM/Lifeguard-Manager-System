@@ -72,6 +72,7 @@ body {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  margin-top: 20px;
 }
 
 .schedule-container h3 {
@@ -80,12 +81,23 @@ body {
 }
 
 .schedule-list {
-  list-style: none;
-  padding: 0;
+  list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px; /* Ajusta la altura según sea necesario */
+    overflow-y: auto; /* Esto habilita el desplazamiento vertical */
+    border: 1px solid #ccc; /* Opcional, para darle borde a la lista */
+    background-color: #f9f9f9;
+    padding: 10px;
+    width: 100%; /* Hace que ocupe el 100% del ancho disponible */
+    box-sizing: border-box;
 }
 
 .schedule-item {
-  margin: 12px 0;
+   margin-bottom: 10px;
+     display: flex; /* Usamos flexbox para ajustar los elementos dentro del item */
+     justify-content: space-between; /* Asegura que los elementos dentro de cada cuadrante se distribuyan bien */
+     width: 100%;
 }
 
 .schedule-link {
@@ -138,3 +150,191 @@ body {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+
+.create-schedule-btn {
+  margin-bottom: 12px; /* Ajusta este margen para mover el botón hacia arriba */
+  margin-top: 12px; /* Mueve el botón hacia arriba, ajusta este valor según lo necesites */
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.create-schedule-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #2575fc, #6a11cb);
+}
+
+.plus-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.create-schedule-btn:hover .plus-icon {
+  transform: rotate(90deg);
+}
+
+/* Estilos del modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-title {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.input-group {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.input-group label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.confirm-btn, .cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.confirm-btn {
+  background: #4CAF50;
+  color: white;
+  margin-right: 10px;
+}
+
+.confirm-btn:hover {
+  background: #45a049;
+}
+
+.cancel-btn {
+  background: #d9534f;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #c9302c;
+}
+
+/* Animación del modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.input-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.input-group select:hover {
+  border-color: #6a11cb;
+}
+
+.input-group select:focus {
+  outline: none;
+  border-color: #2575fc;
+}
+
+.error-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f44336;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 300px;
+  opacity: 1;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.error-message button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.error-message button:hover {
+  opacity: 0.7;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    top: 0;
+  }
+  to {
+    opacity: 1;
+    top: 20px;
+  }
+}
+

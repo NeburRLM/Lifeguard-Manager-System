@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave } from "react-icons/fa";
+import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus } from "react-icons/fa";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
@@ -10,6 +10,35 @@ const EmployeeView = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [newSchedule, setNewSchedule] = useState({
+    month: 1, // Por defecto Enero
+    year: new Date().getFullYear(),
+  });
+const [errorTimeout, setErrorTimeout] = useState(null);
+
+ const months = [
+   { name: "Enero", value: 1 },
+   { name: "Febrero", value: 2 },
+   { name: "Marzo", value: 3 },
+   { name: "Abril", value: 4 },
+   { name: "Mayo", value: 5 },
+   { name: "Junio", value: 6 },
+   { name: "Julio", value: 7 },
+   { name: "Agosto", value: 8 },
+   { name: "Septiembre", value: 9 },
+   { name: "Octubre", value: 10 },
+   { name: "Noviembre", value: 11 },
+   { name: "Diciembre", value: 12 },
+ ];
+
+
+
+ const handleMonthChange = (event) => {
+   setNewSchedule({ ...newSchedule, month: parseInt(event.target.value) });
+ };
+
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -130,6 +159,56 @@ const EmployeeView = () => {
   };
 
 
+  const handleScheduleInputChange = (e) => {
+      setNewSchedule({ ...newSchedule, [e.target.name]: e.target.value });
+    };
+
+    const handleCreateSchedule = async () => {
+        try {
+          const token = sessionStorage.getItem("Token");
+          const response = await fetch(`http://localhost:4000/employee/${id}/work-schedule`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              month: newSchedule.month,
+              year: newSchedule.year,
+              schedules: [], // Suponiendo que solo pasas los horarios vacíos por ahora
+            }),
+          });
+
+          if (response.ok) {
+                  const createdSchedule = await response.json();
+                  setEmployee((prev) => ({
+                    ...prev,
+                    work_schedule: [...prev.work_schedule, createdSchedule],
+                  }));
+                  setShowScheduleModal(false);
+                } else {
+                  const error = await response.text();
+                  setErrorMessage(error);  // Mostrar el error recibido del backend
+
+                  // Borrar el mensaje después de 4 segundos
+                  if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout anterior si existiera
+                  setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000)); // Establecer nuevo timeout
+                }
+              } catch (error) {
+                setErrorMessage("Hubo un error al intentar crear el cuadrante.");
+
+                // Borrar el mensaje después de 4 segundos
+                if (errorTimeout) clearTimeout(errorTimeout);
+                setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000));
+              }
+            };
+
+      const handleCloseErrorModal = () => {
+          setErrorMessage("");  // Cerrar el modal de error
+          if (errorTimeout) clearTimeout(errorTimeout);  // Limpiar el timeout
+        };
+
+
   if (!employee) return <div className="loading">Loading...</div>;
 
   return (
@@ -224,6 +303,10 @@ const EmployeeView = () => {
 
         <div className="schedule-container">
           <h3>Work Schedule for {employee.name}</h3>
+          <button className="create-schedule-btn" onClick={() => setShowScheduleModal(true)}>
+            <FaPlus className="plus-icon" /> Nuevo Cuadrante
+          </button>
+
           <ul className="schedule-list">
             {employee.work_schedule && employee.work_schedule.length > 0 ? (
               employee.work_schedule.map((schedule) => (
@@ -239,8 +322,56 @@ const EmployeeView = () => {
           </ul>
         </div>
       </main>
+
+      {showScheduleModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="modal-title">Crear Nuevo Cuadrante</h3>
+
+            <div className="input-group">
+              <label>Mes</label>
+              <select value={newSchedule.month} onChange={handleMonthChange}>
+                <option value="">Seleccione un mes</option>
+                {months.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="input-group">
+              <label>Año</label>
+              <select name="year" value={newSchedule.year} onChange={handleScheduleInputChange}>
+                <option value="">Seleccione un año</option>
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i).map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="modal-buttons">
+              <button className="confirm-btn" onClick={handleCreateSchedule}>
+                <FaSave /> Guardar
+              </button>
+              <button className="cancel-btn" onClick={() => setShowScheduleModal(false)}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aquí se agregan las alertas o mensajes de error */}
+      {errorMessage && (
+              <div className="error-message">
+                <p>{errorMessage}</p>
+                <button onClick={handleCloseErrorModal}>×</button> {/* Botón para cerrar */}
+              </div>
+            )}
     </div>
   );
+
 };
 
 export default EmployeeView;

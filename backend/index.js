@@ -684,6 +684,14 @@ app.post('/employee/:id/work-schedule', async (req, res) => {
 
         const workScheduleRepository = dataSource.getRepository(WorkScheduleSchema);
 
+        // Verificar si el mes y año son del pasado
+        const currentDate = new Date();
+        const selectedDate = new Date(year, month - 1); // Los meses en JS empiezan en 0
+
+        if (selectedDate < currentDate) {
+            return res.status(400).send("No se puede crear un cuadrante para un mes/año pasado.");
+        }
+
         // Verificar si ya existe el cuadrante mensual para el mes y año proporcionado
         const existingWorkSchedule = await workScheduleRepository.findOne({
             where: { month, year, employee: { id } }
@@ -709,6 +717,7 @@ app.post('/employee/:id/work-schedule', async (req, res) => {
         res.status(500).send("Error al crear el cuadrante mensual.");
     }
 });
+
 
 
 
