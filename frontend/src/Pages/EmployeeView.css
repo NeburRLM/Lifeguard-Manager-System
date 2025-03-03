@@ -12,7 +12,6 @@ body {
   min-height: 100vh;
 }
 
-
 /* Encabezado */
 .header {
   background-color: #3498db;
@@ -49,7 +48,6 @@ body {
   border: 3px solid #ccc; /* Opcional: Agrega un borde */
 }
 
-
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -82,22 +80,22 @@ body {
 
 .schedule-list {
   list-style-type: none;
-    padding: 0;
-    margin: 0;
-    max-height: 300px; /* Ajusta la altura según sea necesario */
-    overflow-y: auto; /* Esto habilita el desplazamiento vertical */
-    border: 1px solid #ccc; /* Opcional, para darle borde a la lista */
-    background-color: #f9f9f9;
-    padding: 10px;
-    width: 100%; /* Hace que ocupe el 100% del ancho disponible */
-    box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  max-height: 300px; /* Ajusta la altura según sea necesario */
+  overflow-y: auto; /* Esto habilita el desplazamiento vertical */
+  border: 1px solid #ccc; /* Opcional, para darle borde a la lista */
+  background-color: #f9f9f9;
+  padding: 10px;
+  width: 100%; /* Hace que ocupe el 100% del ancho disponible */
+  box-sizing: border-box;
 }
 
 .schedule-item {
-   margin-bottom: 10px;
-     display: flex; /* Usamos flexbox para ajustar los elementos dentro del item */
-     justify-content: space-between; /* Asegura que los elementos dentro de cada cuadrante se distribuyan bien */
-     width: 100%;
+  margin-bottom: 10px;
+  display: flex; /* Usamos flexbox para ajustar los elementos dentro del item */
+  justify-content: space-between; /* Asegura que los elementos dentro de cada cuadrante se distribuyan bien */
+  width: 100%;
 }
 
 .schedule-link {
@@ -154,7 +152,7 @@ body {
 .create-schedule-btn {
   margin-bottom: 12px; /* Ajusta este margen para mover el botón hacia arriba */
   margin-top: 12px; /* Mueve el botón hacia arriba, ajusta este valor según lo necesites */
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
   color: white;
   border: none;
   padding: 12px 20px;
@@ -169,7 +167,7 @@ body {
 
 .create-schedule-btn:hover {
   transform: scale(1.05);
-  background: linear-gradient(135deg, #2575fc, #6a11cb);
+  background: linear-gradient(135deg, #00d2d3, #ff6a00);
 }
 
 .plus-icon {
@@ -229,37 +227,53 @@ body {
 
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* Alinea los botones a la izquierda */
+  gap: 10px; /* Espacio mínimo entre los botones */
   margin-top: 20px;
 }
 
-.confirm-btn, .cancel-btn {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
+/* Botón de Guardar (verde) */
+.save-btn.green-btn, .cancel-btn {
+  background-color: #28a745; /* Verde brillante para Guardar */
+  color: white;
+  border: 1px solid #28a745; /* Para Guardar, pero también asegúrate de que sea el mismo para Cancelar */
+  padding: 8px 16px;  /* Asegura que ambos botones sean pequeños */
+  font-size: 14px;  /* Tamaño más pequeño */
   cursor: pointer;
-  transition: 0.3s;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  width: auto;  /* Hacemos que los botones tengan tamaño adecuado */
+  display: inline-block;
 }
 
-.confirm-btn {
-  background: #4CAF50;
-  color: white;
-  margin-right: 10px;
+/* Añadimos espacio entre los botones */
+.save-btn.green-btn {
+  margin-right: 1mm;  /* Espacio de 1 cm a la derecha del botón Guardar */
 }
 
-.confirm-btn:hover {
-  background: #45a049;
-}
-
+/* Añadimos espacio entre los botones */
 .cancel-btn {
-  background: #d9534f;
-  color: white;
+  margin-left: 1mm;  /* Espacio de 1 cm a la izquierda del botón Cancelar */
 }
 
+/* Hover para Guardar */
+.save-btn.green-btn:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Hover para Cancelar */
 .cancel-btn:hover {
-  background: #c9302c;
+  background-color: #c9302c;
+  border-color: #c12e2a;
+}
+
+/* Estilos adicionales de Cancelar, si es necesario */
+.cancel-btn {
+  background-color: #d9534f;  /* Rojo brillante para Cancelar */
+  border: 1px solid #d9534f;
+  width: auto;  /* Asegura que no ocupen todo el ancho */
+  display: inline-block;  /* Hace que se alineen correctamente */
 }
 
 /* Animación del modal */

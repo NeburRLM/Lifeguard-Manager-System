@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort } from "react-icons/fa";
+import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort, FaTimes } from "react-icons/fa";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
@@ -295,8 +295,8 @@ const EmployeeView = () => {
           <div className="action-buttons">
             {isEditing ? (
               <>
-                <button className="save-btn" onClick={handleSave}><FaSave /> Guardar</button>
-                <button className="cancel-btn" onClick={handleCancelEdit}>Cancelar</button>
+                <button className="save-btn green-btn" onClick={handleSave}><FaSave /> Guardar</button>
+                <button className="cancel-btn" onClick={handleCancelEdit}><FaTimes />Cancelar</button>
               </>
             ) : (
               <button className="edit-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
@@ -368,13 +368,14 @@ const EmployeeView = () => {
             </div>
 
             <div className="modal-buttons">
-              <button className="confirm-btn" onClick={handleCreateSchedule}>
+              <button className="save-btn green-btn" onClick={handleCreateSchedule}>
                 <FaSave /> Guardar
               </button>
               <button className="cancel-btn" onClick={() => setShowScheduleModal(false)}>
-                Cancelar
+                <FaTimes /> Cancelar
               </button>
             </div>
+
           </div>
         </div>
       )}
