@@ -1,4 +1,4 @@
-/* General */
+/* Estilos generales */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f0f2f5;
@@ -25,7 +25,7 @@ body {
 /* Detalles del empleado */
 .employee-details-container {
   background-color: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   text-align: left;
@@ -37,7 +37,7 @@ body {
 .employee-info {
   display: flex;
   align-items: center;  /* Alinea verticalmente la imagen con el texto */
-  gap: 20px;  /* Espacio entre la imagen y la info */
+  gap: 30px;  /* Espacio entre la imagen y la info */
 }
 
 .employee-image {
@@ -58,6 +58,66 @@ body {
 .employee-details-container p {
   font-size: 18px;
   margin: 8px 0;
+}
+
+/* Botones de acción */
+.action-buttons {
+  display: flex;
+  justify-content: flex-start; /* Alinea los botones a la izquierda */
+  gap: 10px; /* Espacio entre los botones */
+  margin-top: 20px;
+}
+
+.edit-btn {
+  background-color: #f39c12;
+  border: none;
+  padding: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #e67e22;
+}
+
+.save-btn {
+  background-color: #28a745; /* Verde brillante para Guardar */
+  color: white;
+  border: 1px solid #28a745;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.save-btn:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.cancel-btn {
+  background-color: #d9534f; /* Rojo brillante para Cancelar */
+  color: white;
+  border: 1px solid #d9534f;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.cancel-btn:hover {
+  background-color: #c9302c;
+  border-color: #c12e2a;
+}
+
+.details-grid input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 /* Cuadrantes de trabajo */
@@ -126,29 +186,6 @@ body {
   padding: 50px;
 }
 
-.edit-btn {
-  background-color: #f39c12;
-  border: none;
-  padding: 10px;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-top: 15px;
-}
-
-.edit-btn:hover {
-  background-color: #e67e22;
-}
-
-.details-grid input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
 .create-schedule-btn {
   margin-bottom: 12px; /* Ajusta este margen para mover el botón hacia arriba */
   margin-top: 12px; /* Mueve el botón hacia arriba, ajusta este valor según lo necesites */
@@ -198,7 +235,7 @@ body {
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   width: 320px;
-  text-align: center;
+  text-align: left;
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -227,65 +264,13 @@ body {
 
 .modal-buttons {
   display: flex;
-  justify-content: flex-start; /* Alinea los botones a la izquierda */
-  gap: 10px; /* Espacio mínimo entre los botones */
+  gap: 10px; /* Espacio entre botones */
   margin-top: 20px;
 }
 
-/* Botón de Guardar (verde) */
 .save-btn.green-btn, .cancel-btn {
-  background-color: #28a745; /* Verde brillante para Guardar */
-  color: white;
-  border: 1px solid #28a745; /* Para Guardar, pero también asegúrate de que sea el mismo para Cancelar */
-  padding: 8px 16px;  /* Asegura que ambos botones sean pequeños */
-  font-size: 14px;  /* Tamaño más pequeño */
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-  width: auto;  /* Hacemos que los botones tengan tamaño adecuado */
-  display: inline-block;
-}
-
-/* Añadimos espacio entre los botones */
-.save-btn.green-btn {
-  margin-right: 1mm;  /* Espacio de 1 cm a la derecha del botón Guardar */
-}
-
-/* Añadimos espacio entre los botones */
-.cancel-btn {
-  margin-left: 1mm;  /* Espacio de 1 cm a la izquierda del botón Cancelar */
-}
-
-/* Hover para Guardar */
-.save-btn.green-btn:hover {
-  background-color: #218838;
-  border-color: #1e7e34;
-}
-
-/* Hover para Cancelar */
-.cancel-btn:hover {
-  background-color: #c9302c;
-  border-color: #c12e2a;
-}
-
-/* Estilos adicionales de Cancelar, si es necesario */
-.cancel-btn {
-  background-color: #d9534f;  /* Rojo brillante para Cancelar */
-  border: 1px solid #d9534f;
-  width: auto;  /* Asegura que no ocupen todo el ancho */
-  display: inline-block;  /* Hace que se alineen correctamente */
-}
-
-/* Animación del modal */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  width: auto; /* Hace que los botones tengan su tamaño adecuado */
+  display: inline-block; /* Asegura que los botones no se expandan */
 }
 
 .input-group select {
@@ -305,6 +290,18 @@ body {
 .input-group select:focus {
   outline: none;
   border-color: #2575fc;
+}
+
+/* Animación del modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .error-message {

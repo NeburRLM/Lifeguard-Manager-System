@@ -81,13 +81,51 @@
   text-align: center;
 }
 
-/* Alineación de los botones en la misma línea */
+/* Asegurar que la celda de acciones no tenga un fondo blanco */
 .employee-table td {
-  text-align: center; /* Centrar el contenido de las celdas de la tabla */
+  text-align: center;
+  vertical-align: middle;
 }
 
+/* Asegurar que los botones se muestran correctamente */
 .action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px; /* Separación entre los botones */
+   display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* Espaciado entre botones */
+    height: 100%; /* Ocupar toda la altura de la celda */
+}
+
+/* Estilos de los botones */
+.view-btn,
+.delete-btn {
+   padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Espacio entre el icono y el texto */
+    margin-top: -15px;
+}
+
+.view-btn {
+  background-color: #ffc107;
+  color: white;
+  text-decoration: none;
+}
+
+.view-btn:hover {
+  background-color: #e0a800;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
 }
