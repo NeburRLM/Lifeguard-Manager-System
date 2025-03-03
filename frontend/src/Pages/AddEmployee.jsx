@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AddEmployee.css"; // Aquí puedes agregar el CSS si lo necesitas
 
@@ -13,13 +13,23 @@ const AddEmployee = () => {
     phone_number: "",
   });
 
+  const [error, setError] = useState(""); // Estado para manejar los errores
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setError(""); // Limpiar el error cuando el usuario cambia algún campo
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validación del formato del DNI
+    const dniPattern = /^[0-9]{8}[A-Za-z]{1}$/; // 8 números seguidos de 1 letra
+    if (!dniPattern.test(formData.id)) {
+      setError("El DNI debe contener 8 números seguidos de una letra.");
+      return; // Si no es válido, no enviamos la solicitud
+    }
 
     // Recuperar el token desde sessionStorage
     const token = sessionStorage.getItem("Token");
@@ -41,13 +51,12 @@ const AddEmployee = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          // Si la respuesta no es exitosa, lanzamos un error
-          throw new Error("Error al agregar empleado");
+          return response.json(); // Si la respuesta no es exitosa, parseamos la respuesta JSON
         }
         return response.json(); // Si la respuesta es exitosa, procesamos el JSON
       })
       .then((data) => {
-        // Verifica el campo de la respuesta (ajusta esto según tu API)
+        console.log("Respuesta del servidor:", data); // Verifica qué contiene data en la consola
         if (data.status === "Success") {
           // Si todo ha ido bien, mostramos un mensaje de éxito
           alert("¡Empleado agregado con éxito!");
@@ -55,17 +64,33 @@ const AddEmployee = () => {
           navigate("/employees");
         } else {
           // Si hay algún error específico en la respuesta, lo mostramos
-          alert(data.message || "Hubo un error al agregar el empleado.");
+          console.log("Error específico:", data.message); // Verifica el mensaje de error recibido
+          if (data.message.includes("DNI")) {
+            setError("El DNI que ingresaste ya está registrado.");
+          } else if (data.message.includes("correo")) {
+            setError("El correo electrónico ya está registrado.");
+          } else {
+            setError(data.message || "Hubo un error al agregar el empleado.");
+          }
         }
       })
       .catch((error) => {
-        console.log("Error adding employee:", error);
+        console.log("Error al agregar empleado:", error);
         // Aquí también manejamos el caso de error de la solicitud
-        alert("Hubo un error al agregar el empleado.");
-        // Redirigimos al usuario de vuelta a la página anterior en caso de error
-        navigate(-1);  // Regresar a la página anterior
+        setError("Hubo un error al agregar el empleado.");
       });
   };
+
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(""); // Limpia el error después de 3 segundos
+      }, 3000);
+
+      return () => clearTimeout(timer); // Limpia el timer si el componente se desmonta
+    }
+  }, [error]);
 
   // Función para manejar el botón de cancelar
   const handleCancel = () => {
@@ -85,6 +110,9 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           />
+          {error && error.includes("DNI") && (
+            <div className="error-message">{error}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Name</label>
@@ -95,6 +123,9 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           />
+          {error && error.includes("Todos los campos") && (
+            <div className="error-message">{error}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Role</label>
@@ -105,6 +136,9 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           />
+          {error && error.includes("Todos los campos") && (
+            <div className="error-message">{error}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Email</label>
@@ -115,6 +149,9 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           />
+          {error && error.includes("correo") && (
+            <div className="error-message">{error}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Birthdate</label>
@@ -143,6 +180,9 @@ const AddEmployee = () => {
           </button>
         </div>
       </form>
+      {error && !error.includes("DNI") && !error.includes("correo") && (
+        <div className="error-message">{error}</div>
+      )}
     </div>
   );
 };

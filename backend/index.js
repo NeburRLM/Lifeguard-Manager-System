@@ -301,6 +301,15 @@ app.post('/employee', authenticateToken, async (req, res) => {
                 });
             }
 
+            // Verificar si ya existe un empleado con el mismo correo electrónico
+                        const existingEmail = await employeeRepository.findOneBy({ email });
+                        if (existingEmail) {
+                            return res.status(409).json({
+                                status: "Error",
+                                message: `El empleado con el correo "${email}" ya existe.`
+                            });
+                        }
+
             // Verificar si el facilityId existe en la base de datos (si se proporcionó)
             let facility = null;
             if (facilityId) {

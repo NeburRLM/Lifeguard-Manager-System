@@ -22,6 +22,11 @@
   border-radius: 5px;
 }
 
+.add-employee-container input.error {
+  border-color: red; /* Cambia el borde a rojo cuando hay error */
+  background-color: #f8d7da; /* Fondo rojo claro para el campo de error */
+}
+
 .button-group {
   display: flex;
   justify-content: space-between;
@@ -54,4 +59,29 @@
 
 .add-employee-container .cancel-button:hover {
   background-color: #d32f2f;
+}
+
+.error-message {
+  position: fixed;
+  top: 20px; /* Se coloca en la parte superior */
+  left: 50%;
+  transform: translateX(-50%); /* Centra el mensaje */
+  background-color: red;
+  color: white;
+  font-size: 16px; /* Tamaño de fuente más grande */
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-align: center;
+  opacity: 1;
+  z-index: 1000; /* Asegura que el mensaje esté encima de otros elementos */
+  animation: fadeOut 3s forwards; /* Aplica la animación de desvanecimiento */
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
