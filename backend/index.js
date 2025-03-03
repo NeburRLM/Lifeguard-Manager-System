@@ -688,7 +688,11 @@ app.post('/employee/:id/work-schedule', async (req, res) => {
         const currentDate = new Date();
         const selectedDate = new Date(year, month - 1); // Los meses en JS empiezan en 0
 
-        if (selectedDate < currentDate + 1) {
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+
+        // Verificar si el mes y año seleccionado son en el pasado
+        if (year < currentYear || (year === currentYear && month < currentMonth + 1)) {
             return res.status(400).send("No se puede crear un cuadrante para un mes/año pasado.");
         }
 

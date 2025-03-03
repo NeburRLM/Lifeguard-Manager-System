@@ -264,6 +264,7 @@ const ScheduleView = () => {
 const handleDeleteSchedule = async () => {
   if (!employee || !employee.work_schedule) return;
 
+  // Encuentra el 'workSchedule' a partir del 'scheduleId'
   const workSchedule = employee.work_schedule.find(ws => ws.id === scheduleId);
 
   if (!workSchedule) {
@@ -271,11 +272,10 @@ const handleDeleteSchedule = async () => {
     return;
   }
 
-  // Eliminar los schedules asociados al work schedule
   try {
-    // Eliminar todos los schedules primero
+    // Eliminar todos los schedules asociados al work schedule
     for (const schedule of workSchedule.schedules) {
-      const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}`, {
+      const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}/schedule/${schedule.id}`, {
         method: "DELETE",
       });
 
@@ -303,6 +303,7 @@ const handleDeleteSchedule = async () => {
     alert("Hubo un error al eliminar el cuadrante.");
   }
 };
+
 
 
 
