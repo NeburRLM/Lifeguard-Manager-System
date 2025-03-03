@@ -688,7 +688,7 @@ app.post('/employee/:id/work-schedule', async (req, res) => {
         const currentDate = new Date();
         const selectedDate = new Date(year, month - 1); // Los meses en JS empiezan en 0
 
-        if (selectedDate < currentDate) {
+        if (selectedDate < currentDate + 1) {
             return res.status(400).send("No se puede crear un cuadrante para un mes/año pasado.");
         }
 
@@ -780,8 +780,8 @@ app.put('/schedule/:id/time', async (req, res) => {
 });
 
 
-app.put('/employee/:employeeId/work_schedule/:scheduleId', async (req, res) => {
-    const { employeeId, scheduleId } = req.params;
+app.put('/employee/:employeeId/work_schedule/:workScheduleId/schedule/:scheduleId', async (req, res) => {
+    const { employeeId, workScheduleId, scheduleId } = req.params;
     const { start_time, end_time, facilityId } = req.body;
 
     try {
@@ -795,35 +795,19 @@ app.put('/employee/:employeeId/work_schedule/:scheduleId', async (req, res) => {
             relations: ['work_schedule', 'work_schedule.schedules']  // Cargar las schedules dentro del work_schedule
         });
 
-        console.log("Empleado encontrado:", employee);  // Verifica que se recupere correctamente
-        console.log("Work schedule del empleado:", JSON.stringify(employee.work_schedule, null, 2));  // Verifica que se recupere el work_schedule
-
         if (!employee) {
             return res.status(404).send("Empleado no encontrado.");
         }
 
-        // Buscar el work_schedule correspondiente al mes y año
-        const workSchedule = employee.work_schedule.find(work => {
-            console.log(`Comparando: ${work.month}-${work.year} con 3-2025`);
-            return work.month === 3 && work.year === 2025;  // Ajustar para el mes y año deseado
-        });
-
-        console.log("Work schedule encontrado:", JSON.stringify(workSchedule, null, 2));  // Verifica que se haya encontrado el work schedule
+        // Buscar el work_schedule por su ID
+        const workSchedule = employee.work_schedule.find(ws => ws.id === workScheduleId);
 
         if (!workSchedule) {
             return res.status(404).send("Work schedule no encontrado.");
         }
 
-        // Verificar que el scheduleId recibido coincide con los ids de schedules
-        console.log("scheduleId recibido:", scheduleId);  // Imprimir el scheduleId recibido
-        console.log("Todos los horarios del work schedule:");
-        workSchedule.schedules.forEach(schedule => {
-            console.log(`- ${schedule.id} (Fecha: ${schedule.date})`);
-        });
-
-        // Buscar el horario específico dentro de work_schedule.schedules
+        // Buscar el horario dentro del work_schedule usando el scheduleId
         const schedule = workSchedule.schedules.find(s => s.id === scheduleId);
-        console.log("Horario encontrado:", JSON.stringify(schedule, null, 2));  // Verifica que se haya encontrado el horario
 
         if (!schedule) {
             return res.status(404).send("Horario no encontrado dentro del work schedule.");
@@ -836,7 +820,6 @@ app.put('/employee/:employeeId/work_schedule/:scheduleId', async (req, res) => {
         // Buscar la instalación por el ID y actualizarla
         if (facilityId) {
             const facility = await facilityRepository.findOne({ where: { id: facilityId } });
-            console.log("Facility encontrado:", JSON.stringify(facility, null, 2));  // Verifica que la instalación esté bien
             if (!facility) {
                 return res.status(404).send("Facility no encontrado.");
             }
@@ -853,6 +836,40 @@ app.put('/employee/:employeeId/work_schedule/:scheduleId', async (req, res) => {
         console.error("Error al modificar el horario:", error);
         res.status(500).send("Error interno del servidor.");
     }
+});
+
+
+
+
+app.delete('/employee/:employeeId/work_schedule/:workScheduleId', async (req, res) => {
+  const { employeeId, workScheduleId } = req.params;
+
+  try {
+    // Paso 1: Buscar al empleado y su relación con el cuadrante de trabajo (con sus schedules)
+    const employee = await dataSource.getRepository(EmployeeSchema)
+      .createQueryBuilder("employee")
+      .leftJoinAndSelect("employee.work_schedule", "work_schedule")
+      .leftJoinAndSelect("work_schedule.schedules", "schedule") // Traemos los schedules asociados
+      .where("employee.id = :employeeId", { employeeId })
+      .andWhere("work_schedule.id = :workScheduleId", { workScheduleId })
+      .getOne();
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Empleado o cuadrante de trabajo no encontrado' });
+    }
+
+    // Paso 2: Eliminar el work_schedule (esto eliminará automáticamente los schedules debido al 'cascade' configurado)
+    await dataSource.getRepository(WorkScheduleSchema)
+      .createQueryBuilder()
+      .delete()
+      .where("id = :workScheduleId", { workScheduleId })
+      .execute();
+
+    return res.status(200).json({ message: 'Cuadrante de trabajo y sus schedules eliminados exitosamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al eliminar el cuadrante de trabajo', error: error.message });
+  }
 });
 
 

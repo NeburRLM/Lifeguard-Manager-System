@@ -92,67 +92,70 @@ const ScheduleView = () => {
 
   // Guarda un nuevo evento o actualiza uno existente
   const handleSave = async () => {
-    if (!formData.start || !formData.end || !formData.facility || !formData.date) return;
+      if (!formData.start || !formData.end || !formData.facility || !formData.date) return;
 
-    if (selectedEvent) {
-      const updatedEvent = {
-        ...selectedEvent,
-        start: `${formData.date}T${formData.start}:00`,
-        end: `${formData.date}T${formData.end}:00`,
-        facility: formData.facility,
-      };
-
-      try {
-        const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${selectedEvent.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            start_time: formData.start,
-            end_time: formData.end,
-            facilityId: formData.facility,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Error al actualizar el evento");
-
-        setEvents(events.map((ev) => (ev.id === selectedEvent.id ? updatedEvent : ev)));
-        setShowModal(false);
-        fetchEmployeeData();
-      } catch (error) {
-        console.error("Error guardando el evento:", error);
-      }
-    } else {
-      try {
-        const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}/add_schedule`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            date: formData.date,
-            start_time: formData.start,
-            end_time: formData.end,
-            facilityId: formData.facility,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Error al agregar el horario");
-
-        const createdSchedule = await response.json();
-        const formattedEvent = {
-          id: createdSchedule.id,
-          title: `${formData.start}h - ${formData.end}h\n${facilities.find(f => f.id === formData.facility)?.name}`,
-          start: new Date(`${formData.date}T${formData.start}:00`),
-          end: new Date(`${formData.date}T${formData.end}:00`),
+      if (selectedEvent) {
+        const workSchedule = employee.work_schedule.find(ws => ws.id === scheduleId);
+        const updatedEvent = {
+          ...selectedEvent,
+          start: `${formData.date}T${formData.start}:00`,
+          end: `${formData.date}T${formData.end}:00`,
           facility: formData.facility,
         };
 
-        setEvents([...events, formattedEvent]);
-        setShowModal(false);
-        fetchEmployeeData();
-      } catch (error) {
-        console.error("Error guardando el evento:", error);
+         try {
+              // Asumiendo que 'selectedEvent.workScheduleId' es el 'workScheduleId' y 'selectedEvent.id' es el 'scheduleId'
+              const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${workSchedule.id}/schedule/${selectedEvent.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  start_time: formData.start,
+                  end_time: formData.end,
+                  facilityId: formData.facility,
+                }),
+              });
+
+
+          if (!response.ok) throw new Error("Error al actualizar el evento");
+
+          setEvents(events.map((ev) => (ev.id === selectedEvent.id ? updatedEvent : ev)));
+          setShowModal(false);
+          fetchEmployeeData();
+        } catch (error) {
+          console.error("Error guardando el evento:", error);
+        }
+      } else {
+        try {
+          const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}/add_schedule`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              date: formData.date,
+              start_time: formData.start,
+              end_time: formData.end,
+              facilityId: formData.facility,
+            }),
+          });
+
+          if (!response.ok) throw new Error("Error al agregar el horario");
+
+          const createdSchedule = await response.json();
+          const formattedEvent = {
+            id: createdSchedule.id,
+            title: `${formData.start}h - ${formData.end}h\n${facilities.find(f => f.id === formData.facility)?.name}`,
+            start: new Date(`${formData.date}T${formData.start}:00`),
+            end: new Date(`${formData.date}T${formData.end}:00`),
+            facility: formData.facility,
+          };
+
+          setEvents([...events, formattedEvent]);
+          setShowModal(false);
+          fetchEmployeeData();
+        } catch (error) {
+          console.error("Error guardando el evento:", error);
+        }
       }
-    }
-  };
+    };
 
   // Elimina un evento
   const handleDelete = async () => {
@@ -258,6 +261,51 @@ const ScheduleView = () => {
     doc.save("cuadrante_trabajo.pdf");
   };
 
+const handleDeleteSchedule = async () => {
+  if (!employee || !employee.work_schedule) return;
+
+  const workSchedule = employee.work_schedule.find(ws => ws.id === scheduleId);
+
+  if (!workSchedule) {
+    alert("No se encontró el cuadrante de trabajo.");
+    return;
+  }
+
+  // Eliminar los schedules asociados al work schedule
+  try {
+    // Eliminar todos los schedules primero
+    for (const schedule of workSchedule.schedules) {
+      const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al eliminar el evento con ID ${schedule.id}`);
+      }
+    }
+
+    // Luego eliminar el work schedule
+    const response = await fetch(`http://localhost:4000/employee/${id}/work_schedule/${scheduleId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al eliminar el cuadrante de trabajo");
+    }
+
+    // Si todo es exitoso, actualizamos el estado y cerramos el modal
+    alert("Cuadrante de trabajo eliminado exitosamente");
+
+    // Redirigir a la página anterior (esto puede ser dinámico según el employeeId)
+    window.location.href = `/employeeview/${id}`; // Redirige a la página del empleado
+  } catch (error) {
+    console.error("Error eliminando el cuadrante:", error);
+    alert("Hubo un error al eliminar el cuadrante.");
+  }
+};
+
+
+
 
 
 
@@ -292,6 +340,9 @@ const ScheduleView = () => {
       <button onClick={handleDownloadPDF} className="download-pdf-btn">
         Descargar Cuadrante en PDF
       </button>
+       <button onClick={handleDeleteSchedule} className="delete-schedule-btn">
+         Eliminar Cuadrante
+       </button>
 
       {showModal && (
         <div className="modal-overlay">

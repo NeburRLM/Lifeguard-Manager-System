@@ -327,14 +327,110 @@ body {
   opacity: 0.7;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    top: 0;
-  }
-  to {
-    opacity: 1;
-    top: 20px;
-  }
+/* Contenedor de "Ordenar por" */
+.sort-container {
+  position: relative; /* Esto es clave para posicionar el desplegable correctamente */
 }
 
+/* Estilos del desplegable de opciones */
+.sort-options {
+  position: absolute; /* Lo hace aparecer justo debajo del botón */
+  top: 100%; /* Coloca el desplegable justo debajo */
+  left: 0; /* Alineado a la izquierda del botón */
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  z-index: 10; /* Asegura que el desplegable esté por encima de otros elementos */
+  width: 100%; /* Esto asegura que el desplegable tenga el mismo ancho que el botón */
+  padding: 10px 0; /* Espaciado interno para las opciones */
+}
+
+.sort-option {
+  padding: 10px;
+  background-color: white;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.sort-option:hover {
+  background-color: #f0f0f0;
+}
+
+/* Estilo para el botón de "Ordenar por" */
+.sort-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.sort-btn:hover {
+  background-color: #2980b9;
+}
+
+.sort-btn svg {
+  margin-right: 10px;
+}
+
+/* Contenedor que tiene el botón "Ordenar por" */
+.schedule-actions {
+  display: flex;
+  justify-content: space-between; /* Esto mueve los botones hacia los extremos */
+  align-items: center;
+}
+
+/* Contenedor del desplegable "Ordenar por" */
+.sort-container {
+  position: relative;
+}
+
+/* Botón "Ordenar por" */
+.sort-btn {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos del desplegable */
+.sort-options {
+  position: absolute;
+  top: 100%; /* Lo posiciona justo debajo del botón */
+  right: 0; /* Lo alinea a la derecha del botón */
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: auto;
+  max-width: 200px; /* Limita el ancho del desplegable */
+  padding: 10px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo de las opciones del desplegable */
+.sort-option {
+  background-color: white;
+  color: #333;
+  padding: 8px 16px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+}
+
+.sort-option:hover {
+  background-color: #f0f0f0;
+}

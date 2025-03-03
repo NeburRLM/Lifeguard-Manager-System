@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus } from "react-icons/fa";
+import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort } from "react-icons/fa";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
@@ -16,29 +16,27 @@ const EmployeeView = () => {
     month: 1, // Por defecto Enero
     year: new Date().getFullYear(),
   });
-const [errorTimeout, setErrorTimeout] = useState(null);
+  const [errorTimeout, setErrorTimeout] = useState(null);
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
- const months = [
-   { name: "Enero", value: 1 },
-   { name: "Febrero", value: 2 },
-   { name: "Marzo", value: 3 },
-   { name: "Abril", value: 4 },
-   { name: "Mayo", value: 5 },
-   { name: "Junio", value: 6 },
-   { name: "Julio", value: 7 },
-   { name: "Agosto", value: 8 },
-   { name: "Septiembre", value: 9 },
-   { name: "Octubre", value: 10 },
-   { name: "Noviembre", value: 11 },
-   { name: "Diciembre", value: 12 },
- ];
+  const months = [
+    { name: "Enero", value: 1 },
+    { name: "Febrero", value: 2 },
+    { name: "Marzo", value: 3 },
+    { name: "Abril", value: 4 },
+    { name: "Mayo", value: 5 },
+    { name: "Junio", value: 6 },
+    { name: "Julio", value: 7 },
+    { name: "Agosto", value: 8 },
+    { name: "Septiembre", value: 9 },
+    { name: "Octubre", value: 10 },
+    { name: "Noviembre", value: 11 },
+    { name: "Diciembre", value: 12 },
+  ];
 
-
-
- const handleMonthChange = (event) => {
-   setNewSchedule({ ...newSchedule, month: parseInt(event.target.value) });
- };
-
+  const handleMonthChange = (event) => {
+    setNewSchedule({ ...newSchedule, month: parseInt(event.target.value) });
+  };
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -141,7 +139,6 @@ const [errorTimeout, setErrorTimeout] = useState(null);
       });
 
       if (response.ok) {
-        // 🛠️ *SOLUCIÓN*: Hacer una nueva petición para obtener los datos actualizados
         fetch(`http://localhost:4000/employee/${id}`)
           .then((res) => res.json())
           .then((updatedEmployee) => {
@@ -158,56 +155,62 @@ const [errorTimeout, setErrorTimeout] = useState(null);
     }
   };
 
-
   const handleScheduleInputChange = (e) => {
-      setNewSchedule({ ...newSchedule, [e.target.name]: e.target.value });
-    };
+    setNewSchedule({ ...newSchedule, [e.target.name]: e.target.value });
+  };
 
-    const handleCreateSchedule = async () => {
-        try {
-          const token = sessionStorage.getItem("Token");
-          const response = await fetch(`http://localhost:4000/employee/${id}/work-schedule`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              month: newSchedule.month,
-              year: newSchedule.year,
-              schedules: [], // Suponiendo que solo pasas los horarios vacíos por ahora
-            }),
-          });
+  const handleCreateSchedule = async () => {
+    try {
+      const token = sessionStorage.getItem("Token");
+      const response = await fetch(`http://localhost:4000/employee/${id}/work-schedule`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          month: newSchedule.month,
+          year: newSchedule.year,
+          schedules: [], // Suponiendo que solo pasas los horarios vacíos por ahora
+        }),
+      });
 
-          if (response.ok) {
-                  const createdSchedule = await response.json();
-                  setEmployee((prev) => ({
-                    ...prev,
-                    work_schedule: [...prev.work_schedule, createdSchedule],
-                  }));
-                  setShowScheduleModal(false);
-                } else {
-                  const error = await response.text();
-                  setErrorMessage(error);  // Mostrar el error recibido del backend
+      if (response.ok) {
+        const createdSchedule = await response.json();
+        setEmployee((prev) => ({
+          ...prev,
+          work_schedule: [...prev.work_schedule, createdSchedule],
+        }));
+        setShowScheduleModal(false);
+      } else {
+        const error = await response.text();
+        setErrorMessage(error); // Mostrar el error recibido del backend
 
-                  // Borrar el mensaje después de 4 segundos
-                  if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout anterior si existiera
-                  setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000)); // Establecer nuevo timeout
-                }
-              } catch (error) {
-                setErrorMessage("Hubo un error al intentar crear el cuadrante.");
+        if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout anterior si existiera
+        setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000)); // Establecer nuevo timeout
+      }
+    } catch (error) {
+      setErrorMessage("Hubo un error al intentar crear el cuadrante.");
 
-                // Borrar el mensaje después de 4 segundos
-                if (errorTimeout) clearTimeout(errorTimeout);
-                setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000));
-              }
-            };
+      if (errorTimeout) clearTimeout(errorTimeout);
+      setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000));
+    }
+  };
 
-      const handleCloseErrorModal = () => {
-          setErrorMessage("");  // Cerrar el modal de error
-          if (errorTimeout) clearTimeout(errorTimeout);  // Limpiar el timeout
-        };
+  const handleCloseErrorModal = () => {
+    setErrorMessage(""); // Cerrar el modal de error
+    if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout
+  };
 
+  const sortSchedules = (order) => {
+    const sortedSchedules = [...employee.work_schedule].sort((a, b) => {
+      const dateA = new Date(a.year, a.month - 1);
+      const dateB = new Date(b.year, b.month - 1);
+      return order === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    setEmployee({ ...employee, work_schedule: sortedSchedules });
+    setShowSortOptions(false); // Cerrar el desplegable después de seleccionar una opción
+  };
 
   if (!employee) return <div className="loading">Loading...</div>;
 
@@ -303,9 +306,23 @@ const [errorTimeout, setErrorTimeout] = useState(null);
 
         <div className="schedule-container">
           <h3>Work Schedule for {employee.name}</h3>
-          <button className="create-schedule-btn" onClick={() => setShowScheduleModal(true)}>
-            <FaPlus className="plus-icon" /> Nuevo Cuadrante
-          </button>
+          <div className="schedule-actions">
+            <button className="create-schedule-btn" onClick={() => setShowScheduleModal(true)}>
+              <FaPlus className="plus-icon" /> Nuevo Cuadrante
+            </button>
+            <div className="sort-container">
+                <button className="sort-btn" onClick={() => setShowSortOptions(!showSortOptions)}>
+                  <FaSort /> Ordenar por
+                </button>
+                {showSortOptions && (
+                  <div className="sort-options">
+                    <button className="sort-option" onClick={() => sortSchedules("asc")}>Mes y Año Ascendente</button>
+                    <button className="sort-option" onClick={() => sortSchedules("desc")}>Mes y Año Descendente</button>
+                  </div>
+                )}
+              </div>
+
+          </div>
 
           <ul className="schedule-list">
             {employee.work_schedule && employee.work_schedule.length > 0 ? (
@@ -362,16 +379,14 @@ const [errorTimeout, setErrorTimeout] = useState(null);
         </div>
       )}
 
-      {/* Aquí se agregan las alertas o mensajes de error */}
       {errorMessage && (
-              <div className="error-message">
-                <p>{errorMessage}</p>
-                <button onClick={handleCloseErrorModal}>×</button> {/* Botón para cerrar */}
-              </div>
-            )}
+        <div className="error-message">
+          <p>{errorMessage}</p>
+          <button onClick={handleCloseErrorModal}>×</button>
+        </div>
+      )}
     </div>
   );
-
 };
 
 export default EmployeeView;
