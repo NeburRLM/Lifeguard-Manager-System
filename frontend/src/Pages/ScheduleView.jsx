@@ -17,7 +17,7 @@ const ScheduleView = () => {
   const [employee, setEmployee] = useState(null);
   const [events, setEvents] = useState([]);
   const [facilities, setFacilities] = useState([]);
-  const [currentView, setCurrentView] = useState("week");
+  const [currentView, setCurrentView] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);

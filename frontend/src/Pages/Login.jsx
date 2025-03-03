@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
@@ -7,6 +7,12 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+ useEffect(() => {
+     if (sessionStorage.getItem("Token")) {
+       navigate("/dashboard");
+     }
+   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +33,7 @@ const Login = () => {
         //localStorage.setItem("Token", data.Token);
         sessionStorage.setItem("Token", data.Token);
         sessionStorage.setItem("userId", id); // Guarda el ID del usuario
-        navigate("/dashboard"); // Redirige a la página principal del sistema
+       navigate("/dashboard", { replace: true }); // Redirige a la página principal del sistema
       } else {
         setError(data.message || "Error al iniciar sesión.");
       }
