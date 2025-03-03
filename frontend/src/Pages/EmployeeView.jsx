@@ -10,7 +10,6 @@ const EmployeeView = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
-  const [originalEmployee, setOriginalEmployee] = useState(null);
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -25,7 +24,6 @@ const EmployeeView = () => {
       .then((data) => {
         setEmployee(data);
         setFormData(data);
-        setOriginalEmployee({ ...data });
       })
       .catch((error) => console.log("Error fetching employee data:", error));
   }, [id]);

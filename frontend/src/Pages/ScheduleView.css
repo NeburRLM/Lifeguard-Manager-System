@@ -1,13 +1,13 @@
 /* General Calendar */
 .schedule-view-container {
   padding: 30px;
-  background-color: #f9f9f9;
+  background-color: #f5f5f5;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Título del cuadrante */
 .schedule-view-container h2 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #333;
   text-align: center;
   margin-bottom: 30px;
@@ -51,6 +51,7 @@
 .rbc-event:hover {
   background-color: #1565C0;
   cursor: pointer;
+  transform: scale(1.05);
 }
 
 .rbc-event-content {
@@ -68,7 +69,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -80,13 +81,12 @@
   padding: 30px;
   border-radius: 12px;
   width: 500px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   z-index: 1060;
   position: relative;
   transition: transform 0.3s ease;
 }
 
-/* Cruz de cierre */
 /* Cruz de cierre */
 .close-modal {
   font-size: 1.6rem;
@@ -103,7 +103,6 @@
   color: #333;
 }
 
-
 /* Estilos del formulario en el modal */
 .modal-body form {
   display: flex;
@@ -112,12 +111,13 @@
 }
 
 .modal-body label {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #555;
   font-weight: 600;
 }
 
-.modal-body input {
+.modal-body input,
+.modal-body select {
   padding: 12px;
   font-size: 1rem;
   border: 1px solid #ddd;
@@ -125,7 +125,8 @@
   transition: border-color 0.2s ease;
 }
 
-.modal-body input:focus {
+.modal-body input:focus,
+.modal-body select:focus {
   outline: none;
   border-color: #1976D2;
 }
@@ -174,6 +175,9 @@
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .rbc-toolbar button {
@@ -217,4 +221,18 @@
   cursor: pointer;
   color: white;
   border-radius: 8px;
+}
+
+.download-pdf-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.download-pdf-btn:hover {
+  background-color: #1565C0;
 }

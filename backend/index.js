@@ -1145,6 +1145,55 @@ app.post('/employee/:id/work_schedule/:scheduleId/add_schedule', async (req, res
 });
 
 
+app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSpecificId', async (req, res) => {
+    const { employeeId, scheduleId, scheduleSpecificId } = req.params;
+
+    try {
+        //console.log(`Empleado ID: ${employeeId}, Work Schedule ID: ${scheduleId}, Schedule Specific ID: ${scheduleSpecificId}`);
+
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const scheduleRepository = dataSource.getRepository(ScheduleSchema);
+
+        // Cargar el empleado con su work_schedule y schedules
+        const employee = await employeeRepository.findOne({
+            where: { id: employeeId },
+            relations: ['work_schedule', 'work_schedule.schedules']
+        });
+
+        if (!employee) {
+            console.log("Empleado no encontrado.");
+            return res.status(404).send("Empleado no encontrado.");
+        }
+
+        // Buscar el work_schedule correspondiente
+        const workSchedule = employee.work_schedule.find(work => work.id === scheduleId);
+        if (!workSchedule) {
+            console.log("Work schedule no encontrado.");
+            return res.status(404).send("Work schedule no encontrado.");
+        }
+
+        // Buscar el horario específico dentro del work_schedule
+        const scheduleIndex = workSchedule.schedules.findIndex(s => s.id === scheduleSpecificId);
+        if (scheduleIndex === -1) {
+            console.log("Horario específico no encontrado.");
+            return res.status(404).send("Horario no encontrado dentro del work schedule.");
+        }
+
+        // Eliminar el horario
+        workSchedule.schedules.splice(scheduleIndex, 1);
+
+        // Guardar los cambios en el work_schedule
+        await employeeRepository.save(employee);
+
+        // Enviar una respuesta de éxito
+        res.status(200).send("Horario eliminado con éxito.");
+    } catch (error) {
+        console.error("Error al eliminar el horario:", error);
+        res.status(500).send("Error interno del servidor.");
+    }
+});
+
+
 
 
 
