@@ -81,19 +81,17 @@
   text-align: center;
 }
 
+/* Alineación de los botones en la misma línea */
 /* Asegurar que la celda de acciones no tenga un fondo blanco */
 .employee-table td {
   text-align: center;
   vertical-align: middle;
 }
 
-/* Asegurar que los botones se muestran correctamente */
 .action-buttons {
-   display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px; /* Espaciado entre botones */
-    height: 100%; /* Ocupar toda la altura de la celda */
+  display: flex;
+  justify-content: center;
+  gap: 8px; /* Separación entre los botones */
 }
 
 /* Estilos de los botones */
