@@ -1,0 +1,84 @@
+/* General */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f5f7;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1, h2, h3 {
+  color: #333;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Main Content */
+.content-map {
+  display: flex;
+  justify-content: center; /* Centra los elementos en el eje horizontal */
+  align-items: center; /* Centra los elementos en el eje vertical */
+  flex: 1;
+  gap: 40px; /* Añade espacio entre el mapa y los detalles de la instalación */
+  padding: 20px; /* Añadimos padding para que no toquen los bordes */
+}
+
+.main-content {
+  margin-left: 250px;
+  padding: 20px;
+  width: 100%;
+}
+
+.facility-view {
+  display: flex;
+  flex-direction: column; /* Cambiamos flex-direction a column */
+  width: 100%;
+  max-width: 1200px; /* Añadimos un max-width para limitar el ancho máximo */
+}
+
+.facility-map {
+  height: 600px; /* Aumenta la altura del mapa */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.facility-details {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.facility-details h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #2C3E50;
+}
+
+.facility-details p {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin: 10px 0;
+}
+
+.facility-details strong {
+  color: #34495e;
+}

@@ -501,9 +501,9 @@ app.post('/facility', async (req, res) => {
         const facilityRepository = dataSource.getRepository(FacilitySchema);
 
         for (const facility of facilities) {
-            const { name, location, facility_type } = facility;
+            const { name, location, facility_type, latitude, longitude } = facility;
 
-            // Verificar que todos los campos estén presentes
+            // Verificar que todos los campos esenciales estén presentes
             if (!name || !location || !facility_type) {
                 return res.status(400).send("Todos los campos son obligatorios.");
             }
@@ -518,8 +518,25 @@ app.post('/facility', async (req, res) => {
                 return res.status(409).send(`Ya existe una instalación con el nombre "${name}" y ubicación "${location}".`);
             }
 
-            // Crear el nuevo facility
-            await facilityRepository.save(facility);  // Guardar la instalación
+            // Verificar que las coordenadas sean correctas si están presentes
+            if (latitude && longitude) {
+                // Verificar que las coordenadas sean números
+                if (isNaN(latitude) || isNaN(longitude)) {
+                    return res.status(400).send("Las coordenadas de latitud y longitud deben ser números.");
+                }
+            }
+
+            // Crear el nuevo facility con las coordenadas si están presentes
+            const newFacility = {
+                name,
+                location,
+                facility_type,
+                latitude: latitude || null,  // Si no se proporcionan coordenadas, las dejamos como null
+                longitude: longitude || null  // Si no se proporcionan coordenadas, las dejamos como null
+            };
+
+            // Guardar la instalación
+            await facilityRepository.save(newFacility);
         }
 
         res.status(201).send("Instalaciones guardadas correctamente.");
@@ -532,12 +549,58 @@ app.post('/facility', async (req, res) => {
 
 
 
+
 // Ruta para obtener todos los facilities
 app.get('/facility', async (request, response) => {
     const facilitiesRepository = dataSource.getRepository(FacilitySchema);
     const facilities = await facilitiesRepository.find()
     response.json(facilities)
 });
+
+
+app.get('/facility/:id', async (request, response) => {
+    const { id } = request.params;  // Obtén el id de la URL
+    const facilitiesRepository = dataSource.getRepository(FacilitySchema);
+
+    try {
+        // Buscar la facility con el id especificado
+        const facility = await facilitiesRepository.findOne({ where: { id } });
+
+        if (!facility) {
+            return response.status(404).json({ message: 'Facility not found' });
+        }
+
+        response.json(facility);
+    } catch (error) {
+        response.status(500).json({ message: 'Error retrieving the facility', error: error.message });
+    }
+});
+
+
+app.delete('/facility/:id', async (request, response) => {
+    const { id } = request.params;
+
+    try {
+        const facilitiesRepository = dataSource.getRepository(FacilitySchema);
+
+        // Buscar la facility en la base de datos
+        const facility = await facilitiesRepository.findOne({ where: { id } });
+
+        if (!facility) {
+            return response.status(404).json({ message: "Facility not found" });
+        }
+
+        // Eliminar la facility
+        await facilitiesRepository.remove(facility);
+
+        return response.json({ message: "Facility eliminada correctamente" });
+    } catch (error) {
+        console.error("Error deleting facility:", error);
+        return response.status(500).json({ message: "Error deleting facility" });
+    }
+});
+
+
 
 // horarios de un empleado en un día específico
 app.get('/employee/:id/schedule', async (req, res) => {

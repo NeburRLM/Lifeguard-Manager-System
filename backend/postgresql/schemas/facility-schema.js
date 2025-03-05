@@ -20,6 +20,14 @@ export const FacilitySchema = new EntitySchema({
         facility_type: {
             type: "enum",
             enum: ["Pool", "Beach"]
+        },
+        latitude: {
+            type: "float",
+            nullable: true
+        },
+        longitude: {
+            type: "float",
+            nullable: true
         }
     },
 
