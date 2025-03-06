@@ -82,3 +82,8 @@ ul {
 .facility-details strong {
   color: #34495e;
 }
+
+.error-message {
+  opacity: 3;
+  transition: opacity 3s ease-in-out;
+}

@@ -321,9 +321,10 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 300px;
-  opacity: 1;
-  animation: fadeIn 0.5s ease-out;
+  opacity: 3; /* Se mantiene visible */
+  transition: opacity 3s ease-out; /* Solo para el desvanecimiento al ocultarse */
 }
+
 
 .error-message button {
   background: transparent;

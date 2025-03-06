@@ -11,14 +11,12 @@ const EmployeeView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [newSchedule, setNewSchedule] = useState({
     month: 1, // Por defecto Enero
     year: new Date().getFullYear(),
   });
-  const [errorTimeout, setErrorTimeout] = useState(null);
   const [showSortOptions, setShowSortOptions] = useState(false);
-
+  const [error, setError] = useState(""); // Estado para errores
   const months = [
     { name: "Enero", value: 1 },
     { name: "Febrero", value: 2 },
@@ -68,6 +66,7 @@ const EmployeeView = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setError(""); // Limpiar error al escribir
   };
 
   const handleFileChange = (e) => {
@@ -184,23 +183,20 @@ const EmployeeView = () => {
         setShowScheduleModal(false);
       } else {
         const error = await response.text();
-        setErrorMessage(error); // Mostrar el error recibido del backend
-
-        if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout anterior si existiera
-        setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000)); // Establecer nuevo timeout
+        //setErrorMessage(error); // Mostrar el error recibido del backend
+        setError(error);
       }
     } catch (error) {
-      setErrorMessage("Hubo un error al intentar crear el cuadrante.");
-
-      if (errorTimeout) clearTimeout(errorTimeout);
-      setErrorTimeout(setTimeout(() => setErrorMessage(''), 4000));
+      setError("Hubo un error al intentar crear el cuadrante.");
     }
   };
+  useEffect(() => {
+     if (error) {
+       const timer = setTimeout(() => setError(""), 4000);
+       return () => clearTimeout(timer);
+     }
+   }, [error]);
 
-  const handleCloseErrorModal = () => {
-    setErrorMessage(""); // Cerrar el modal de error
-    if (errorTimeout) clearTimeout(errorTimeout); // Limpiar el timeout
-  };
 
   const sortSchedules = (order) => {
     const sortedSchedules = [...employee.work_schedule].sort((a, b) => {
@@ -367,7 +363,7 @@ const EmployeeView = () => {
                 ))}
               </select>
             </div>
-
+            {error && <div className="error-message">{error}</div>}
             <div className="modal-buttons">
               <button className="save-btn green-btn" onClick={handleCreateSchedule}>
                 <FaSave /> Guardar
@@ -381,12 +377,7 @@ const EmployeeView = () => {
         </div>
       )}
 
-      {errorMessage && (
-        <div className="error-message">
-          <p>{errorMessage}</p>
-          <button onClick={handleCloseErrorModal}>×</button>
-        </div>
-      )}
+
     </div>
   );
 };
