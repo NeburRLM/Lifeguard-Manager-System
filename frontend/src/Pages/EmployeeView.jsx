@@ -127,7 +127,13 @@ const EmployeeView = () => {
         hourlyRate: formData.hourlyRate,
         image: imageUrl,
       };
+      // Validar que todos los campos esenciales estén presentes
+      const { name, email, role, birthdate, phone_number, hourlyRate } = formData;
 
+      if (!name || !email || !role || !birthdate || !phone_number || hourlyRate === "") {
+        alert("Todos los campos son obligatorios.");
+        return; // Detiene la ejecución si hay un campo vacío
+      }
       const response = await fetch(`http://localhost:4000/employee/${id}`, {
         method: "PUT",
         headers: {

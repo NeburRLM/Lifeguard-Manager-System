@@ -631,6 +631,76 @@ app.delete('/facility/:id', async (request, response) => {
 
 
 
+
+
+app.put('/facility/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, location, facility_type, latitude, longitude } = req.body;
+
+    // Verificar que el ID es válido
+    if (!id) {
+        return res.status(400).json({ message: "Se requiere un ID de instalación válido." });
+    }
+
+    // Verificar que todos los campos esenciales están presentes
+    if (!name || !location || !facility_type || !latitude || !longitude) {
+        return res.status(400).json({
+            status: "Error",
+            message: "Todos los campos son obligatorios."
+        });
+    }
+
+    try {
+        const facilityRepository = dataSource.getRepository(FacilitySchema);
+
+        // Buscar la instalación a actualizar
+        const existingFacility = await facilityRepository.findOneBy({ id });
+
+        if (!existingFacility) {
+            return res.status(404).json({
+                status: "Error",
+                message: `No se encontró ninguna instalación con el ID ${id}.`
+            });
+        }
+
+        // Verificar que las coordenadas sean números válidos
+        if (isNaN(latitude) || isNaN(longitude)) {
+            return res.status(400).json({
+                status: "Error",
+                message: "Las coordenadas de latitud y longitud deben ser números."
+            });
+        }
+
+        // Actualizar los valores
+        existingFacility.name = name;
+        existingFacility.location = location;
+        existingFacility.facility_type = facility_type;
+        existingFacility.latitude = latitude;
+        existingFacility.longitude = longitude;
+
+        // Guardar los cambios
+        await facilityRepository.save(existingFacility);
+
+        res.status(200).json({
+            status: "Success",
+            message: "Instalación actualizada correctamente."
+        });
+
+    } catch (error) {
+        console.error("Error al actualizar la instalación:", error);
+        res.status(500).json({
+            status: "Error",
+            message: "Error al actualizar la instalación."
+        });
+    }
+});
+
+
+
+
+
+
+
 // horarios de un empleado en un día específico
 app.get('/employee/:id/schedule', async (req, res) => {
     const { id } = req.params;

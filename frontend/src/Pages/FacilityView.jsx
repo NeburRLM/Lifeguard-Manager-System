@@ -69,20 +69,33 @@ const FacilityView = () => {
   };
 
   const handleSaveClick = async () => {
+    // Validar que todos los campos esenciales estén presentes
+    const { name, location, facility_type, latitude, longitude } = editedFacility;
+
+    if (!name || !location || !facility_type || latitude === "" || longitude === "") {
+      alert("Todos los campos son obligatorios.");
+      return; // Detiene la ejecución si hay un campo vacío
+    }
+
     try {
       const response = await fetch(`http://localhost:4000/facility/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editedFacility),
       });
+
       if (response.ok) {
         setFacility(editedFacility);
         setEditing(false);
+      } else {
+        alert("Hubo un error al actualizar la instalación.");
       }
     } catch (error) {
       console.error("Error updating facility data:", error);
+      alert("Error al conectar con el servidor.");
     }
   };
+
 
   if (!facility) return <div className="loading">Loading...</div>;
 
@@ -138,10 +151,6 @@ const FacilityView = () => {
 
             {editing ? (
               <div className="edit-container">
-                <div className="edit-buttons">
-                  <button className="save-btn" onClick={handleSaveClick}><FaSave /> Guardar</button>
-                  <button className="cancel-btn" onClick={handleCancelClick}><FaTimes /> Cancelar</button>
-                </div>
                 <div className="edit-fields">
                   <label>Nombre:</label>
                   <input name="name" value={editedFacility.name} onChange={handleChange} />
@@ -158,6 +167,10 @@ const FacilityView = () => {
                   <label>Longitud:</label>
                   <input name="longitude" value={editedFacility.longitude} onChange={handleChange} />
                 </div>
+                <div className="edit-buttons">
+                  <button className="save-btn" onClick={handleSaveClick}><FaSave /> Guardar</button>
+                  <button className="cancel-btn" onClick={handleCancelClick}><FaTimes /> Cancelar</button>
+                </div>
               </div>
             ) : (
               <div>
@@ -171,6 +184,7 @@ const FacilityView = () => {
                 )}
               </div>
             )}
+
 
 
           </main>
