@@ -39,7 +39,9 @@ const EmployeeView = () => {
   const signOut = () => {
     sessionStorage.removeItem("Token");
     sessionStorage.removeItem("userId");
-    navigate("/");
+
+    navigate("/", { replace: true });
+    window.history.pushState(null, "", "/"); // Evita que el usuario pueda regresar con el botón atrás
   };
 
   useEffect(() => {

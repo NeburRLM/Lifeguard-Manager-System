@@ -11,10 +11,13 @@ function ManageEmployees() {
   const [user, setUser] = useState(null); // Estado para el usuario logueado
 
     const signOut = () => {
-            sessionStorage.removeItem("Token");
-            sessionStorage.removeItem("userId"); // También eliminamos el ID del usuario
-            navigate("/");
-          };
+        sessionStorage.removeItem("Token");
+        sessionStorage.removeItem("userId"); // También eliminamos el ID del usuario
+
+        navigate("/", { replace: true });
+        window.history.pushState(null, "", "/"); // Evita que el usuario pueda regresar con el botón atrás
+    };
+
   useEffect(() => {
     fetchData();
     fetch("http://localhost:4000/employees")
