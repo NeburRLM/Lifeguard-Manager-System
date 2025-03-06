@@ -122,7 +122,7 @@ function ManageEmployees() {
         <div className="employee-container">
           <h2>Employee List</h2>
           <div className="add-btn-container">
-            <Link to="/create" className="add-btn">➕ Add Employee</Link>
+            <Link to="/createEmployee" className="add-btn">➕ Add Employee</Link>
           </div>
           <table className="employee-table">
             <thead>

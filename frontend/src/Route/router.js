@@ -6,7 +6,8 @@ import ManageEmployees from "../Pages/ManageEmployees";
 import { RequireToken } from "../Components/Auth"; // Importamos la autenticación
 import EmployeeView from "../Pages/EmployeeView";
 import ScheduleView from "../Pages/ScheduleView";
-import AddEmployee from "../Pages/AddEmployee.jsx";
+import AddEmployee from "../Pages/AddEmployee";
+import AddFacility from "../Pages/AddFacility";
 import ManageFacilities from "../Pages/ManageFacilities";
 import FacilityView from "../Pages/FacilityView"
 
@@ -32,7 +33,7 @@ const router = createBrowserRouter([
       element: <RequireToken><ScheduleView /></RequireToken>, // Protegemos la ruta
   },
   {
-      path: "/create", // Ruta para agregar un nuevo empleado
+      path: "/createEmployee", // Ruta para agregar un nuevo empleado
       element: <RequireToken><AddEmployee /></RequireToken>, // Protegemos la ruta
    },
    {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
    {
       path: "/facilityview/:id", // Ruta para ver el empleado, con parámetro `id`
       element: <RequireToken><FacilityView /></RequireToken>, // Protegemos la ruta
+   },
+   {
+         path: "/createFacility", // Ruta para agregar un nuevo empleado
+         element: <RequireToken><AddFacility /></RequireToken>, // Protegemos la ruta
    },
 
 ]);

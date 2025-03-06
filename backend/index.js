@@ -494,7 +494,7 @@ app.post('/facility', async (req, res) => {
 
     // Verificar que los datos no estén vacíos
     if (!facilities || facilities.length === 0) {
-        return res.status(400).send("Se requiere una lista de instalaciones.");
+        return res.status(400).json({ message: "Se requiere una lista de instalaciones." });
     }
 
     try {
@@ -504,48 +504,77 @@ app.post('/facility', async (req, res) => {
             const { name, location, facility_type, latitude, longitude } = facility;
 
             // Verificar que todos los campos esenciales estén presentes
-            if (!name || !location || !facility_type) {
-                return res.status(400).send("Todos los campos son obligatorios.");
+            if (!name || !location || !facility_type || !latitude || !longitude) {
+                return res.status(400).json({
+                    status: "Error",
+                    message: "Todos los campos son obligatorios."
+                });
             }
 
             // Verificar si ya existe una instalación con el mismo nombre y ubicación
-            const existingFacility = await facilityRepository.findOneBy({
+            const existingFacilityN = await facilityRepository.findOneBy({
                 name,
                 location
             });
+            const existingFacilityLL = await facilityRepository.findOneBy({
+                latitude,
+                longitude
+            });
 
-            if (existingFacility) {
-                return res.status(409).send(`Ya existe una instalación con el nombre "${name}" y ubicación "${location}".`);
+            if (existingFacilityN) {
+                return res.status(409).json({
+                    status: "Error",
+                    message: `Ya existe una instalación con el nombre "${name}" y ubicación "${location}".`
+                });
             }
 
             // Verificar que las coordenadas sean correctas si están presentes
             if (latitude && longitude) {
                 // Verificar que las coordenadas sean números
                 if (isNaN(latitude) || isNaN(longitude)) {
-                    return res.status(400).send("Las coordenadas de latitud y longitud deben ser números.");
+                    return res.status(400).json({ // Código 400 porque es error de datos de entrada
+                        status: "Error",
+                        message: "Las coordenadas de latitud y longitud deben ser números."
+                    });
                 }
             }
+
+            if (existingFacilityLL) {
+                return res.status(409).json({
+                    status: "Error",
+                    message: `Ya existe una instalación en las coordenadas "${latitude}", "${longitude}".`
+                });
+            }
+
+
 
             // Crear el nuevo facility con las coordenadas si están presentes
             const newFacility = {
                 name,
                 location,
                 facility_type,
-                latitude: latitude || null,  // Si no se proporcionan coordenadas, las dejamos como null
-                longitude: longitude || null  // Si no se proporcionan coordenadas, las dejamos como null
+                latitude,
+                longitude
             };
 
             // Guardar la instalación
             await facilityRepository.save(newFacility);
         }
 
-        res.status(201).send("Instalaciones guardadas correctamente.");
+        res.status(201).json({
+            status: "Success",
+            message: "Instalaciones guardadas correctamente."
+        });
 
     } catch (error) {
         console.error("Error al guardar el facility:", error);
-        res.status(500).send("Error al guardar el facility.");
+        res.status(500).json({
+            status: "Error",
+            message: "Error al guardar el facility."
+        });
     }
 });
+
 
 
 

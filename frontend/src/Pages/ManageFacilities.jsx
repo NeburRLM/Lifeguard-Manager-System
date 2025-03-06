@@ -121,6 +121,9 @@ const handleDelete = (id) => {
 
         <div className="facility-container">
           <h2>Facility List</h2>
+           <div className="add-btn-container">
+             <Link to="/createFacility" className="add-btn">➕ Add Facility</Link>
+           </div>
           <table className="facility-table">
             <thead>
               <tr>

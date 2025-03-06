@@ -85,8 +85,8 @@ const AddEmployee = () => {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        setError(""); // Limpia el error después de 3 segundos
-      }, 3000);
+        setError(""); // Limpia el error después de 5 segundos
+      }, 5000);
 
       return () => clearTimeout(timer); // Limpia el timer si el componente se desmonta
     }

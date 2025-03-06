@@ -101,7 +101,7 @@ const FacilityView = () => {
             {coordinates ? (
               <MapContainer
                 center={coordinates}
-                zoom={15}
+                zoom={17}
                 className="map"
                 style={{ height: "600px", width: "100%" }} // Ajustamos el estilo aquí también
               >
