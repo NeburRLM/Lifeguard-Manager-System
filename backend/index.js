@@ -1360,6 +1360,24 @@ app.get('/payroll/:employeeId', async (req, res) => {
 
 
 
+app.delete('/payroll/:payrollId', async (req, res) => {
+    const { payrollId } = req.params;
+
+    try {
+        const payrollRepository = dataSource.getRepository(PayrollSchema);
+        const payroll = await payrollRepository.findOne({ where: { id: payrollId } });
+
+        if (!payroll) {
+            return res.status(404).json({ error: `No se encontró la nómina con ID ${payrollId}.` });
+        }
+
+        await payrollRepository.remove(payroll);
+        res.status(200).json({ message: "Nómina eliminada exitosamente." });
+    } catch (error) {
+        console.error("Error al eliminar la nómina:", error);
+        res.status(500).json({ error: "Error interno del servidor." });
+    }
+});
 
 
 
