@@ -6,6 +6,8 @@ import { WorkScheduleSchema } from './postgresql/schemas/work-schedule.js';  // 
 import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';  // Ajusta la ruta según tu proyecto
 import { IncidentSchema } from './postgresql/schemas/incident-schema.js';  // Ajusta la ruta según tu proyecto
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
+import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
+import { Between } from 'typeorm';  // Importa Between de typeorm
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -1216,66 +1218,149 @@ app.get('/incidents/type/:type', async (req, res) => {
 
 
 
+
+
+
+app.post('/attendance', async (req, res) => {
+    const { employeeId, check_in, check_out, date, facilityId } = req.body;
+
+    // Comprobar si falta algún dato importante
+    if (!employeeId || !check_in || !check_out || !date || !facilityId) {
+        return res.status(400).json({ error: "Se requiere el ID del empleado, hora de entrada, hora de salida, fecha y el ID de la instalación." });
+    }
+
+    try {
+        // Buscar al empleado en la base de datos
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const employee = await employeeRepository.findOne({ where: { id: employeeId } });
+
+        if (!employee) {
+            return res.status(404).json({ error: `Empleado con ID ${employeeId} no encontrado.` });
+        }
+
+        // Buscar la instalación (facility) en la base de datos
+        const facilityRepository = dataSource.getRepository(FacilitySchema);
+        const facility = await facilityRepository.findOne({ where: { id: facilityId } });
+
+        if (!facility) {
+            return res.status(404).json({ error: `Instalación con ID ${facilityId} no encontrada.` });
+        }
+
+        // Crear el nuevo registro de asistencia
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+        const newAttendance = attendanceRepository.create({
+            employee,
+            check_in,
+            check_out,
+            date,
+            facility // Asegúrate de asociar la instalación (facility)
+        });
+
+        // Guardar la nueva asistencia en la base de datos
+        await attendanceRepository.save(newAttendance);
+
+        // Responder con la asistencia creada
+        res.status(201).json(newAttendance);
+    } catch (error) {
+        console.error("Error al crear la asistencia:", error);
+        res.status(500).json({ error: "Error interno del servidor al crear la asistencia." });
+    }
+});
+
+
+
+
+
+
 app.post('/payroll/generate', async (req, res) => {
-    const { employeeId, month, year } = req.body;  // Se espera mes y año en el cuerpo de la solicitud
+    const { employeeId, month, year } = req.body;
 
-        // Validar que los datos estén presentes
-        if (!month || !year) {
-            return res.status(400).send("Se requiere el mes y el año para generar la nómina.");
+    if (!employeeId || !month || !year) {
+        return res.status(400).json({ error: "Se requiere el ID del empleado, mes y año para generar la nómina." });
+    }
+
+    try {
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const employee = await employeeRepository.findOne({ where: { id: employeeId } });
+
+        if (!employee) {
+            return res.status(404).json({ error: `Empleado con ID ${employeeId} no encontrado.` });
         }
 
-        try {
-            // Buscar el empleado con el ID proporcionado
-            const employeeRepository = dataSource.getRepository(EmployeeSchema);
-            const employee = await employeeRepository.findOne({ where: { id: employeeId } });
-
-            if (!employee) {
-                return res.status(404).send(`Empleado con ID ${employeeId} no encontrado.`);
+        // Buscar los fichajes del empleado en ese mes y año
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+        const attendances = await attendanceRepository.find({
+            where: {
+                employee: { id: employeeId },
+                date: Between(`${year}-${month}-01`, `${year}-${month}-31`)
             }
+        });
 
-            // Obtener el cuadrante de trabajo del empleado para el mes y año
-            const workScheduleRepository = dataSource.getRepository(WorkScheduleSchema);
-            const workSchedule = await workScheduleRepository.findOne({
-                where: { employee: { id: employeeId }, month, year },
-                relations: ['schedules']  // Obtener los horarios asociados
-            });
+        if (!attendances.length) {
+            return res.status(404).json({ error: `No hay registros de asistencia para el mes ${month} y año ${year} para el empleado ${employeeId}.` });
+        }
 
-            if (!workSchedule) {
-                return res.status(404).send(`No se encontró el cuadrante de trabajo para el mes ${month} y año ${year} para el empleado ${employeeId}.`);
-            }
-
-            // Calcular las horas trabajadas en el mes
-            let totalHours = 0;
-            workSchedule.schedules.forEach(schedule => {
-                const start = new Date(`${schedule.date} ${schedule.start_time}`);
-                const end = new Date(`${schedule.date} ${schedule.end_time}`);
-                const workedHours = (end - start) / (1000 * 60 * 60);  // Calcular las horas trabajadas
+        // Calcular las horas trabajadas
+        let totalHours = 0;
+        attendances.forEach(attendance => {
+            if (attendance.check_out) {
+                const start = new Date(attendance.check_in);
+                const end = new Date(attendance.check_out);
+                const workedHours = (end - start) / (1000 * 60 * 60);
                 totalHours += workedHours;
-            });
+            }
+        });
 
-            // Calcular el monto total según las horas trabajadas y la tarifa por hora
-            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);  // Usar la tarifa por hora del empleado
-            const amount = totalHours * hourlyRate;
+        // Calcular el monto de la nómina
+        const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+        const amount = totalHours * hourlyRate;
 
-            // Crear la nómina
-            const payrollRepository = dataSource.getRepository(PayrollSchema);
-            const newPayroll = payrollRepository.create({
-                month,
-                year,
-                total_hours: totalHours,
-                amount,
-                employee  // Asociar la nómina con el empleado
-            });
+        // Crear la nómina
+        const payrollRepository = dataSource.getRepository(PayrollSchema);
+        const newPayroll = payrollRepository.create({
+            month,
+            year,
+            total_hours: totalHours,
+            amount,
+            employee
+        });
 
-            // Guardar la nómina en la base de datos
-            await payrollRepository.save(newPayroll);
+        await payrollRepository.save(newPayroll);
 
-            res.status(201).json(newPayroll);  // Devolver la nómina creada
-        } catch (error) {
-            console.error("Error al crear la nómina:", error);
-            res.status(500).send("Error al crear la nómina.");
+        res.status(201).json(newPayroll);
+    } catch (error) {
+        console.error("Error al crear la nómina:", error);
+        res.status(500).json({ error: "Error interno del servidor al generar la nómina." });
+    }
+});
+
+
+
+app.get('/payroll/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+
+    try {
+        const payrollRepository = dataSource.getRepository(PayrollSchema);
+        const payrolls = await payrollRepository.find({
+            where: { employee: { id: employeeId } },
+            order: { year: "DESC", month: "DESC" }
+        });
+
+        // Si no hay nóminas, devolvemos un arreglo vacío en lugar de un error 404
+        if (!payrolls || payrolls.length === 0) {
+            return res.status(200).json([]); // Respuesta con un arreglo vacío
         }
-    });
+
+        res.status(200).json(payrolls);
+    } catch (error) {
+        console.error("Error al obtener nóminas:", error);
+        res.status(500).json({ error: "Error interno del servidor." });
+    }
+});
+
+
+
+
 
 
 

@@ -10,6 +10,8 @@ import AddEmployee from "../Pages/AddEmployee";
 import AddFacility from "../Pages/AddFacility";
 import ManageFacilities from "../Pages/ManageFacilities";
 import FacilityView from "../Pages/FacilityView"
+import ManagePayrolls from "../Pages/ManagePayrolls"
+import PayrollsView from "../Pages/PayrollsView"
 
 const router = createBrowserRouter([
   {
@@ -48,6 +50,14 @@ const router = createBrowserRouter([
          path: "/createFacility", // Ruta para agregar un nuevo empleado
          element: <RequireToken><AddFacility /></RequireToken>, // Protegemos la ruta
    },
+   {
+         path: "/payrolls",
+         element: <RequireToken><ManagePayrolls /></RequireToken>, // Protegemos la ruta
+     },
+      {
+           path: "/payrollsview/:id", // Ruta para ver el empleado, con parámetro `id`
+           element: <RequireToken><PayrollsView /></RequireToken>, // Protegemos la ruta
+       },
 
 ]);
 

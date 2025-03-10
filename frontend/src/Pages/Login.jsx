@@ -33,7 +33,10 @@ const Login = () => {
         //localStorage.setItem("Token", data.Token);
         sessionStorage.setItem("Token", data.Token);
         sessionStorage.setItem("userId", id); // Guarda el ID del usuario
-       navigate("/dashboard", { replace: true }); // Redirige a la página principal del sistema
+        navigate("/dashboard", { replace: true }); // Redirige a la página principal del sistema
+        setTimeout(() => {
+            window.history.pushState(null, "", "/dashboard");
+        }, 100);
       } else {
         setError(data.message || "Error al iniciar sesión.");
       }
