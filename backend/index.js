@@ -1268,7 +1268,237 @@ app.post('/attendance', async (req, res) => {
 });
 
 
+const getLastDayOfMonth = (year, month) => {
+  return new Date(year, month, 0).getDate(); // Devuelve el último día del mes correctamente
+};
 
+app.post('/payroll/generate-monthly', async (req, res) => {
+    const { month, year } = req.body;
+
+    if (!month || !year) {
+        return res.status(400).json({ error: "Se requiere el mes y el año para generar las nóminas." });
+    }
+
+    try {
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const payrollRepository = dataSource.getRepository(PayrollSchema);
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+
+        // Obtener todos los empleados activos
+        const employees = await employeeRepository.find();
+
+        if (!employees.length) {
+            return res.status(404).json({ error: "No hay empleados registrados." });
+        }
+
+        const generatedPayrolls = [];
+
+        // Obtener el último día del mes
+        const lastDay = getLastDayOfMonth(year, month);
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+        for (const employee of employees) {
+            // Buscar fichajes del mes y año para cada empleado
+            const attendances = await attendanceRepository.find({
+                where: {
+                    employee: { id: employee.id },
+                    date: Between(startDate, endDate) // 🔥 Aquí usamos la fecha correcta
+                }
+            });
+
+            if (!attendances.length) {
+                console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
+                continue;
+            }
+
+            let totalHours = 0;
+
+            attendances.forEach(attendance => {
+                if (attendance.check_out) {  // ✅ Verifica que haya un check_out
+                    const start = new Date(attendance.check_in);
+                    const end = new Date(attendance.check_out);
+                    const workedHours = (end - start) / (1000 * 60 * 60);
+                    totalHours += workedHours;
+                } else {
+                    console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
+                }
+            });
+
+            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+            const amount = totalHours * hourlyRate;
+
+            // Crear la nómina
+            const newPayroll = payrollRepository.create({
+                month,
+                year,
+                total_hours: totalHours,
+                amount,
+                employee
+            });
+
+            await payrollRepository.save(newPayroll);
+            generatedPayrolls.push(newPayroll);
+        }
+
+        res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
+    } catch (error) {
+        console.error("Error al generar nóminas:", error);
+        res.status(500).json({ error: "Error interno del servidor." });
+    }
+});
+
+
+app.get('/attendance/:id', async (req, res) => {
+    const { id } = req.params; // Obtener el ID del empleado desde la URL
+    const { year, month } = req.query; // Obtener el año y mes desde los parámetros de la query
+
+    // Verificar si se han recibido los datos requeridos
+    if (!year || !month) {
+        return res.status(400).json({
+            status: "error",
+            message: "Se requiere el año y el mes como parámetros de consulta (query params)."
+        });
+    }
+
+    try {
+        // Buscar al empleado por su ID
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const employee = await employeeRepository.findOne({ where: { id } });
+
+        if (!employee) {
+            return res.status(404).json({
+                status: "error",
+                message: `Empleado con ID ${id} no encontrado.`
+            });
+        }
+
+        // Convertir el año y mes a un rango de fechas
+        const startDate = new Date(year, month - 1, 1); // Primer día del mes
+        const endDate = new Date(year, month, 0); // Último día del mes
+
+        // Buscar las asistencias para el empleado en ese rango de fechas
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+        const attendances = await attendanceRepository.find({
+            where: {
+                employee: { id: employee.id }, // Aseguramos que la relación con el employee sea correcta
+                date: Between(startDate, endDate), // Filtrar por fechas dentro del mes
+            },
+            relations: ["facility", "employee"], // Aseguramos que la relación "employee" también esté cargada
+        });
+
+        // Si no se encuentran asistencias
+        if (attendances.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: `No se encontraron asistencias para el mes ${month} de ${year}.`
+            });
+        }
+
+        // Formatear la respuesta
+        const formattedAttendances = attendances.map((attendance) => {
+            // Convertir date a un objeto Date si no lo es
+            const attendanceDate = new Date(attendance.date);
+            if (isNaN(attendanceDate)) {
+                // Si la conversión falla, loguea el error
+                console.error(`Error en la fecha de asistencia: ${attendance.date}`);
+            }
+
+            return {
+                id: attendance.id,
+                employee: {
+                    id: employee.id,
+                    name: employee.name,
+                    image: employee.image || "/default-avatar.jpg", // Imagen predeterminada
+                },
+                facility: {
+                    id: attendance.facility.id,
+                    name: attendance.facility.name
+                },
+                check_in: attendance.check_in.toISOString(),
+                check_out: attendance.check_out.toISOString(),
+                // Asegurarse de que attendance.date es una fecha válida
+                date: attendanceDate.toISOString().split('T')[0] // Solo la fecha (YYYY-MM-DD)
+            };
+        });
+
+        // Responder con los datos encontrados
+        res.status(200).json({
+            status: "success",
+            data: formattedAttendances
+        });
+    } catch (error) {
+        console.error("Error al obtener las asistencias:", error);
+        res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor al obtener las asistencias."
+        });
+    }
+});
+
+
+
+
+app.delete('/attendance/:id', async (req, res) => {
+    const { id } = req.params; // ID del empleado
+    const { year, month } = req.query; // Año y mes desde los parámetros de la query
+
+    // Verificar si se han recibido los datos requeridos
+    if (!year || !month) {
+        return res.status(400).json({
+            status: "error",
+            message: "Se requiere el año y el mes como parámetros de consulta (query params)."
+        });
+    }
+
+    try {
+        // Buscar al empleado por su ID
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const employee = await employeeRepository.findOne({ where: { id } });
+
+        if (!employee) {
+            return res.status(404).json({
+                status: "error",
+                message: `Empleado con ID ${id} no encontrado.`
+            });
+        }
+
+        // Convertir el año y mes a un rango de fechas
+        const startDate = new Date(year, month - 1, 1); // Primer día del mes
+        const endDate = new Date(year, month, 0); // Último día del mes
+
+        // Buscar asistencias dentro del rango de fechas
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+        const attendances = await attendanceRepository.find({
+            where: {
+                employee: { id: employee.id },
+                date: Between(startDate, endDate),
+            }
+        });
+
+        // Si no se encuentran asistencias
+        if (attendances.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: `No se encontraron asistencias para el mes ${month} de ${year}.`
+            });
+        }
+
+        // Eliminar todas las asistencias encontradas
+        await attendanceRepository.remove(attendances);
+
+        res.status(200).json({
+            status: "success",
+            message: `${attendances.length} registros de asistencia eliminados correctamente.`
+        });
+    } catch (error) {
+        console.error("Error al eliminar las asistencias:", error);
+        res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor al eliminar las asistencias."
+        });
+    }
+});
 
 
 

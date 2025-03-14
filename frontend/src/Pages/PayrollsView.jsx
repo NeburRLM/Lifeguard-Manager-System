@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { FaSort } from "react-icons/fa";
 import "./PayrollsView.css";
 
@@ -10,9 +10,9 @@ function PayrollsView() {
   const [sortOrder, setSortOrder] = useState("desc"); // Controlar el orden de las nóminas
 
   // Cargar los datos del empleado y sus nóminas
-useEffect(() => {
-  console.log("employeeId from URL:", id);
-  const fetchEmployeeData = async () => {
+  useEffect(() => {
+    console.log("employeeId from URL:", id);
+    const fetchEmployeeData = async () => {
       try {
         const response = await fetch(`http://localhost:4000/employee/${id}`);
         const data = await response.json();
@@ -32,20 +32,17 @@ useEffect(() => {
       }
     };
 
-      fetchEmployeeData();
-      fetchPayrollsData();
-}, [id]);  // Añadir las funciones aquí
-
-
-
+    fetchEmployeeData();
+    fetchPayrollsData();
+  }, [id]);
 
   const handleSort = () => {
     const sortedPayrolls = [...payrolls];
     sortedPayrolls.sort((a, b) => {
       if (sortOrder === "asc") {
-        return a.month - b.month || a.year - b.year;
+        return a.year - b.year || a.month - b.month;
       } else {
-        return b.month - a.month || b.year - a.year;
+        return b.year - a.year || b.month - a.month;
       }
     });
     setPayrolls(sortedPayrolls);
@@ -81,14 +78,26 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {payrolls.map((payroll) => (
-              <tr key={`${payroll.month}-${payroll.year}`}>
-                <td>{payroll.month}</td>
-                <td>{payroll.year}</td>
-                <td>{payroll.amount} €</td>
-              </tr>
-            ))}
-          </tbody>
+                      {payrolls.map((payroll) => (
+                        <tr key={payroll.id} className="payroll-row">
+                          <td>
+                            <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">
+                              {payroll.month}
+                            </Link>
+                          </td>
+                          <td>
+                            <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">
+                              {payroll.year}
+                            </Link>
+                          </td>
+                          <td>
+                            <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">
+                              {payroll.amount} €
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
         </table>
       </div>
     </div>

@@ -68,3 +68,13 @@
 .payroll-table tr:hover {
   background-color: #ddd;
 }
+
+.payroll-row-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.payroll-row:hover {
+  background-color: #ddd;
+}
