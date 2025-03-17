@@ -2,12 +2,12 @@ import express from 'express';
 import { dataSource } from './postgresql/data-source.js';
 import { EmployeeSchema } from './postgresql/schemas/employee-schema.js';
 import { FacilitySchema } from './postgresql/schemas/facility-schema.js';
-import { WorkScheduleSchema } from './postgresql/schemas/work-schedule.js';  // Ajusta la ruta según tu proyecto
-import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';  // Ajusta la ruta según tu proyecto
-import { IncidentSchema } from './postgresql/schemas/incident-schema.js';  // Ajusta la ruta según tu proyecto
+import { WorkScheduleSchema } from './postgresql/schemas/work-schedule.js';
+import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';
+import { IncidentSchema } from './postgresql/schemas/incident-schema.js';
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
-import { Between } from 'typeorm';  // Importa Between de typeorm
+import { Between } from 'typeorm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -19,53 +19,57 @@ import { fileURLToPath } from 'url'
 const app = express()
 const port = 4000
 
-app.use(cookieParser())
-dotenv.config();
+app.use(cookieParser())     // Configura el middleware para parsear cookies
+dotenv.config();    // Configura dotenv para cargar variables de entorno desde un archivo '.env' (token)
 
-/*app.get('/', (req, res) => {
-    res.send('<html><head></head><body><h1>Hello!</h1></body></html>');
-})*/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Asignación de las variables __filename y __dirname necesarias para trabajar con rutas absolutas en módulos ECMAScript
+const __filename = fileURLToPath(import.meta.url);  // Convierte la URL del módulo actual a un path de archivo
+const __dirname = path.dirname(__filename); // Obtiene el directorio de trabajo desde __filename
 
-// Sirve los archivos estáticos de la carpeta 'uploads'
+// Configuración para servir archivos estáticos desde la carpeta 'uploads'
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.json());
+
+app.use(express.json());    // Middleware para analizar solicitudes con cuerpo en formato JSON
+
+// Middleware para configurar cabeceras de CORS (Cross-Origin Resource Sharing)
+// Esto permite que las solicitudes de un dominio diferente, como 'http://localhost:3000', accedan a la API
 app.use((request, response, next) => {
-    response.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    response.header('Access-Control-Allow-Credentials', 'true');
-    response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
+    response.header('Access-Control-Allow-Origin', 'http://localhost:3000');    // Permite solicitudes desde localhost:3000
+    response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Permite los encabezados Content-Type y Authorization
+    response.header('Access-Control-Allow-Credentials', 'true');    // Permite el envío de cookies con las solicitudes
+    response.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');  // Permite los métodos HTTP especificados
 
     // Configuración Content-Security-Policy
     //response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self'; script-src 'self';");
-    next();
+    next(); // Pasa el control al siguiente middleware
 });
+
+// Inicializa la conexión a la base de datos usando un 'dataSource' previamente configurado
 dataSource.initialize()
     .then(() => {
-        console.log("Conexión a la base de datos establecida.");
+        console.log("Conexión a la base de datos establecida.");    // Conexión exitosa
     })
     .catch((err) => {
-        console.error("Error al conectar con la base de datos:", err);
+        console.error("Error al conectar con la base de datos:", err);  // Conexión invalidada
     });
 
 
-// Middleware de autenticación para verificar el token
+// Middleware de autenticación para verificar el token JWT (JSON Web Tokens)
 const authenticateToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];  // Obtener el token desde el encabezado
-
+    const token = req.headers['authorization']?.split(' ')[1];  // Obtener el token desde el encabezado 'Authorization'
+    // Si no hay token, responde con un error 401
     if (!token) {
         return res.status(401).send("Token no proporcionado.");
     }
 
-    // Verificar el token
+    // Verifica la validez del token usando la clave secreta definida en las variables de entorno
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
         if (err) {
-            //return res.status(401).send("Token no válido.");
+            // Si el token es inválido o expiró, responde con un error 401
             return res.status(401).json({ message: "Token inválido o expirado." });
         }
-
-        req.user = decoded;  // Decodificar el token y añadir la info al request
+        // Si el token es válido, decodifica el token y guarda la información en 'req.user'
+        req.user = decoded;
         next();  // Continuar con la solicitud si el token es válido
     });
 };
@@ -73,42 +77,44 @@ const authenticateToken = (req, res, next) => {
 
 // Configuración de multer para guardar imágenes en la carpeta "uploads"
 const storage = multer.diskStorage({
-    destination: "uploads/", // Carpeta donde se guardarán las imágenes
+    destination: "uploads/", // Carpeta donde se guardarán las imágenes subidas
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Renombrar archivo con timestamp
+        // Renombra el archivo usando un timestamp (para evitar nombres de archivo duplicados)
+        cb(null, Date.now() + path.extname(file.originalname)); // 'Date.now()' genera un nombre único basado en la hora actual
     }
 });
-
-const upload = multer({ storage });
+// Crea el objeto 'upload' utilizando la configuración definida para Multer
+const upload = multer({ storage }); // 'storage' especifica cómo se guardarán los archivos
 
 
 // Ruta para subir la imagen de un empleado
 app.post('/employee/upload/:id', authenticateToken, upload.single("image"), async (req, res) => {
     try {
-        const employeeId = req.params.id;
-        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const employeeId = req.params.id;   // Obtiene el 'id' del empleado desde los parámetros de la ruta
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);    // Obtiene el repositorio de la entidad 'EmployeeSchema' para interactuar con la base de datos
 
-        // Verificar si el empleado existe
+        // Verificar si el empleado existe en la base de datos
         const employee = await employeeRepository.findOneBy({ id: employeeId });
         if (!employee) {
+             // Si el empleado no existe, responde con un error 404 (no encontrado)
             return res.status(404).send(`No se encontró ningún empleado con el ID "${employeeId}".`);
         }
-
-        // Verificar si se subió una imagen
+        // Verificar si se subió una imagen en la solicitud
         if (!req.file) {
-            return res.status(400).send("No se ha subido ninguna imagen.");
+            return res.status(400).send("No se ha subido ninguna imagen."); // Si no se subió ningún archivo, responde con un error 400 (solicitud incorrecta)
         }
 
-        // Crear la URL de la imagen (esto asume que las imágenes se servirán desde '/uploads/')
+        // Crear la URL pública de la imagen. Asume que las imágenes se sirven desde '/uploads/'
         const imageUrl = `http://localhost:4000/uploads/${req.file.filename}`;
 
-        // Actualizar la imagen en la base de datos
+        // Actualizar el campo 'image' del empleado con la URL de la imagen
         employee.image = imageUrl;
-        await employeeRepository.save(employee);
-
+        await employeeRepository.save(employee);    // Guardar los cambios en la base de datos
+        // Responder con un mensaje exitoso y los datos del empleado actualizado
         res.status(200).json({ message: "Imagen subida correctamente", employee });
 
     } catch (error) {
+        // Si ocurre algún error durante el proceso, captura el error y responde con un mensaje de error
         console.error("Error al subir la imagen:", error);
         res.status(500).send("Error interno al subir la imagen.");
     }

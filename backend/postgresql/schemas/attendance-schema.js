@@ -1,61 +1,61 @@
 import { EntitySchema } from "typeorm";
 
 export const AttendanceSchema = new EntitySchema({
-    name: "attendance",
-    tableName: "attendances",
-    columns: {
-        id: {
-            type: "uuid",
-            primary: true,
-            generated: "uuid"
+    name: "attendance", // Nombre del modelo en la base de datos
+    tableName: "attendances",   // Nombre de la tabla en la base de datos
+    columns: {  // Definición de las columnas de la tabla
+        id: {   // Columna id, identificador único de la asistencia
+            type: "uuid",   // Tipo de datos UUID
+            primary: true,  // Clave primaria
+            generated: "uuid"   // Generación automática
         },
-        date: {
-            type: "date",
-            nullable: false
+        date: {     // Columna para la fecha de la asistencia
+            type: "date",   // Tipo de datos fecha
+            nullable: false     // No puede ser nula
         },
-        check_in: {
-            type: "time",
-            nullable: false
+        check_in: {     // Columna para la hora de entrada
+            type: "time",   // Tipo de datos hora
+            nullable: false // No puede ser nula
         },
-        check_out: {
-            type: "time",
+        check_out: {    // Columna para la hora de salida
+            type: "time",   // Tipo de datos hora
             nullable: true // Puede ser nulo si el turno sigue activo
         },
-        employee_id: {
-            type: "varchar", // Asegúrate de que el tipo de datos coincide con el tipo de `id` en la entidad `Employee`
-            nullable: false
+        employee_id: {  // Columna que hace referencia al id del empleado (FK)
+            type: "varchar", // Tipo de datos varchar (cadena de texto)
+            nullable: false // No puede ser nula
         },
-        facility_id: {
-            type: "varchar", // Asegúrate de que el tipo de datos coincide con el tipo de `id` en la entidad `Facility`
-            nullable: false
+        facility_id: {  // Columna que hace referencia al id de la instalación (FK)
+            type: "varchar",  // Tipo de datos varchar
+            nullable: false     // No puede ser nula
         }
     },
-    relations: {
-        employee: {
-            type: "many-to-one",
-            target: "employee",
-            joinColumn: {
-                name: "employee_id"
+    relations: {    // Definición de las relaciones de la entidad
+        employee: {     // Relación con la entidad Employee
+            type: "many-to-one",    // Muchos registros de asistencia pueden pertenecer a un solo empleado
+            target: "employee", // Relaciona con la entidad Employee
+            joinColumn: {   // Define la columna que se usará para la relación
+                name: "employee_id" // Nombre de la columna en la tabla de asistencia
             },
-            onDelete: "CASCADE"
+            onDelete: "CASCADE" // Si se elimina un empleado, se eliminan sus asistencias también
         },
-        facility: {
-            type: "many-to-one",
-            target: "facility",
-            joinColumn: {
-                name: "facility_id"
+        facility: { // Relación con la entidad Facility
+            type: "many-to-one",    // Muchos registros de asistencia pueden pertenecer a una sola instalación
+            target: "facility", // Relaciona con la entidad Facility
+            joinColumn: {   // Define la columna que se usará para la relación
+                name: "facility_id" // Nombre de la columna en la tabla de asistencia
             },
-            onDelete: "CASCADE"
+            onDelete: "CASCADE" // Si se elimina una instalación, se eliminan sus asistencias también
         }
     },
-    indices: [
+    indices: [  // Definición de los índices para mejorar el rendimiento
         {
-            name: "idx_attendance_employee",
-            columns: ["employee_id"] // La columna employee_id debe estar en el índice
+            name: "idx_attendance_employee",    // Nombre del índice
+            columns: ["employee_id"]    // Índice sobre la columna employee_id
         },
         {
-            name: "idx_attendance_facility",
-            columns: ["facility_id"]
+            name: "idx_attendance_facility",    // Nombre del índice
+            columns: ["facility_id"]    // Índice sobre la columna facility_id
         }
     ]
 });
