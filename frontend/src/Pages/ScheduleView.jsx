@@ -375,7 +375,7 @@ const handleDeleteSchedule = async () => {
               <button className="cancel-btn" onClick={() => setShowModal(false)}>Cancelar</button>
               <button className="save-btn" onClick={handleSave}>Guardar</button>
               {selectedEvent && (
-                <button className="delete-btn" onClick={handleDelete}>Eliminar</button>
+                <button className="delet-btn" onClick={handleDelete}>Eliminar</button>
               )}
             </div>
           </div>

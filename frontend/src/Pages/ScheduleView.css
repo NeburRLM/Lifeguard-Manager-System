@@ -139,18 +139,19 @@
 
 /* Botones del modal */
 .modal-footer .cancel-btn,
-.modal-footer .save-btn {
+.modal-footer .save-btn,
+.modal-footer .delet-btn {
   padding: 12px 25px;
   font-size: 1rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  border: none; /* Asegura que no tenga borde */
 }
 
 .modal-footer .cancel-btn {
-  background-color: #e74c3c;
+  background-color: #e74c3c; /* Rojo para cancelar */
   color: white;
-  border: none;
 }
 
 .modal-footer .cancel-btn:hover {
@@ -158,14 +159,24 @@
 }
 
 .modal-footer .save-btn {
-  background-color: #1976D2;
+  background-color: #1976D2; /* Azul para guardar */
   color: white;
-  border: none;
 }
 
 .modal-footer .save-btn:hover {
   background-color: #1565C0;
   transform: scale(1.05);
+}
+
+/* Botón de eliminar con formato similar al de guardar y cancelar */
+.modal-footer .delet-btn {
+  background-color: #f39c12; /* Color amarillo/dorado para eliminar */
+  color: white;
+}
+
+.modal-footer .delet-btn:hover {
+  background-color: #e67e22; /* Un tono más oscuro del amarillo */
+  transform: scale(1.05); /* Efecto de expansión al pasar el ratón */
 }
 
 /* Toolbar del calendario */
