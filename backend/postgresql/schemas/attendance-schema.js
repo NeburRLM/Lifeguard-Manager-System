@@ -14,11 +14,11 @@ export const AttendanceSchema = new EntitySchema({
             nullable: false
         },
         check_in: {
-            type: "timestamp",
+            type: "time",
             nullable: false
         },
         check_out: {
-            type: "timestamp",
+            type: "time",
             nullable: true // Puede ser nulo si el turno sigue activo
         },
         employee_id: {

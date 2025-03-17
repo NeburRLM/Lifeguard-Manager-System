@@ -1316,17 +1316,48 @@ app.post('/payroll/generate-monthly', async (req, res) => {
 
             attendances.forEach(attendance => {
                 if (attendance.check_out) {  // ✅ Verifica que haya un check_out
-                    const start = new Date(attendance.check_in);
-                    const end = new Date(attendance.check_out);
-                    const workedHours = (end - start) / (1000 * 60 * 60);
+                    // Aquí usamos la fecha de asistencia junto con la hora de check_in y check_out
+                    const date = attendance.date; // Por ejemplo, '2025-04-02'
+                    const checkInTime = `${date}T${attendance.check_in}`;  // Formato correcto: '2025-04-02T08:00:00'
+                    const checkOutTime = `${date}T${attendance.check_out}`; // Formato correcto: '2025-04-02T16:00:00'
+
+                    const start = new Date(checkInTime);  // Crear un objeto Date con check_in
+                    const end = new Date(checkOutTime);  // Crear un objeto Date con check_out
+
+                    // Verificar que las fechas sean válidas
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        console.warn(`Atención: fechas inválidas para ${employee.name} en ${attendance.date}`);
+                        return;  // Si las fechas no son válidas, salimos
+                    }
+
+                    const workedHours = (end - start) / (1000 * 60 * 60); // Cálculo de horas trabajadas
                     totalHours += workedHours;
                 } else {
                     console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
                 }
             });
 
+            // Verificar que totalHours sea un número válido
+            if (isNaN(totalHours)) {
+                console.warn(`Atención: total_hours no es un número válido para el empleado ${employee.id}`);
+                totalHours = 0; // Asignar un valor por defecto
+            }
+
             const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+
+            // Verificar que hourlyRate sea un número válido
+            if (isNaN(hourlyRate)) {
+                console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
+                hourlyRate = 0; // Asignar un valor por defecto
+            }
+
             const amount = totalHours * hourlyRate;
+
+            // Verificar que amount sea un número válido
+            if (isNaN(amount)) {
+                console.warn(`Atención: amount no es un número válido para el empleado ${employee.id}`);
+                amount = 0; // Asignar un valor por defecto
+            }
 
             // Crear la nómina
             const newPayroll = payrollRepository.create({
@@ -1347,6 +1378,8 @@ app.post('/payroll/generate-monthly', async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor." });
     }
 });
+
+
 
 
 app.get('/attendance/:id', async (req, res) => {
@@ -1397,12 +1430,24 @@ app.get('/attendance/:id', async (req, res) => {
 
         // Formatear la respuesta
         const formattedAttendances = attendances.map((attendance) => {
-            // Convertir date a un objeto Date si no lo es
             const attendanceDate = new Date(attendance.date);
-            if (isNaN(attendanceDate)) {
-                // Si la conversión falla, loguea el error
-                console.error(`Error en la fecha de asistencia: ${attendance.date}`);
-            }
+            const checkInTime = attendance.check_in; // '8:00:00'
+            const checkOutTime = attendance.check_out; // '16:00:00'
+
+            // Extraemos las horas, minutos y segundos de check_in y check_out
+            const [checkInHour, checkInMinute] = checkInTime.split(':');
+            const [checkOutHour, checkOutMinute] = checkOutTime.split(':');
+
+            // Crear una nueva fecha combinando la fecha y la hora de check_in y check_out
+            const checkInDateTime = new Date(attendanceDate);
+            checkInDateTime.setHours(checkInHour, checkInMinute, 0); // Los segundos siempre en 0
+
+            const checkOutDateTime = new Date(attendanceDate);
+            checkOutDateTime.setHours(checkOutHour, checkOutMinute, 0); // Los segundos siempre en 0
+
+            // Formatear la hora a 'HH:mm:ss' para incluir segundos
+            const checkInFormatted = `${checkInDateTime.getHours()}:${checkInDateTime.getMinutes() < 10 ? '0' + checkInDateTime.getMinutes() : checkInDateTime.getMinutes()}:00`;
+            const checkOutFormatted = `${checkOutDateTime.getHours()}:${checkOutDateTime.getMinutes() < 10 ? '0' + checkOutDateTime.getMinutes() : checkOutDateTime.getMinutes()}:00`;
 
             return {
                 id: attendance.id,
@@ -1415,9 +1460,8 @@ app.get('/attendance/:id', async (req, res) => {
                     id: attendance.facility.id,
                     name: attendance.facility.name
                 },
-                check_in: attendance.check_in.toISOString(),
-                check_out: attendance.check_out.toISOString(),
-                // Asegurarse de que attendance.date es una fecha válida
+                check_in: checkInFormatted, // Hora en formato 'HH:mm:ss'
+                check_out: checkOutFormatted, // Hora en formato 'HH:mm:ss'
                 date: attendanceDate.toISOString().split('T')[0] // Solo la fecha (YYYY-MM-DD)
             };
         });

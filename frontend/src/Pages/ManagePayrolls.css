@@ -1,3 +1,4 @@
+/* Contenedor principal de la sección de nóminas */
 .payroll-container {
   margin-top: 20px;
   background: white;
@@ -8,8 +9,70 @@
   flex-direction: column;
 }
 
+/* Contenedor de todos los controles (selección de mes/año, buscador y ordenar) */
+.controls {
+  display: flex;
+  align-items: center; /* Asegura que los controles estén alineados verticalmente */
+  gap: 20px; /* Espaciado entre los controles */
+  margin-bottom: 15px;
+}
 
-/* Tabla */
+/* Estilos para el selector de mes y año */
+.select-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.select-container select,
+.select-container input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 150px; /* Tamaño fijo para los selects */
+}
+
+/* Estilo del botón de generar nómina */
+.generate-payroll-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.generate-payroll-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo del buscador */
+.search-input {
+  padding: 8px;
+  width: 200px; /* Hacerlo más corto */
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Botón de ordenar */
+.sort-btn {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.sort-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Estilos para la tabla */
 .payroll-table {
   width: 100%;
   border-collapse: collapse;
@@ -18,50 +81,20 @@
 
 .payroll-table th,
 .payroll-table td {
-  border: 1px solid #ddd; /* Bordes más visibles */
+  border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
 }
 
 .payroll-table th {
-  background-color: #007bff; /* Color azul similar al de facility-table */
+  background-color: #007bff;
   color: white;
 }
 
 .payroll-table tr:nth-child(even) {
-  background-color: #f2f2f2; /* Fondo alternativo para las filas */
+  background-color: #f2f2f2;
 }
 
 .payroll-table tr:hover {
-  background-color: #ddd; /* Fondo al pasar el cursor */
-}
-
-/* Estilos del buscador y del botón de ordenar */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-}
-
-.search-input {
-  padding: 8px;
-  width: 60%;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  margin-right: auto;
-  margin-top: 15px; /* Agrega espacio entre el título y el buscador */
-}
-
-.sort-btn {
-  padding: 8px 12px;
-  background-color: #007bff; /* Color azul para el botón */
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-  margin-top: 15px;
-}
-
-.sort-btn:hover {
-  background-color: #0056b3;
+  background-color: #ddd;
 }

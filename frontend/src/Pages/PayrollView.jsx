@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useLocation } from "react-router-dom"; // Importamos useLocation
+import { useParams, useLocation } from "react-router-dom";
 import moment from "moment";
 import "moment/locale/es";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { jsPDF } from "jspdf";  // Importamos jsPDF
-import "./ScheduleView.css";
-
+import "./PayrollView.css";
 
 moment.updateLocale("es", { week: { dow: 1 } });
 
@@ -15,18 +13,17 @@ const localizer = momentLocalizer(moment);
 const PayrollView = () => {
   const { id, scheduleId } = useParams();
   const location = useLocation();
-  const [facilities, setFacilities] = useState([]);
   const [employee, setEmployee] = useState(null);
   const [events, setEvents] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentSchedule, setCurrentSchedule] = useState(null);
 
-  // Extraemos el mes y año de los query params
   const queryParams = new URLSearchParams(location.search);
   const monthFromURL = parseInt(queryParams.get("month"), 10);
   const yearFromURL = parseInt(queryParams.get("year"), 10);
 
   useEffect(() => {
-    if (monthFromURL && yearFromURL) {
+    if (!isNaN(monthFromURL) && !isNaN(yearFromURL)) {
       setCurrentMonth(new Date(yearFromURL, monthFromURL - 1, 1));
     }
   }, [monthFromURL, yearFromURL]);
@@ -35,37 +32,78 @@ const PayrollView = () => {
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => {
+        console.log("Employee data:", data);
         setEmployee(data);
-        const schedule = data.work_schedule.find((ws) => ws.id === scheduleId);
-        if (!schedule) return;
 
-        const formattedEvents = schedule.schedules.map((schedule) => ({
-          id: schedule.id,
-          title: `${moment(schedule.start_time, "HH:mm:ss").format("HH:mm")}h - ${moment(schedule.end_time, "HH:mm:ss").format("HH:mm")}h\n${schedule.facility.name}`,
-          start: new Date(`${schedule.date}T${schedule.start_time}`),
-          end: new Date(`${schedule.date}T${schedule.end_time}`),
-          facility: schedule.facility.id,
+        let schedule = data.work_schedule.find((ws) => ws.id === scheduleId);
+
+        if (!schedule) {
+          schedule = data.work_schedule.find(
+            (ws) =>
+              ws.month === (monthFromURL || currentMonth.getMonth() + 1) &&
+              ws.year === (yearFromURL || currentMonth.getFullYear())
+          );
+        }
+
+        if (!schedule) {
+          console.log("No se encontró un work_schedule correspondiente.");
+          return;
+        }
+
+        setCurrentSchedule(schedule);
+
+        const formattedSchedules = schedule.schedules.map((shift) => ({
+          id: `schedule-${shift.id}`,
+          title: `${moment(shift.start_time, "HH:mm:ss").format("HH:mm")}h - ${moment(shift.end_time, "HH:mm:ss").format("HH:mm")}h\n ${shift.facility.name}`,
+          start: new Date(`${shift.date}T${shift.start_time}`),
+          end: new Date(`${shift.date}T${shift.end_time}`),
+          facility: shift.facility.id,
+          type: "schedule",
         }));
-        setEvents(formattedEvents);
+
+        setEvents(formattedSchedules);
       })
       .catch((error) => console.log("Error fetching employee data:", error));
-  }, [id, scheduleId]);
+  }, [id, scheduleId, monthFromURL, yearFromURL, currentMonth]);
 
-  const fetchFacilities = () => {
-    fetch("http://localhost:4000/facility")
+  const fetchAttendanceData = useCallback(() => {
+    if (!id || !monthFromURL || !yearFromURL) return;
+
+    fetch(`http://localhost:4000/attendance/${id}?month=${monthFromURL}&year=${yearFromURL}`)
       .then((response) => response.json())
-      .then((data) => setFacilities(data))
-      .catch((error) => console.log("Error fetching facilities:", error));
-  };
+      .then((data) => {
+        console.log("Attendance data:", data);
+
+        if (data.status !== "success" || !data.data) return;
+
+        const formattedAttendance = data.data.map((attendance) => ({
+          id: `attendance-${attendance.id}`,
+          title: `${moment(attendance.check_in, "HH:mm:ss").format("HH:mm")}h - ${moment(attendance.check_out, "HH:mm:ss").format("HH:mm")}h\n ${attendance.facility.name}`,
+          start: moment(`${attendance.date} ${attendance.check_in}`, "YYYY-MM-DD HH:mm:ss").toDate(),
+          end: moment(`${attendance.date} ${attendance.check_out}`, "YYYY-MM-DD HH:mm:ss").toDate(),
+
+          facility: attendance.facility.id,
+          type: "attendance",
+        }));
+
+        setEvents((prevEvents) => {
+          const filteredEvents = prevEvents.filter(event => event.type !== "attendance");
+          return [...filteredEvents, ...formattedAttendance];
+        });
+      })
+      .catch((error) => console.log("Error fetching attendance data:", error));
+  }, [id, monthFromURL, yearFromURL]);
+
+
 
   useEffect(() => {
+    setEvents([]); // Reiniciar eventos para evitar duplicados
     fetchEmployeeData();
-    fetchFacilities();
-  }, [fetchEmployeeData]);
+    fetchAttendanceData();
+  }, [fetchEmployeeData, fetchAttendanceData]);
 
-  // Verificamos si el employee está cargado antes de acceder a 'employee.name'
-  if (!employee) {
-    return <div>Cargando...</div>; // O puedes mostrar algún loader/indicador de carga
+  if (!employee || !currentSchedule) {
+    return <div>Cargando...</div>;
   }
 
   return (
@@ -82,12 +120,28 @@ const PayrollView = () => {
           onNavigate={(date) => setCurrentMonth(date)}
           toolbar={true}
           selectable={true}
-          eventPropGetter={(event) => ({
-            style: { backgroundColor: "#1976D2", color: "white", borderRadius: "5px", padding: "5px" },
-          })}
+          eventPropGetter={(event) => {
+            let backgroundColor = "#1976D2"; // Azul por defecto (schedule)
+
+            if (event.type === "attendance") {
+              backgroundColor = "#D32F2F"; // Rojo para attendance
+            }
+
+            return {
+              style: {
+                backgroundColor: backgroundColor,
+                color: "white",
+                borderRadius: "5px",
+                padding: "5px",
+                border: "1px solid white",
+              },
+            };
+          }}
+
         />
       </div>
     </div>
   );
 };
+
 export default PayrollView;

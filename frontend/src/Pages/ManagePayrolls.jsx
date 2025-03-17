@@ -135,7 +135,8 @@ function ManagePayrolls() {
         <div className="payroll-container">
           <h2>Employee List</h2>
 
-          <div className="controls">
+          {/* Nueva sección para mes, año y generar nómina */}
+          <div className="select-container">
             {/* Selector de mes */}
             <select value={month} onChange={(e) => setMonth(e.target.value)}>
               <option value="">Selecciona un mes</option>
@@ -159,25 +160,26 @@ function ManagePayrolls() {
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="year-input"
+              placeholder="Año"
             />
 
-            {/* Botón para generar nóminas */}
+            {/* Botón para generar nómina */}
             <button onClick={generatePayrolls} className="generate-payroll-btn">
               Generar Nóminas
             </button>
+          </div>
 
-            {/* Buscador */}
+          {/* Contenedor de búsqueda y botón de ordenar */}
+          <div className="controls">
             <input
               type="text"
-              placeholder="Search by name or DNI"
+              placeholder="Buscar por nombre o DNI"
               value={searchTerm}
               onChange={handleSearch}
               className="search-input"
             />
-
-            {/* Botón de ordenar */}
             <button onClick={handleSort} className="sort-btn">
-              Sort Alphabetically {sortOrder === "asc" ? "↑" : "↓"}
+              Ordenar Alfabéticamente {sortOrder === "asc" ? "↑" : "↓"}
             </button>
           </div>
 
@@ -200,6 +202,7 @@ function ManagePayrolls() {
             </tbody>
           </table>
         </div>
+
       </main>
     </div>
   );
