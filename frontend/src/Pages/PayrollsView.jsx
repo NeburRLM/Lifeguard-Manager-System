@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaSort } from "react-icons/fa";
 import { FaSignOutAlt } from "react-icons/fa";
@@ -50,12 +50,6 @@ function PayrollsView() {
     fetchPayrollsData();
   }, [id]);
 
-  useEffect(() => {
-    handleSearch();
-  }, [searchMonth, searchYear]);
-
-
-
   const fetchData = () => {
     const userId = sessionStorage.getItem("userId");
     if (userId) {
@@ -85,7 +79,7 @@ function PayrollsView() {
     });
   };
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
       if (searchMonth === "" && searchYear === "") {
         setFilteredPayrolls(payrolls); // Mostrar todas las nóminas si los campos de búsqueda están vacíos
       } else {
@@ -96,7 +90,11 @@ function PayrollsView() {
         );
         setFilteredPayrolls(filtered);
       }
-    };
+    }, [searchMonth, searchYear, payrolls]);
+
+     useEffect(() => {
+       handleSearch();
+     }, [searchMonth, searchYear, handleSearch]);
 
   return (
     <div className="dashboard-container">
