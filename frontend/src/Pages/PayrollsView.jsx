@@ -11,6 +11,9 @@ function PayrollsView() {
   const [employee, setEmployee] = useState(null);
   const [payrolls, setPayrolls] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc"); // Controlar el orden de las nóminas
+  const [searchMonth, setSearchMonth] = useState("");
+  const [searchYear, setSearchYear] = useState("");
+  const [filteredPayrolls, setFilteredPayrolls] = useState([]);
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -37,6 +40,7 @@ function PayrollsView() {
         const response = await fetch(`http://localhost:4000/payroll/${id}`);
         const data = await response.json();
         setPayrolls(sortPayrolls(data)); // Ordenar las nóminas al obtenerlas
+        setFilteredPayrolls(sortPayrolls(data));
       } catch (error) {
         console.error("Error al obtener las nóminas:", error);
       }
@@ -45,6 +49,12 @@ function PayrollsView() {
     fetchEmployeeData();
     fetchPayrollsData();
   }, [id]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchMonth, searchYear]);
+
+
 
   const fetchData = () => {
     const userId = sessionStorage.getItem("userId");
@@ -57,7 +67,7 @@ function PayrollsView() {
   };
 
   const handleSort = () => {
-    const sortedPayrolls = [...payrolls];
+    const sortedPayrolls = [...filteredPayrolls];
     sortedPayrolls.sort((a, b) => {
       if (sortOrder === "asc") {
         return a.year - b.year || a.month - b.month;
@@ -65,7 +75,7 @@ function PayrollsView() {
         return b.year - a.year || b.month - a.month;
       }
     });
-    setPayrolls(sortedPayrolls);
+    setFilteredPayrolls(sortedPayrolls);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc"); // Cambiar el orden
   };
 
@@ -74,6 +84,19 @@ function PayrollsView() {
       return a.year - b.year || a.month - b.month; // Orden ascendente
     });
   };
+
+  const handleSearch = () => {
+      if (searchMonth === "" && searchYear === "") {
+        setFilteredPayrolls(payrolls); // Mostrar todas las nóminas si los campos de búsqueda están vacíos
+      } else {
+        const filtered = payrolls.filter(
+          (payroll) =>
+            (searchMonth === "" || payroll.month === parseInt(searchMonth)) &&
+            (searchYear === "" || payroll.year === parseInt(searchYear))
+        );
+        setFilteredPayrolls(filtered);
+      }
+    };
 
   return (
     <div className="dashboard-container">
@@ -120,6 +143,22 @@ function PayrollsView() {
 
           <div className="payrolls-container">
             <div className="controls">
+              <form className="search-form">
+                <input
+                  type="number"
+                  placeholder="Month"
+                  value={searchMonth}
+                  onChange={(e) => setSearchMonth(e.target.value)}
+                  className="search-input"
+                />
+                <input
+                  type="number"
+                  placeholder="Year"
+                  value={searchYear}
+                  onChange={(e) => setSearchYear(e.target.value)}
+                  className="search-input"
+                />
+              </form>
               <button onClick={handleSort} className="sort-btn">
                 Sort by Month/Year {sortOrder === "asc" ? "↑" : "↓"} <FaSort />
               </button>
@@ -134,7 +173,7 @@ function PayrollsView() {
                 </tr>
               </thead>
               <tbody>
-                {payrolls.map((payroll) => (
+                {filteredPayrolls.map((payroll) => (
                   <tr key={payroll.id} className="payroll-row">
                     <td>
                       <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">

@@ -8,6 +8,8 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  max-height: 100vh; /* Limitar la altura máxima para evitar overflow */
 }
 
 .employee-info {
@@ -23,10 +25,28 @@
 }
 
 .payrolls-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Evitar scroll horizontal */
+  border: 1px solid #ddd;
   background-color: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.payroll-table tbody {
+  display: block;
+  max-height: 350px; /* Espacio suficiente para 10 filas */
+  overflow-y: auto; /* Solo scroll vertical */
+  overflow-x: hidden; /* Evitar scroll horizontal */
+}
+
+.payroll-table thead,
+.payroll-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .controls {
@@ -51,6 +71,7 @@
 .payroll-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .payroll-table th,
