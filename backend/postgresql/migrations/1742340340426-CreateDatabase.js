@@ -1,7 +1,7 @@
 //const { MigrationInterface, QueryRunner } = require("typeorm");
 
-export class CreateDatabase1742296785420 {
-    name = 'CreateDatabase1742296785420'
+export class CreateDatabase1742340340426 {
+    name = 'CreateDatabase1742340340426'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "work_schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_f5251879700e5ca0d2e353fa34f" PRIMARY KEY ("id"))`);

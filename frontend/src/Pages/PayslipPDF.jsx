@@ -26,7 +26,7 @@ const PayslipPDF = ({ employee, payroll }) => (
         <Text style={styles.text}>TRABAJADOR: {employee.name}</Text>
         <Text style={styles.text}>DNI: {employee.id}</Text>
         <Text style={styles.text}>CATEGORÍA: {employee.role}</Text>
-        <Text style={styles.text}>FECHA DE ALTA: {employee.startDate}</Text>
+        <Text style={styles.text}>FECHA DE ALTA:</Text>
         <Text style={styles.text}>PERÍODO DE LIQUIDACIÓN: {payroll.period}</Text>
       </View>
 
@@ -40,12 +40,12 @@ const PayslipPDF = ({ employee, payroll }) => (
         {payroll.earnings.map((earning) => (
           <View style={styles.row} key={earning.name}>
             <Text style={styles.cell}>{earning.name}</Text>
-            <Text style={styles.cell}>{earning.amount.toFixed(2)}</Text>
+            <Text style={styles.cell}>{earning.amount}</Text>
           </View>
         ))}
       </View>
 
-      <View style={styles.space} /> {/* Espacio entre tablas */}
+      <Text style={styles.space} />
 
       {/* Tabla de Deducciones */}
       <Text style={styles.title}>DEDUCCIONES</Text>
@@ -59,19 +59,19 @@ const PayslipPDF = ({ employee, payroll }) => (
           <View style={styles.row} key={deduction.name}>
             <Text style={styles.cell}>{deduction.name}</Text>
             <Text style={styles.cell}>{deduction.percentage}%</Text>
-            <Text style={styles.cell}>{deduction.amount.toFixed(2)}</Text>
+            <Text style={styles.cell}>{deduction.amount}</Text>
           </View>
         ))}
       </View>
 
-      <View style={styles.space} /> {/* Espacio entre tablas */}
+      <Text style={styles.space} />
 
       {/* Totales */}
       <Text style={styles.title}>TOTALES</Text>
       <View style={styles.table}>
-        <View style={styles.row}><Text style={styles.cellHeader}>Total Devengado</Text><Text style={styles.cell}>{payroll.totalEarned.toFixed(2)}</Text></View>
-        <View style={styles.row}><Text style={styles.cellHeader}>Total Deducciones</Text><Text style={styles.cell}>{payroll.totalDeductions.toFixed(2)}</Text></View>
-        <View style={styles.row}><Text style={styles.cellHeader}>Total Neto</Text><Text style={styles.cell}>{payroll.netSalary.toFixed(2)} €</Text></View>
+        <View style={styles.row}><Text style={styles.cellHeader}>Total Devengado</Text><Text style={styles.cell}>{payroll.totalEarned}</Text></View>
+        <View style={styles.row}><Text style={styles.cellHeader}>Total Deducciones</Text><Text style={styles.cell}>{payroll.totalDeductions}</Text></View>
+        <View style={styles.row}><Text style={styles.cellHeader}>Total Neto</Text><Text style={styles.cell}>{payroll.netSalary} €</Text></View>
       </View>
 
        <View style={styles.space} />

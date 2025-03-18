@@ -40,48 +40,55 @@ const PayrollView = () => {
   };
 
 
-  const fetchRoleSalary = useCallback((role) => {
-    fetch(`http://localhost:4000/role_salary/${role}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Role salary data:", data);
+const fetchRoleSalary = useCallback((role) => {
+  fetch(`http://localhost:4000/role_salary/${role}`)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Role salary data:", data);
 
-        const earnings = data.earnings || [];
-        const deductions = data.deductions || [];
+      const earnings = data.earnings || [];
+      const deductions = data.deductions || [];
 
-        const monthName = capitalize(moment().month(validMonth - 1).format("MMMM"));
+      const monthName = capitalize(moment().month(validMonth - 1).format("MMMM"));
 
-                const modifiedEarnings = earnings.map((earning) => {
-                  if (earning.name.includes("Paga Extra X")) {
-                    return {
-                      ...earning,
-                      name: `Paga Extra ${monthName}`,
-                    };
-                  }
-                  return earning;
-                });
+      const modifiedEarnings = earnings.map((earning) => {
+        if (earning.name.includes("Paga Extra X")) {
+          return {
+            ...earning,
+            name: `Paga Extra ${monthName}`,
+          };
+        }
+        return earning;
+      });
 
-        const totalEarned = earnings.reduce((total, earning) => total + earning.amount, 0);
-        const totalDeductions = deductions.reduce((total, deduction) => total + deduction.amount, 0);
-        const netSalary = totalEarned - totalDeductions;
+      // Convertir valores a números antes de calcular
+      const totalEarned = parseFloat(
+        earnings.reduce((total, earning) => total + parseFloat(earning.amount || 0), 0).toFixed(2)
+      );
 
-        setPayroll({
-          month: `${monthName}`,
-          year: `${validYear}`,
-          company: "ALTESPORT 2000, S.L.",
-          cif: "B43389881",
-          address: "CL SOCO, 0 - 43850 CAMBRILS",
-          period: `DEL 01 AL 31 ${monthName} ${validYear}`,
-          bankAccount: "ES00-0000-0000**************",
-          totalEarned,
-          totalDeductions,
-          netSalary,
-          earnings: modifiedEarnings,
-          deductions,
-        });
-      })
-      .catch((error) => console.log("Error fetching role salary data:", error));
-  }, [validMonth, validYear]);
+      const totalDeductions = parseFloat(
+        deductions.reduce((total, deduction) => total + parseFloat(deduction.amount || 0), 0).toFixed(2)
+      );
+
+      const netSalary = parseFloat((totalEarned - totalDeductions).toFixed(2));
+
+      setPayroll({
+        month: `${monthName}`,
+        year: `${validYear}`,
+        company: "LIFEGUARD COMPANY, S.L.",
+        cif: "B00000000",
+        address: "CL SOCO, 0 - 43850 CAMBRILS",
+        period: `DEL 01 AL 31 ${monthName} ${validYear}`,
+        bankAccount: "ES00-0000-0000**************",
+        totalEarned,
+        totalDeductions,
+        netSalary,
+        earnings: modifiedEarnings,
+        deductions,
+      });
+    })
+    .catch((error) => console.log("Error fetching role salary data:", error));
+}, [validMonth, validYear]);
 
   const fetchEmployeeData = useCallback(() => {
     fetch(`http://localhost:4000/employee/${id}`)

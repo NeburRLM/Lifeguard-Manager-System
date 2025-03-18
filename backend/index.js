@@ -9,6 +9,7 @@ import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
 import { RoleSalarySchema } from "./postgresql/schemas/roleSalary-schema.js";
 import { Between } from 'typeorm';
+import { In } from 'typeorm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -240,8 +241,6 @@ app.get('/bossCount', async (req, res) => {
 
 
 
-
-
 const seedRoleSalaries = async () => {
     const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
 
@@ -253,7 +252,7 @@ const seedRoleSalaries = async () => {
             earnings: [
                 { name: "Salario Base", amount: 1600.00 },
                 { name: "Plus Transporte", amount: 50.00 },
-                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra X", amount: 93.18 },
                 { name: "Paga Extra Navidad", amount: 93.18 }
             ],
             deductions: [
@@ -287,7 +286,7 @@ const seedRoleSalaries = async () => {
             earnings: [
                 { name: "Salario Base", amount: 1118.00 },
                 { name: "Plus Transporte", amount: 50.00 },
-                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra X", amount: 93.18 },
                 { name: "Paga Extra Navidad", amount: 93.18 }
             ],
             deductions: [
@@ -316,6 +315,40 @@ const seedRoleSalaries = async () => {
 };
 
 
+app.get("/role_salary", async (req, res) => {
+    const allowedRoles = ['Boss', 'Coordinator', 'Lifeguard'];
+
+    try {
+        const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+
+        // Obtener los datos de los tres roles específicos
+        const roleSalaries = await roleSalaryRepository.find({
+            where: {
+                role: In(allowedRoles) // Aquí se usa 'In' correctamente
+            }
+        });
+
+        if (!roleSalaries || roleSalaries.length === 0) {
+            return res.status(404).json({ message: "Roles no encontrados" });
+        }
+
+        // Mapeamos los resultados para devolver solo la información relevante
+        const response = roleSalaries.map(roleSalary => ({
+            role: roleSalary.role,
+            base_salary: roleSalary.base_salary,
+            earnings: JSON.parse(roleSalary.earnings),  // Parseamos el JSON
+            deductions: JSON.parse(roleSalary.deductions) // Parseamos el JSON
+        }));
+
+        // Devolvemos los salarios de los tres roles
+        res.status(200).json(response);
+    } catch (error) {
+        console.error("Error fetching role salary:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+});
+
+
 
 app.get("/role_salary/:role", async (req, res) => {
   const { role } = req.params;
@@ -341,37 +374,70 @@ app.get("/role_salary/:role", async (req, res) => {
 });
 
 
-app.get("/role_salary", async (req, res) => {
-  const allowedRoles = ['Boss', 'Coordinator', 'Lifeguard'];
+
+app.put("/role_salary/:role", async (req, res) => {
+    const { role } = req.params;
+    const { base_salary, earnings, deductions } = req.body;
+
+    const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+
+    try {
+        const existingRole = await roleSalaryRepository.findOne({ where: { role } });
+
+        if (!existingRole) {
+            return res.status(404).json({ message: "Role not found" });
+        }
+
+        // Actualizar el salario base en el registro de la tabla
+        existingRole.base_salary = base_salary;
+
+        // Si se proporciona earnings, actualizamos el "Salario Base" dentro de earnings
+        if (earnings) {
+            existingRole.earnings = earnings.map(earning => {
+                if (earning.name === "Salario Base") {
+                    earning.amount = base_salary; // Actualizamos el salario base dentro de earnings
+                }
+                return earning;
+            });
+        }
+
+        // Convertimos a JSON los datos actualizados de earnings y deductions
+        existingRole.earnings = JSON.stringify(existingRole.earnings);
+        existingRole.deductions = JSON.stringify(deductions);
+
+        // Guardamos los cambios en la base de datos
+        await roleSalaryRepository.save(existingRole);
+
+        res.status(200).json({ message: "Role updated successfully" });
+    } catch (error) {
+        console.error("Error updating role salary:", error);
+        res.status(500).json({ message: "Error updating role salary" });
+    }
+});
+
+
+
+app.delete("/role_salary", async (req, res) => {
+  const allowedRoles = ['Boss', 'Coordinator', 'Lifeguard']; // Los roles a eliminar
 
   try {
     const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
 
-    // Obtener los datos de los tres roles específicos
-    const roleSalaries = await roleSalaryRepository.find({
-      where: {
-        role: In(allowedRoles) // Consulta para los roles específicos
-      }
+    // Eliminar todos los registros que tengan alguno de los roles definidos
+    const result = await roleSalaryRepository.delete({
+      role: In(allowedRoles) // Usamos 'In' para filtrar los roles que queremos eliminar
     });
 
-    if (!roleSalaries || roleSalaries.length === 0) {
-      return res.status(404).json({ message: "Roles no encontrados" });
+    if (result.affected === 0) {
+      return res.status(404).json({ message: "No roles found to delete" }); // Si no hay registros afectados
     }
 
-    // Mapeamos los resultados para devolver solo la información relevante
-    const response = roleSalaries.map(roleSalary => ({
-      role: roleSalary.role,
-      base_salary: roleSalary.base_salary,
-      earnings: JSON.parse(roleSalary.earnings),  // Parseamos el JSON
-      deductions: JSON.parse(roleSalary.deductions) // Parseamos el JSON
-    }));
-
-    // Devolvemos los salarios de los tres roles
-    res.status(200).json(response);
+    // Respondemos con un mensaje de éxito
+    res.status(200).json({ message: "Roles deleted successfully" });
 
   } catch (error) {
-    console.error("Error fetching role salary:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
+    console.error("Error deleting role salaries:", error);
+    res.status(500).json({ message: "Error deleting role salaries" }); // En caso de error, devolvemos un error 500
   }
 });
 
@@ -380,20 +446,20 @@ app.get("/role_salary", async (req, res) => {
 function calculateAmount(role) {
     switch (role) {
         case "Boss":
-            return 1600.00; // Ejemplo: sueldo jefe
+            return 30.00; // Ejemplo: sueldo por hora del jefe
         case "Coordinator":
-            return 1278.00; // Ejemplo: sueldo coordinador
+            return 20.00; // Ejemplo: sueldo por hora de un coordinador
         case "Lifeguard":
-            return 1118.00; // Ejemplo: sueldo socorrista
+            return 15.00; // Ejemplo: sueldo por hora de un socorrista
         default:
-            return 1118.00; // Sueldo por defecto
+            return 10.00; // Sueldo por hora por defecto
     }
 }
 
 
 
 // Ruta para crear un nuevo empleado
-app.post('/employee', async (req, res) => {
+app.post('/employee', authenticateToken, async (req, res) => {
     let employees = req.body;
 
     // Si solo se envía un solo objeto (no un arreglo), lo convertimos en un arreglo de un solo elemento
@@ -1408,109 +1474,111 @@ const getLastDayOfMonth = (year, month) => {
 };
 
 app.post('/payroll/generate-monthly', async (req, res) => {
-     const { month, year } = req.body;
+    const { month, year } = req.body;
 
-     if (!month || !year) {
-         return res.status(400).json({ error: "Se requiere el mes y el año para generar las nóminas." });
-     }
+    if (!month || !year) {
+        return res.status(400).json({ error: "Se requiere el mes y el año para generar las nóminas." });
+    }
 
-     try {
-         const employeeRepository = dataSource.getRepository(EmployeeSchema);
-         const payrollRepository = dataSource.getRepository(PayrollSchema);
-         const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+    try {
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+        const payrollRepository = dataSource.getRepository(PayrollSchema);
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
 
-         const employees = await employeeRepository.find();
+        // Obtener todos los empleados activos
+        const employees = await employeeRepository.find();
 
-         if (!employees.length) {
-             return res.status(404).json({ error: "No hay empleados registrados." });
-         }
+        if (!employees.length) {
+            return res.status(404).json({ error: "No hay empleados registrados." });
+        }
 
-         const generatedPayrolls = [];
-         const lastDay = getLastDayOfMonth(year, month);
-         const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-         const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+        const generatedPayrolls = [];
 
-         for (const employee of employees) {
-             const existingPayroll = await payrollRepository.findOne({
-                 where: { month, year, employee: { id: employee.id } }
-             });
+        // Obtener el último día del mes
+        const lastDay = getLastDayOfMonth(year, month);
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
-             if (existingPayroll) {
-                 console.log(`La nómina para ${employee.name} en ${month}/${year} ya existe. Se omite.`);
-                 continue;
-             }
+        for (const employee of employees) {
+            // Buscar fichajes del mes y año para cada empleado
+            const attendances = await attendanceRepository.find({
+                where: {
+                    employee: { id: employee.id },
+                    date: Between(startDate, endDate) // 🔥 Aquí usamos la fecha correcta
+                }
+            });
 
-             const attendances = await attendanceRepository.find({
-                 where: {
-                     employee: { id: employee.id },
-                     date: Between(startDate, endDate)
-                 }
-             });
+            if (!attendances.length) {
+                console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
+                continue;
+            }
 
-             if (!attendances.length) {
-                 console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
-                 continue;
-             }
+            let totalHours = 0;
 
-             let totalHours = 0;
+            attendances.forEach(attendance => {
+                if (attendance.check_out) {  // ✅ Verifica que haya un check_out
+                    // Aquí usamos la fecha de asistencia junto con la hora de check_in y check_out
+                    const date = attendance.date; // Por ejemplo, '2025-04-02'
+                    const checkInTime = `${date}T${attendance.check_in}`;  // Formato correcto: '2025-04-02T08:00:00'
+                    const checkOutTime = `${date}T${attendance.check_out}`; // Formato correcto: '2025-04-02T16:00:00'
 
-             attendances.forEach(attendance => {
-                 if (attendance.check_out) {
-                     const date = attendance.date;
-                     const checkInTime = `${date}T${attendance.check_in}`;
-                     const checkOutTime = `${date}T${attendance.check_out}`;
+                    const start = new Date(checkInTime);  // Crear un objeto Date con check_in
+                    const end = new Date(checkOutTime);  // Crear un objeto Date con check_out
 
-                     const start = new Date(checkInTime);
-                     const end = new Date(checkOutTime);
+                    // Verificar que las fechas sean válidas
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        console.warn(`Atención: fechas inválidas para ${employee.name} en ${attendance.date}`);
+                        return;  // Si las fechas no son válidas, salimos
+                    }
 
-                     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                         console.warn(`Atención: fechas inválidas para ${employee.name} en ${attendance.date}`);
-                         return;
-                     }
+                    const workedHours = (end - start) / (1000 * 60 * 60); // Cálculo de horas trabajadas
+                    totalHours += workedHours;
+                } else {
+                    console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
+                }
+            });
 
-                     const workedHours = (end - start) / (1000 * 60 * 60);
-                     totalHours += workedHours;
-                 } else {
-                     console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
-                 }
-             });
+            // Verificar que totalHours sea un número válido
+            if (isNaN(totalHours)) {
+                console.warn(`Atención: total_hours no es un número válido para el empleado ${employee.id}`);
+                totalHours = 0; // Asignar un valor por defecto
+            }
 
-             if (isNaN(totalHours)) {
-                 console.warn(`Atención: total_hours no es un número válido para el empleado ${employee.id}`);
-                 totalHours = 0;
-             }
+            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
 
-             const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
-             if (isNaN(hourlyRate)) {
-                 console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
-                 hourlyRate = 0;
-             }
+            // Verificar que hourlyRate sea un número válido
+            if (isNaN(hourlyRate)) {
+                console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
+                hourlyRate = 0; // Asignar un valor por defecto
+            }
 
-             const amount = totalHours * hourlyRate;
-             if (isNaN(amount)) {
-                 console.warn(`Atención: amount no es un número válido para el empleado ${employee.id}`);
-                 amount = 0;
-             }
+            const amount = totalHours * hourlyRate;
 
-             const newPayroll = payrollRepository.create({
-                 month,
-                 year,
-                 total_hours: totalHours,
-                 amount,
-                 employee
-             });
+            // Verificar que amount sea un número válido
+            if (isNaN(amount)) {
+                console.warn(`Atención: amount no es un número válido para el empleado ${employee.id}`);
+                amount = 0; // Asignar un valor por defecto
+            }
 
-             await payrollRepository.save(newPayroll);
-             generatedPayrolls.push(newPayroll);
-         }
+            // Crear la nómina
+            const newPayroll = payrollRepository.create({
+                month,
+                year,
+                total_hours: totalHours,
+                amount,
+                employee
+            });
 
-         res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
-     } catch (error) {
-         console.error("Error al generar nóminas:", error);
-         res.status(500).json({ error: "Error interno del servidor." });
-     }
- });
+            await payrollRepository.save(newPayroll);
+            generatedPayrolls.push(newPayroll);
+        }
 
+        res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
+    } catch (error) {
+        console.error("Error al generar nóminas:", error);
+        res.status(500).json({ error: "Error interno del servidor." });
+    }
+});
 
 
 

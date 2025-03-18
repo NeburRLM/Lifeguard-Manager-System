@@ -9,10 +9,11 @@ function ManagePayrolls() {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc"); // Para controlar el orden de la lista
+  const [sortOrder, setSortOrder] = useState("asc");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
-    const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [roleSalaries, setRoleSalaries] = useState([]);
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -76,6 +77,35 @@ function ManagePayrolls() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
+  const fetchRoleSalaries = async () => {
+    const response = await fetch("http://localhost:4000/role_salary");
+    const data = await response.json();
+    setRoleSalaries(data);
+  };
+
+  const handleInputChange = (role, type, index, field, value) => {
+    setRoleSalaries((prev) =>
+      prev.map((r) =>
+        r.role === role
+          ? {
+              ...r,
+              [type]: r[type].map((item, i) =>
+                i === index ? { ...item, [field]: value } : item
+              ),
+            }
+          : r
+      )
+    );
+  };
+
+  const handleBaseSalaryChange = (role, value) => {
+    setRoleSalaries((prev) =>
+      prev.map((r) =>
+        r.role === role ? { ...r, base_salary: value } : r
+      )
+    );
+  };
+
   const generatePayrolls = async () => {
     if (!month || !year) {
       alert("Selecciona un mes y un año.");
@@ -99,7 +129,32 @@ function ManagePayrolls() {
     }
   };
 
+  const updateRoleSalaries = async () => {
+    for (const roleSalary of roleSalaries) {
+      const response = await fetch(`http://localhost:4000/role_salary/${roleSalary.role}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          base_salary: roleSalary.base_salary,
+          earnings: roleSalary.earnings,
+          deductions: roleSalary.deductions,
+        }),
+      });
 
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.message || "Error updating role salary");
+        return;
+      }
+    }
+  };
+
+  const handleGeneratePayrolls = async () => {
+    await updateRoleSalaries();
+    generatePayrolls();
+  };
 
   return (
     <div className="dashboard-container">
@@ -139,42 +194,12 @@ function ManagePayrolls() {
         <div className="payroll-container">
           <h2>Employee List</h2>
 
-          {/* Nueva sección para mes, año y generar nómina */}
           <div className="select-container">
-            {/* Selector de mes */}
-            {/*<select value={month} onChange={(e) => setMonth(e.target.value)}>
-              <option value="">Selecciona un mes</option>
-              <option value="1">Enero</option>
-              <option value="2">Febrero</option>
-              <option value="3">Marzo</option>
-              <option value="4">Abril</option>
-              <option value="5">Mayo</option>
-              <option value="6">Junio</option>
-              <option value="7">Julio</option>
-              <option value="8">Agosto</option>
-              <option value="9">Septiembre</option>
-              <option value="10">Octubre</option>
-              <option value="11">Noviembre</option>
-              <option value="12">Diciembre</option>
-            </select>
-
-
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="year-input"
-              placeholder="Año"
-            />
-            */}
-            {/* Botón para generar nómina */}
-            {/* Botón para abrir el modal */}
-                      <button onClick={() => setShowModal(true)} className="generate-payroll-btn">
-                        Generar Nóminas
-                      </button>
+            <button onClick={() => { fetchRoleSalaries(); setShowModal(true); }} className="generate-payroll-btn">
+              Generar Nóminas
+            </button>
           </div>
 
-          {/* Contenedor de búsqueda y botón de ordenar */}
           <div className="controls">
             <input
               type="text"
@@ -207,12 +232,11 @@ function ManagePayrolls() {
             </tbody>
           </table>
         </div>
-
       </main>
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-contentt">
+          <div className="modal-content">
             <h3>Generar Nómina</h3>
             <select value={month} onChange={(e) => setMonth(e.target.value)}>
               <option value="">Selecciona un mes</option>
@@ -236,14 +260,54 @@ function ManagePayrolls() {
               className="year-input"
               placeholder="Año"
             />
+            {roleSalaries.map((roleSalary) => (
+              <div key={roleSalary.role} className="role-salary">
+                <h4>{roleSalary.role}</h4>
+                <div className="role-salary-section">
+                  <label>Base Salary:</label>
+                  <input
+                    type="number"
+                    value={roleSalary.base_salary}
+                    onChange={(e) => handleBaseSalaryChange(roleSalary.role, e.target.value)}
+                  />
+                </div>
+                <div className="role-salary-section">
+                  <h5>Earnings:</h5>
+                  {roleSalary.earnings.map((earning, index) => (
+                                      earning.name !== "Salario Base" && (
+                                        <div key={index} className="role-salary-item">
+                                          <label>{earning.name}:</label>
+                                          <input
+                                            type="number"
+                                            value={earning.amount}
+                                            onChange={(e) => handleInputChange(roleSalary.role, "earnings", index, "amount", e.target.value)}
+                                          />
+                                        </div>
+                                      )
+                                    ))}
+                </div>
+                <div className="role-salary-section">
+                  <h5>Deductions:</h5>
+                  {roleSalary.deductions.map((deduction, index) => (
+                    <div key={index} className="role-salary-item">
+                      <label>{deduction.name} ({deduction.percentage}%):</label>
+                      <input
+                        type="number"
+                        value={deduction.amount}
+                        onChange={(e) => handleInputChange(roleSalary.role, "deductions", index, "amount", e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
             <div className="modal-bts">
-              <button onClick={generatePayrolls} className="generate-btn">Generar</button>
+              <button onClick={handleGeneratePayrolls} className="generate-btn">Generar</button>
               <button onClick={() => setShowModal(false)} className="cl-btn">Cancelar</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
