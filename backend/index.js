@@ -442,7 +442,7 @@ app.delete("/role_salary", async (req, res) => {
 });
 
 
-
+// Cambiar para calcularlo por las horas realizadas
 function calculateAmount(role) {
     switch (role) {
         case "Boss":
