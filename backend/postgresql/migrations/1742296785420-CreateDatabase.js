@@ -1,11 +1,12 @@
 //const { MigrationInterface, QueryRunner } = require("typeorm");
 
-export class CreateDatabase1742166190584 {
-    name = 'CreateDatabase1742166190584'
+export class CreateDatabase1742296785420 {
+    name = 'CreateDatabase1742296785420'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "work_schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_f5251879700e5ca0d2e353fa34f" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" date NOT NULL, "start_time" TIME NOT NULL DEFAULT '10:00:00', "end_time" TIME NOT NULL DEFAULT '19:00:00', "workScheduleId" uuid, "facilityId" uuid, CONSTRAINT "PK_7e33fc2ea755a5765e3564e66dd" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "role_salaries" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "role" character varying NOT NULL, "base_salary" numeric(10,2) NOT NULL, "earnings" json NOT NULL, "deductions" json NOT NULL, CONSTRAINT "UQ_a3cc42c313ecc6a4757e8564347" UNIQUE ("role"), CONSTRAINT "PK_4aab2387393bd8b0de6d6e49da9" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "payrolls" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "total_hours" numeric(5,2) NOT NULL DEFAULT '0', "amount" numeric(10,2) NOT NULL, "employee_id" character varying NOT NULL, CONSTRAINT "PK_4fc19dcf3522661435565b5ecf3" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "idx_payroll_employee" ON "payrolls" ("employee_id") `);
         await queryRunner.query(`CREATE TYPE "public"."incidents_type_enum" AS ENUM('Heridas en la piel y cortes', 'Picaduras de medusa', 'Picaduras de pez araña', 'Picadura desconocida', 'Quemaduras solares', 'Golpes de calor', 'Ahogamiento en la playa', 'Atragantamiento', 'Insolación')`);
@@ -47,6 +48,7 @@ export class CreateDatabase1742166190584 {
         await queryRunner.query(`DROP TYPE "public"."incidents_type_enum"`);
         await queryRunner.query(`DROP INDEX "public"."idx_payroll_employee"`);
         await queryRunner.query(`DROP TABLE "payrolls"`);
+        await queryRunner.query(`DROP TABLE "role_salaries"`);
         await queryRunner.query(`DROP TABLE "schedules"`);
         await queryRunner.query(`DROP TABLE "work_schedules"`);
     }

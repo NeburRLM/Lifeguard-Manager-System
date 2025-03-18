@@ -7,6 +7,7 @@ import { ScheduleSchema } from './postgresql/schemas/schedule-schema.js';
 import { IncidentSchema } from './postgresql/schemas/incident-schema.js';
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
+import { RoleSalarySchema } from "./postgresql/schemas/roleSalary-schema.js";
 import { Between } from 'typeorm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -48,6 +49,7 @@ app.use((request, response, next) => {
 dataSource.initialize()
     .then(() => {
         console.log("Conexión a la base de datos establecida.");    // Conexión exitosa
+        seedRoleSalaries();
     })
     .catch((err) => {
         console.error("Error al conectar con la base de datos:", err);  // Conexión invalidada
@@ -240,31 +242,123 @@ app.get('/bossCount', async (req, res) => {
 
 
 
+const seedRoleSalaries = async () => {
+    const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+
+
+    const roles = [
+        {
+            role: "Boss",
+            base_salary: 1600.00,
+            earnings: [
+                { name: "Salario Base", amount: 1600.00 },
+                { name: "Plus Transporte", amount: 50.00 },
+                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra Navidad", amount: 93.18 }
+            ],
+            deductions: [
+                { name: "C. Comunes", percentage: 4.70, amount: 75.20 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 1.92 },
+                { name: "Desempleo", percentage: 1.55, amount: 24.80 },
+                { name: "F. Profesional", percentage: 0.10, amount: 1.60 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 103.52 }
+            ]
+        },
+        {
+            role: "Coordinator",
+            base_salary: 1278.00,
+            earnings: [
+                { name: "Salario Base", amount: 1278.00 },
+                { name: "Plus Transporte", amount: 50.00 },
+                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra Navidad", amount: 93.18 }
+            ],
+            deductions: [
+                { name: "C. Comunes", percentage: 4.70, amount: 60.07 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 1.53 },
+                { name: "Desempleo", percentage: 1.55, amount: 19.81 },
+                { name: "F. Profesional", percentage: 0.10, amount: 1.28 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 82.65 }
+            ]
+        },
+        {
+            role: "Lifeguard",
+            base_salary: 1118.00,
+            earnings: [
+                { name: "Salario Base", amount: 1118.00 },
+                { name: "Plus Transporte", amount: 50.00 },
+                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra Navidad", amount: 93.18 }
+            ],
+            deductions: [
+                { name: "C. Comunes", percentage: 4.70, amount: 52.55 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 1.34 },
+                { name: "Desempleo", percentage: 1.55, amount: 17.32 },
+                { name: "F. Profesional", percentage: 0.10, amount: 1.12 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 72.32 }
+            ]
+        }
+    ];
+
+    for (const role of roles) {
+        const existingRole = await roleSalaryRepository.findOne({ where: { role: role.role } });
+        if (!existingRole) {
+            await roleSalaryRepository.save({
+                role: role.role,
+                base_salary: role.base_salary,
+                earnings: JSON.stringify(role.earnings),
+                deductions: JSON.stringify(role.deductions)
+            });
+        }
+    }
+
+    console.log("Valores de salarios base insertados correctamente");
+};
 
 
 
+app.get("/role_salary/:role", async (req, res) => {
+  const { role } = req.params;
 
+  try {
+    const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+    const roleSalary = await roleSalaryRepository.findOne({ where: { role } });
 
+    if (!roleSalary) {
+      return res.status(404).json({ message: "Rol no encontrado" });
+    }
+
+    // Devolver los datos del salario del rol
+    res.status(200).json({
+      base_salary: roleSalary.base_salary,
+      earnings: JSON.parse(roleSalary.earnings),  // Parseamos el JSON
+      deductions: JSON.parse(roleSalary.deductions), // Parseamos el JSON
+    });
+  } catch (error) {
+    console.error("Error fetching role salary:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
 
 
 function calculateAmount(role) {
     switch (role) {
         case "Boss":
-            return 30.00; // Ejemplo: sueldo por hora del jefe
+            return 1600.00; // Ejemplo: sueldo jefe
         case "Coordinator":
-            return 20.00; // Ejemplo: sueldo por hora de un coordinador
+            return 1278.00; // Ejemplo: sueldo coordinador
         case "Lifeguard":
-            return 15.00; // Ejemplo: sueldo por hora de un socorrista
+            return 1118.00; // Ejemplo: sueldo socorrista
         default:
-            return 10.00; // Sueldo por hora por defecto
+            return 1118.00; // Sueldo por defecto
     }
 }
 
 
 
 // Ruta para crear un nuevo empleado
-app.post('/employee', authenticateToken, async (req, res) => {
+app.post('/employee', async (req, res) => {
     let employees = req.body;
 
     // Si solo se envía un solo objeto (no un arreglo), lo convertimos en un arreglo de un solo elemento
@@ -1279,111 +1373,109 @@ const getLastDayOfMonth = (year, month) => {
 };
 
 app.post('/payroll/generate-monthly', async (req, res) => {
-    const { month, year } = req.body;
+     const { month, year } = req.body;
 
-    if (!month || !year) {
-        return res.status(400).json({ error: "Se requiere el mes y el año para generar las nóminas." });
-    }
+     if (!month || !year) {
+         return res.status(400).json({ error: "Se requiere el mes y el año para generar las nóminas." });
+     }
 
-    try {
-        const employeeRepository = dataSource.getRepository(EmployeeSchema);
-        const payrollRepository = dataSource.getRepository(PayrollSchema);
-        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+     try {
+         const employeeRepository = dataSource.getRepository(EmployeeSchema);
+         const payrollRepository = dataSource.getRepository(PayrollSchema);
+         const attendanceRepository = dataSource.getRepository(AttendanceSchema);
 
-        // Obtener todos los empleados activos
-        const employees = await employeeRepository.find();
+         const employees = await employeeRepository.find();
 
-        if (!employees.length) {
-            return res.status(404).json({ error: "No hay empleados registrados." });
-        }
+         if (!employees.length) {
+             return res.status(404).json({ error: "No hay empleados registrados." });
+         }
 
-        const generatedPayrolls = [];
+         const generatedPayrolls = [];
+         const lastDay = getLastDayOfMonth(year, month);
+         const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+         const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
-        // Obtener el último día del mes
-        const lastDay = getLastDayOfMonth(year, month);
-        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+         for (const employee of employees) {
+             const existingPayroll = await payrollRepository.findOne({
+                 where: { month, year, employee: { id: employee.id } }
+             });
 
-        for (const employee of employees) {
-            // Buscar fichajes del mes y año para cada empleado
-            const attendances = await attendanceRepository.find({
-                where: {
-                    employee: { id: employee.id },
-                    date: Between(startDate, endDate) // 🔥 Aquí usamos la fecha correcta
-                }
-            });
+             if (existingPayroll) {
+                 console.log(`La nómina para ${employee.name} en ${month}/${year} ya existe. Se omite.`);
+                 continue;
+             }
 
-            if (!attendances.length) {
-                console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
-                continue;
-            }
+             const attendances = await attendanceRepository.find({
+                 where: {
+                     employee: { id: employee.id },
+                     date: Between(startDate, endDate)
+                 }
+             });
 
-            let totalHours = 0;
+             if (!attendances.length) {
+                 console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
+                 continue;
+             }
 
-            attendances.forEach(attendance => {
-                if (attendance.check_out) {  // ✅ Verifica que haya un check_out
-                    // Aquí usamos la fecha de asistencia junto con la hora de check_in y check_out
-                    const date = attendance.date; // Por ejemplo, '2025-04-02'
-                    const checkInTime = `${date}T${attendance.check_in}`;  // Formato correcto: '2025-04-02T08:00:00'
-                    const checkOutTime = `${date}T${attendance.check_out}`; // Formato correcto: '2025-04-02T16:00:00'
+             let totalHours = 0;
 
-                    const start = new Date(checkInTime);  // Crear un objeto Date con check_in
-                    const end = new Date(checkOutTime);  // Crear un objeto Date con check_out
+             attendances.forEach(attendance => {
+                 if (attendance.check_out) {
+                     const date = attendance.date;
+                     const checkInTime = `${date}T${attendance.check_in}`;
+                     const checkOutTime = `${date}T${attendance.check_out}`;
 
-                    // Verificar que las fechas sean válidas
-                    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                        console.warn(`Atención: fechas inválidas para ${employee.name} en ${attendance.date}`);
-                        return;  // Si las fechas no son válidas, salimos
-                    }
+                     const start = new Date(checkInTime);
+                     const end = new Date(checkOutTime);
 
-                    const workedHours = (end - start) / (1000 * 60 * 60); // Cálculo de horas trabajadas
-                    totalHours += workedHours;
-                } else {
-                    console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
-                }
-            });
+                     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                         console.warn(`Atención: fechas inválidas para ${employee.name} en ${attendance.date}`);
+                         return;
+                     }
 
-            // Verificar que totalHours sea un número válido
-            if (isNaN(totalHours)) {
-                console.warn(`Atención: total_hours no es un número válido para el empleado ${employee.id}`);
-                totalHours = 0; // Asignar un valor por defecto
-            }
+                     const workedHours = (end - start) / (1000 * 60 * 60);
+                     totalHours += workedHours;
+                 } else {
+                     console.warn(`Atención: Registro de asistencia sin check_out para el empleado ${employee.id} en ${attendance.date}`);
+                 }
+             });
 
-            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+             if (isNaN(totalHours)) {
+                 console.warn(`Atención: total_hours no es un número válido para el empleado ${employee.id}`);
+                 totalHours = 0;
+             }
 
-            // Verificar que hourlyRate sea un número válido
-            if (isNaN(hourlyRate)) {
-                console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
-                hourlyRate = 0; // Asignar un valor por defecto
-            }
+             const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+             if (isNaN(hourlyRate)) {
+                 console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
+                 hourlyRate = 0;
+             }
 
-            const amount = totalHours * hourlyRate;
+             const amount = totalHours * hourlyRate;
+             if (isNaN(amount)) {
+                 console.warn(`Atención: amount no es un número válido para el empleado ${employee.id}`);
+                 amount = 0;
+             }
 
-            // Verificar que amount sea un número válido
-            if (isNaN(amount)) {
-                console.warn(`Atención: amount no es un número válido para el empleado ${employee.id}`);
-                amount = 0; // Asignar un valor por defecto
-            }
+             const newPayroll = payrollRepository.create({
+                 month,
+                 year,
+                 total_hours: totalHours,
+                 amount,
+                 employee
+             });
 
-            // Crear la nómina
-            const newPayroll = payrollRepository.create({
-                month,
-                year,
-                total_hours: totalHours,
-                amount,
-                employee
-            });
+             await payrollRepository.save(newPayroll);
+             generatedPayrolls.push(newPayroll);
+         }
 
-            await payrollRepository.save(newPayroll);
-            generatedPayrolls.push(newPayroll);
-        }
+         res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
+     } catch (error) {
+         console.error("Error al generar nóminas:", error);
+         res.status(500).json({ error: "Error interno del servidor." });
+     }
+ });
 
-        res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
-    } catch (error) {
-        console.error("Error al generar nóminas:", error);
-        res.status(500).json({ error: "Error interno del servidor." });
-    }
-});
 
 
 

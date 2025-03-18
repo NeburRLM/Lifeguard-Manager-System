@@ -167,7 +167,6 @@ function PayrollsView() {
                 <tr>
                   <th>Month</th>
                   <th>Year</th>
-                  <th>Salary</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,11 +180,6 @@ function PayrollsView() {
                     <td>
                       <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">
                         {payroll.year}
-                      </Link>
-                    </td>
-                    <td>
-                      <Link to={`/payrollsview/${id}/payroll/${payroll.id}?month=${payroll.month}&year=${payroll.year}`} className="payroll-row-link">
-                        {payroll.amount} €
                       </Link>
                     </td>
                   </tr>
