@@ -270,7 +270,7 @@ const seedRoleSalaries = async () => {
             earnings: [
                 { name: "Salario Base", amount: 1278.00 },
                 { name: "Plus Transporte", amount: 50.00 },
-                { name: "Paga Extra Julio", amount: 93.18 },
+                { name: "Paga Extra X", amount: 93.18 },
                 { name: "Paga Extra Navidad", amount: 93.18 }
             ],
             deductions: [
@@ -334,6 +334,41 @@ app.get("/role_salary/:role", async (req, res) => {
       earnings: JSON.parse(roleSalary.earnings),  // Parseamos el JSON
       deductions: JSON.parse(roleSalary.deductions), // Parseamos el JSON
     });
+  } catch (error) {
+    console.error("Error fetching role salary:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+
+app.get("/role_salary", async (req, res) => {
+  const allowedRoles = ['Boss', 'Coordinator', 'Lifeguard'];
+
+  try {
+    const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+
+    // Obtener los datos de los tres roles específicos
+    const roleSalaries = await roleSalaryRepository.find({
+      where: {
+        role: In(allowedRoles) // Consulta para los roles específicos
+      }
+    });
+
+    if (!roleSalaries || roleSalaries.length === 0) {
+      return res.status(404).json({ message: "Roles no encontrados" });
+    }
+
+    // Mapeamos los resultados para devolver solo la información relevante
+    const response = roleSalaries.map(roleSalary => ({
+      role: roleSalary.role,
+      base_salary: roleSalary.base_salary,
+      earnings: JSON.parse(roleSalary.earnings),  // Parseamos el JSON
+      deductions: JSON.parse(roleSalary.deductions) // Parseamos el JSON
+    }));
+
+    // Devolvemos los salarios de los tres roles
+    res.status(200).json(response);
+
   } catch (error) {
     console.error("Error fetching role salary:", error);
     res.status(500).json({ message: "Error interno del servidor" });

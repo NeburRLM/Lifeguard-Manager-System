@@ -12,6 +12,7 @@ function ManagePayrolls() {
   const [sortOrder, setSortOrder] = useState("asc"); // Para controlar el orden de la lista
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+    const [showModal, setShowModal] = useState(false);
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
@@ -92,10 +93,13 @@ function ManagePayrolls() {
     const data = await response.json();
     if (response.ok) {
       alert("Nóminas generadas correctamente.");
+      setShowModal(false);
     } else {
       alert(data.error || "Error al generar nóminas.");
     }
   };
+
+
 
   return (
     <div className="dashboard-container">
@@ -138,7 +142,7 @@ function ManagePayrolls() {
           {/* Nueva sección para mes, año y generar nómina */}
           <div className="select-container">
             {/* Selector de mes */}
-            <select value={month} onChange={(e) => setMonth(e.target.value)}>
+            {/*<select value={month} onChange={(e) => setMonth(e.target.value)}>
               <option value="">Selecciona un mes</option>
               <option value="1">Enero</option>
               <option value="2">Febrero</option>
@@ -154,7 +158,7 @@ function ManagePayrolls() {
               <option value="12">Diciembre</option>
             </select>
 
-            {/* Selector de año */}
+
             <input
               type="number"
               value={year}
@@ -162,11 +166,12 @@ function ManagePayrolls() {
               className="year-input"
               placeholder="Año"
             />
-
+            */}
             {/* Botón para generar nómina */}
-            <button onClick={generatePayrolls} className="generate-payroll-btn">
-              Generar Nóminas
-            </button>
+            {/* Botón para abrir el modal */}
+                      <button onClick={() => setShowModal(true)} className="generate-payroll-btn">
+                        Generar Nóminas
+                      </button>
           </div>
 
           {/* Contenedor de búsqueda y botón de ordenar */}
@@ -204,6 +209,41 @@ function ManagePayrolls() {
         </div>
 
       </main>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-contentt">
+            <h3>Generar Nómina</h3>
+            <select value={month} onChange={(e) => setMonth(e.target.value)}>
+              <option value="">Selecciona un mes</option>
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              className="year-input"
+              placeholder="Año"
+            />
+            <div className="modal-bts">
+              <button onClick={generatePayrolls} className="generate-btn">Generar</button>
+              <button onClick={() => setShowModal(false)} className="cl-btn">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

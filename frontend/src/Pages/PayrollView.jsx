@@ -52,7 +52,7 @@ const PayrollView = () => {
         const monthName = capitalize(moment().month(validMonth - 1).format("MMMM"));
 
                 const modifiedEarnings = earnings.map((earning) => {
-                  if (earning.name.includes("Paga Extra Julio")) {
+                  if (earning.name.includes("Paga Extra X")) {
                     return {
                       ...earning,
                       name: `Paga Extra ${monthName}`,
