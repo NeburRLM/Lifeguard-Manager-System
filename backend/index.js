@@ -251,9 +251,9 @@ const seedRoleSalaries = async () => {
             base_salary: 1600.00,
             earnings: [
                 { name: "Salario Base", amount: 1600.00 },
-                { name: "Plus Transporte", amount: 50.00 },
-                { name: "Paga Extra X", amount: 93.18 },
-                { name: "Paga Extra Navidad", amount: 93.18 }
+                { name: "Plus Transporte", amount: 81.00 },
+                { name: "Paga Extra X", amount: 117.29 },
+                { name: "Paga Extra Navidad", amount: 117.29 }
             ],
             deductions: [
                 { name: "C. Comunes", percentage: 4.70, amount: 75.20 },
@@ -268,9 +268,9 @@ const seedRoleSalaries = async () => {
             base_salary: 1278.00,
             earnings: [
                 { name: "Salario Base", amount: 1278.00 },
-                { name: "Plus Transporte", amount: 50.00 },
-                { name: "Paga Extra X", amount: 93.18 },
-                { name: "Paga Extra Navidad", amount: 93.18 }
+                { name: "Plus Transporte", amount: 65.00 },
+                { name: "Paga Extra X", amount: 101.18 },
+                { name: "Paga Extra Navidad", amount: 101.18 }
             ],
             deductions: [
                 { name: "C. Comunes", percentage: 4.70, amount: 60.07 },
@@ -1575,19 +1575,45 @@ app.post('/payroll/generate-monthly', async (req, res) => {
           }
 
           const adjustedBaseSalary = (parseFloat(roleSalary.base_salary) / 160) * totalHours;
-          // Modificar earnings para reflejar el salario base ajustado
-                      earnings = earnings.map((earning) => {
-                          if (earning.name === "Salario Base") {
-                              return {
-                                  ...earning,
-                                  amount: adjustedBaseSalary.toFixed(2)
-                              };
-                          }
-                          return earning;
-                      });
+          const baseSalary = parseFloat(roleSalary.base_salary);  // Asegurarse de que baseSalary está definido
+
+          // Modificar earnings para reflejar el salario base ajustado y otros conceptos
+           earnings = earnings.map((earning) => {
+                  let adjustedAmount = parseFloat(earning.amount);
+                  if (earning.name === "Salario Base") {
+                    adjustedAmount = adjustedBaseSalary;
+                  } else if (earning.name === "Plus Transporte") {
+                    if (totalHours > 160)
+                    {
+                        adjustedAmount = (parseFloat(earning.amount) / 160 ) * 160;
+                    }
+                    else
+                    {
+                        adjustedAmount = (parseFloat(earning.amount) / 160 ) * totalHours;
+                    }
+
+                  } else if (["Paga Extra X", "Paga Extra Navidad"].includes(earning.name)) {
+                    adjustedAmount = (parseFloat(earning.amount) * adjustedBaseSalary) / baseSalary;
+                  }
+                  return {
+                    name: earning.name,
+                    amount: adjustedAmount.toFixed(2)
+                  };
+                });
 
           const totalEarnings = earnings.reduce((acc, earning) => acc + parseFloat(earning.amount), 0);
-          const totalDeductions = deductions.reduce((acc, deduction) => acc + parseFloat(deduction.amount), 0);
+
+          // Calcular deducciones basadas en el total devengado
+          const adjustedDeductions = deductions.map((deduction) => {
+            const adjustedAmount = (parseFloat(deduction.percentage) / 100) * totalEarnings;
+            return {
+              name: deduction.name,
+              percentage: deduction.percentage,
+              amount: adjustedAmount.toFixed(2)
+            };
+          });
+
+          const totalDeductions = adjustedDeductions.reduce((acc, deduction) => acc + parseFloat(deduction.amount), 0);
 
           const newPayroll = payrollRepository.create({
             month,
@@ -1597,7 +1623,7 @@ app.post('/payroll/generate-monthly', async (req, res) => {
             amount_hours: amount_hours.toFixed(2),
             employee,
             earnings: JSON.stringify(earnings),
-            deductions: JSON.stringify(deductions),
+            deductions: JSON.stringify(adjustedDeductions),
             total_amount: (totalEarnings - totalDeductions).toFixed(2),
           });
 
