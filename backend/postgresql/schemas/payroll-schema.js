@@ -21,15 +21,27 @@ export const PayrollSchema = new EntitySchema({
             scale: 2,  // Escala (dígitos después del punto decimal)
             default: 0  // Valor predeterminado es 0
         },
-        amount: {  // Columna que almacena el monto total de la nómina
+        base_salary: {  // Columna que almacena el monto total de la nómina
             type: "decimal",  // Tipo de datos decimal
             precision: 10,  // Precisión total (10 dígitos en total)
             scale: 2,  // Escala (2 dígitos después del punto decimal)
         },
+        amount_hours: {  // Columna que almacena el monto total de la nómina
+                    type: "decimal",  // Tipo de datos decimal
+                    precision: 10,  // Precisión total (10 dígitos en total)
+                    scale: 2,  // Escala (2 dígitos después del punto decimal)
+                },
+                total_amount: {  // Columna que almacena el monto total de la nómina
+                                    type: "decimal",  // Tipo de datos decimal
+                                    precision: 10,  // Precisión total (10 dígitos en total)
+                                    scale: 2,  // Escala (2 dígitos después del punto decimal)
+                                },
         employee_id: {  // Columna que almacena el id del empleado asociado a la nómina
             type: "varchar",  // Tipo de datos cadena de caracteres
             nullable: false  // No puede ser nulo, ya que cada nómina debe estar asociada a un empleado
-        }
+        },
+        earnings: { type: "json", nullable: false }, // 🔹 Guardar earnings como JSON
+        deductions: { type: "json", nullable: false } // 🔹 Guardar deductions como JSON
     },
     relations: {  // Definición de las relaciones con otras entidades
         employee: {  // Relación con la entidad Employee (empleado)

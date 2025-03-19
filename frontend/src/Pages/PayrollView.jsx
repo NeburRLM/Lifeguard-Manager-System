@@ -20,6 +20,7 @@ const PayrollView = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [payroll, setPayroll] = useState(null);
+  const { payrollId } = useParams();
 
 
   const queryParams = new URLSearchParams(location.search);
@@ -40,11 +41,11 @@ const PayrollView = () => {
   };
 
 
-const fetchRoleSalary = useCallback((role) => {
-  fetch(`http://localhost:4000/role_salary/${role}`)
+const fetchRoleSalary = useCallback((payrollId) => {
+  fetch(`http://localhost:4000/role_salary/${payrollId}`)
     .then((response) => response.json())
     .then((data) => {
-      console.log("Role salary data:", data);
+      console.log("Role salary data:", payrollId);
 
       const earnings = data.earnings || [];
       const deductions = data.deductions || [];
@@ -115,7 +116,7 @@ const fetchRoleSalary = useCallback((role) => {
         setCurrentSchedule(schedule);
 
 
-        fetchRoleSalary(data.role);
+        fetchRoleSalary(payrollId);
 
         const formattedSchedules = schedule.schedules.map((shift) => ({
           id: `schedule-${shift.id}`,
@@ -129,7 +130,7 @@ const fetchRoleSalary = useCallback((role) => {
         setEvents(formattedSchedules);
       })
       .catch((error) => console.log("Error fetching employee data:", error));
-  }, [id, scheduleId, validMonth, validYear, fetchRoleSalary]);
+  }, [id, scheduleId, validMonth, validYear, payrollId, fetchRoleSalary]);
 
   const fetchAttendanceData = useCallback(() => {
     if (!id || !validMonth || !validYear) return;
@@ -212,3 +213,4 @@ const fetchRoleSalary = useCallback((role) => {
 };
 
 export default PayrollView;
+
