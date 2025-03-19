@@ -13,6 +13,8 @@ import FacilityView from "../Pages/FacilityView"
 import ManagePayrolls from "../Pages/ManagePayrolls"
 import PayrollsView from "../Pages/PayrollsView"
 import PayrollView from "../Pages/PayrollView"
+import ManageIncidents from "../Pages/ManageIncidents"
+import ProfileView from "../Pages/ProfileView"
 
 const router = createBrowserRouter([
   {
@@ -55,14 +57,22 @@ const router = createBrowserRouter([
          path: "/payrolls",
          element: <RequireToken><ManagePayrolls /></RequireToken>, // Protegemos la ruta
      },
-      {
-           path: "/payrollsview/:id", // Ruta para ver el empleado, con parámetro `id`
-           element: <RequireToken><PayrollsView /></RequireToken>, // Protegemos la ruta
-       },
-       {
-                  path: "/payrollsview/:id/payroll/:payrollId", // Ruta para ver el empleado, con parámetro `id`
-                  element: <RequireToken><PayrollView /></RequireToken>, // Protegemos la ruta
-              },
+     {
+         path: "/payrollsview/:id", // Ruta para ver el empleado, con parámetro `id`
+         element: <RequireToken><PayrollsView /></RequireToken>, // Protegemos la ruta
+     },
+     {
+         path: "/payrollsview/:id/payroll/:payrollId", // Ruta para ver el empleado, con parámetro `id`
+         element: <RequireToken><PayrollView /></RequireToken>, // Protegemos la ruta
+     },
+     {
+         path: "/incidents", // Ruta para ver el empleado, con parámetro `id`
+         element: <RequireToken><ManageIncidents /></RequireToken>, // Protegemos la ruta
+     },
+     {
+         path: "/profile", // Ruta para ver el empleado, con parámetro `id`
+         element: <RequireToken><ProfileView /></RequireToken>, // Protegemos la ruta
+     },
 
 ]);
 

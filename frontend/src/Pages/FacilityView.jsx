@@ -117,6 +117,7 @@ const FacilityView = () => {
             <li><Link to="/employees">Manage Employees</Link></li>
             <li><Link to="/facilities">Manage Facilities</Link></li>
             <li><Link to="/payrolls">Manage Payrolls</Link></li>
+            <li><Link to="/incidents">Manage Incidents</Link></li>
             <li><Link to="/profile">Profile</Link></li>
             <li>
               <button className="logout-btn" onClick={signOut}>
