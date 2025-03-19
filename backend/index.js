@@ -1516,7 +1516,7 @@ app.post('/payroll/generate-monthly', async (req, res) => {
           }
 
           // Parsear earnings y deductions como arrays
-          const earnings = JSON.parse(roleSalary.earnings);
+          let earnings = JSON.parse(roleSalary.earnings);
           const deductions = JSON.parse(roleSalary.deductions);
 
           // Buscar fichajes del mes y año para cada empleado
@@ -1574,6 +1574,18 @@ app.post('/payroll/generate-monthly', async (req, res) => {
             amount_hours = 0;
           }
 
+          const adjustedBaseSalary = (parseFloat(roleSalary.base_salary) / 160) * totalHours;
+          // Modificar earnings para reflejar el salario base ajustado
+                      earnings = earnings.map((earning) => {
+                          if (earning.name === "Salario Base") {
+                              return {
+                                  ...earning,
+                                  amount: adjustedBaseSalary.toFixed(2)
+                              };
+                          }
+                          return earning;
+                      });
+
           const totalEarnings = earnings.reduce((acc, earning) => acc + parseFloat(earning.amount), 0);
           const totalDeductions = deductions.reduce((acc, deduction) => acc + parseFloat(deduction.amount), 0);
 
@@ -1581,7 +1593,7 @@ app.post('/payroll/generate-monthly', async (req, res) => {
             month,
             year,
             total_hours: totalHours.toFixed(2),
-            base_salary: parseFloat(roleSalary.base_salary).toFixed(2),
+            base_salary: adjustedBaseSalary.toFixed(2),
             amount_hours: amount_hours.toFixed(2),
             employee,
             earnings: JSON.stringify(earnings),
