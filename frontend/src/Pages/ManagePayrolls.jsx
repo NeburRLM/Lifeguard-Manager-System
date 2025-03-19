@@ -294,8 +294,8 @@ function ManagePayrolls() {
                       <label>{deduction.name} ({deduction.percentage}%):</label>
                       <input
                         type="number"
-                        value={deduction.amount}
-                        onChange={(e) => handleInputChange(roleSalary.role, "deductions", index, "amount", e.target.value)}
+                        value={deduction.percentage}
+                        onChange={(e) => handleInputChange(roleSalary.role, "deductions", index, "percentage", e.target.value)}
                       />
                     </div>
                   ))}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt } from "react-icons/fa"; // Añadir iconos
-import "./ManageEmployees.css"; // Archivo CSS
+import { FaSignOutAlt } from "react-icons/fa";
+import "./ManageEmployees.css";
 
 function ManageEmployees() {
 
@@ -77,7 +77,7 @@ function ManageEmployees() {
         if (message.includes("eliminado correctamente")) {  // Verificamos si el mensaje contiene "eliminado correctamente"
           // Si la eliminación fue exitosa, actualizamos el estado de los empleados
           setEmployees(employees.filter((employee) => employee.id !== id));
-          alert("Empleado eliminado correctamente");  // Ventanita emergente de éxito
+          alert("Empleado eliminado correctamente");  // Ventanita emergene de éxito
         } else {
           alert("Error deleting employee");
         }

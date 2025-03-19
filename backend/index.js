@@ -256,11 +256,11 @@ const seedRoleSalaries = async () => {
                 { name: "Paga Extra Navidad", amount: 117.29 }
             ],
             deductions: [
-                { name: "C. Comunes", percentage: 4.70, amount: 75.20 },
-                { name: "Cotización MEI", percentage: 0.12, amount: 1.92 },
-                { name: "Desempleo", percentage: 1.55, amount: 24.80 },
-                { name: "F. Profesional", percentage: 0.10, amount: 1.60 },
-                { name: "Retención IRPF", percentage: 6.47, amount: 103.52 }
+                { name: "C. Comunes", percentage: 4.70, amount: 0 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 0 },
+                { name: "Desempleo", percentage: 1.55, amount: 0 },
+                { name: "F. Profesional", percentage: 0.10, amount: 0 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 0 }
             ]
         },
         {
@@ -273,11 +273,11 @@ const seedRoleSalaries = async () => {
                 { name: "Paga Extra Navidad", amount: 101.18 }
             ],
             deductions: [
-                { name: "C. Comunes", percentage: 4.70, amount: 60.07 },
-                { name: "Cotización MEI", percentage: 0.12, amount: 1.53 },
-                { name: "Desempleo", percentage: 1.55, amount: 19.81 },
-                { name: "F. Profesional", percentage: 0.10, amount: 1.28 },
-                { name: "Retención IRPF", percentage: 6.47, amount: 82.65 }
+                { name: "C. Comunes", percentage: 4.70, amount: 0 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 0 },
+                { name: "Desempleo", percentage: 1.55, amount: 0 },
+                { name: "F. Profesional", percentage: 0.10, amount: 0 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 0 }
             ]
         },
         {
@@ -290,11 +290,11 @@ const seedRoleSalaries = async () => {
                 { name: "Paga Extra Navidad", amount: 93.18 }
             ],
             deductions: [
-                { name: "C. Comunes", percentage: 4.70, amount: 52.55 },
-                { name: "Cotización MEI", percentage: 0.12, amount: 1.34 },
-                { name: "Desempleo", percentage: 1.55, amount: 17.32 },
-                { name: "F. Profesional", percentage: 0.10, amount: 1.12 },
-                { name: "Retención IRPF", percentage: 6.47, amount: 72.32 }
+                { name: "C. Comunes", percentage: 4.70, amount: 0 },
+                { name: "Cotización MEI", percentage: 0.12, amount: 0 },
+                { name: "Desempleo", percentage: 1.55, amount: 0 },
+                { name: "F. Profesional", percentage: 0.10, amount: 0 },
+                { name: "Retención IRPF", percentage: 6.47, amount: 0 }
             ]
         }
     ];
@@ -394,6 +394,10 @@ app.put("/role_salary/:role", async (req, res) => {
             return res.status(404).json({ message: "Role not found" });
         }
 
+        // Asegurarse de que earnings y deductions sean objetos
+        existingRole.earnings = JSON.parse(existingRole.earnings);
+        existingRole.deductions = JSON.parse(existingRole.deductions);
+
         // Actualizar el salario base en el registro de la tabla
         existingRole.base_salary = base_salary;
 
@@ -407,9 +411,20 @@ app.put("/role_salary/:role", async (req, res) => {
             });
         }
 
+        // Actualizar solo el porcentaje de las deducciones
+        if (deductions) {
+            existingRole.deductions = existingRole.deductions.map(existingDeduction => {
+                const updatedDeduction = deductions.find(d => d.name === existingDeduction.name);
+                if (updatedDeduction) {
+                    existingDeduction.percentage = updatedDeduction.percentage;
+                }
+                return existingDeduction;
+            });
+        }
+
         // Convertimos a JSON los datos actualizados de earnings y deductions
         existingRole.earnings = JSON.stringify(existingRole.earnings);
-        existingRole.deductions = JSON.stringify(deductions);
+        existingRole.deductions = JSON.stringify(existingRole.deductions);
 
         // Guardamos los cambios en la base de datos
         await roleSalaryRepository.save(existingRole);
