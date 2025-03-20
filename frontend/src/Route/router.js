@@ -4,6 +4,7 @@ import Login from "../Pages/Login";
 import Dashboard from "../Pages/Dashboard";
 import ManageEmployees from "../Pages/ManageEmployees";
 import { RequireToken } from "../Components/Auth"; // Importamos la autenticación
+import Layout from "../Components/Layout";
 import EmployeeView from "../Pages/EmployeeView";
 import ScheduleView from "../Pages/ScheduleView";
 import AddEmployee from "../Pages/AddEmployee";
@@ -21,58 +22,65 @@ const router = createBrowserRouter([
     path: "/",
     element: <Login />,
   },
+
   {
-    path: "/dashboard",
-    element: <RequireToken><Dashboard /></RequireToken>, // ✅ CORRECTO
+    path: "/",
+    element: <RequireToken><Layout /></RequireToken>,
+    children: [
+        {
+            path: "dashboard",
+            element: <Dashboard />
+        },
+        {
+              path: "employees",
+              element: <ManageEmployees />
+        },
+        {
+              path: "employeeview/:id",
+              element: <EmployeeView />
+        },
+        {
+              path: "employeeview/:id/schedule/:scheduleId",
+              element: <ScheduleView />
+        },
+        {
+              path: "createEmployee",
+              element: <AddEmployee />
+         },
+         {
+              path: "facilities",
+              element: <ManageFacilities />
+         },
+         {
+              path: "facilityview/:id",
+              element: <FacilityView />
+         },
+         {
+              path: "createFacility",
+              element: <AddFacility />
+         },
+         {
+              path: "payrolls",
+              element: <ManagePayrolls />
+         },
+         {
+              path: "payrollsview/:id",
+              element: <PayrollsView />
+         },
+         {
+              path: "payrollsview/:id/payroll/:payrollId",
+              element: <PayrollView />
+         },
+         {
+              path: "incidents",
+              element: <ManageIncidents />
+         },
+         {
+              path: "profile",
+              element: <ProfileView />
+         }
+    ]
   },
-  {
-      path: "/employees",
-      element: <RequireToken><ManageEmployees /></RequireToken>, // Protegemos la ruta
-  },
-  {
-      path: "/employeeview/:id", // Ruta para ver el empleado, con parámetro `id`
-      element: <RequireToken><EmployeeView /></RequireToken>, // Protegemos la ruta
-  },
-  {
-      path: "/employeeview/:id/schedule/:scheduleId", // Ruta para ver el empleado, con parámetro `id`
-      element: <RequireToken><ScheduleView /></RequireToken>, // Protegemos la ruta
-  },
-  {
-      path: "/createEmployee", // Ruta para agregar un nuevo empleado
-      element: <RequireToken><AddEmployee /></RequireToken>, // Protegemos la ruta
-   },
-   {
-      path: "/facilities", // Ruta para agregar un nuevo empleado
-      element: <RequireToken><ManageFacilities /></RequireToken>, // Protegemos la ruta
-   },
-   {
-      path: "/facilityview/:id", // Ruta para ver el empleado, con parámetro `id`
-      element: <RequireToken><FacilityView /></RequireToken>, // Protegemos la ruta
-   },
-   {
-         path: "/createFacility", // Ruta para agregar un nuevo empleado
-         element: <RequireToken><AddFacility /></RequireToken>, // Protegemos la ruta
-   },
-   {
-         path: "/payrolls",
-         element: <RequireToken><ManagePayrolls /></RequireToken>, // Protegemos la ruta
-     },
-     {
-         path: "/payrollsview/:id", // Ruta para ver el empleado, con parámetro `id`
-         element: <RequireToken><PayrollsView /></RequireToken>, // Protegemos la ruta
-     },
-     {
-         path: "/payrollsview/:id/payroll/:payrollId", // Ruta para ver el empleado, con parámetro `id`
-         element: <RequireToken><PayrollView /></RequireToken>, // Protegemos la ruta
-     },
-     {
-         path: "/incidents", // Ruta para ver el empleado, con parámetro `id`
-         element: <RequireToken><ManageIncidents /></RequireToken>, // Protegemos la ruta
-     },
-     {
-         path: "/profile", // Ruta para ver el empleado, con parámetro `id`
-         element: <RequireToken><ProfileView /></RequireToken>, // Protegemos la ruta
-     },
 
 ]);
 

@@ -170,47 +170,49 @@ const fetchRoleSalary = useCallback((payrollId) => {
   }
 
   return (
-    <div className="schedule-view-container">
-      <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
-      <div className="calendar-container">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 600, width: "100%" }}
-          date={currentMonth}
-          onNavigate={(date) => setCurrentMonth(date)}
-          toolbar={true}
-          selectable={true}
-          eventPropGetter={(event) => {
-            let backgroundColor = "#1976D2";
+    <div className="schedule-view-container" style={{ minHeight: "100vh", overflowY: "auto" }}>
+          <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
+          <div className="calendar-container">
+            <Calendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: 600, width: "100%" }}
+              date={currentMonth}
+              onNavigate={(date) => setCurrentMonth(date)}
+              toolbar={true}
+              selectable={true}
+              eventPropGetter={(event) => {
+                let backgroundColor = "#1976D2";
 
-            if (event.type === "attendance") {
-              backgroundColor = "#D32F2F";
-            }
+                if (event.type === "attendance") {
+                  backgroundColor = "#D32F2F";
+                }
 
-            return {
-              style: {
-                backgroundColor: backgroundColor,
-                color: "white",
-                borderRadius: "5px",
-                padding: "5px",
-                border: "1px solid white",
-              },
-            };
-          }}
-        />
-      </div>
+                return {
+                  style: {
+                    backgroundColor: backgroundColor,
+                    color: "white",
+                    borderRadius: "5px",
+                    padding: "5px",
+                    border: "1px solid white",
+                  },
+                };
+              }}
+            />
+          </div>
 
-      <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
+          <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
 
-      <PDFViewer width="100%" height="800px">
-        <PayslipPDF employee={employee} payroll={payroll} />
-      </PDFViewer>
-    </div>
-  );
-};
+          <div style={{ height: "800px", overflowY: "auto" }}>
+            <PDFViewer width="100%" height="100%">
+              <PayslipPDF employee={employee} payroll={payroll} />
+            </PDFViewer>
+          </div>
+        </div>
+      );
+    };
 
-export default PayrollView;
+    export default PayrollView;
 

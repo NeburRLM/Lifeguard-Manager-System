@@ -74,16 +74,36 @@ const ScheduleView = () => {
   };
 
   // Función para seleccionar un slot
-  const handleSelectSlot = ({ start }) => {
-    setSelectedEvent(null);
-    setFormData({
-      start: "",
-      end: "",
-      facility: "",
-      date: moment(start).format("YYYY-MM-DD"),
-    });
-    setShowModal(true);
+  // Función para seleccionar un slot (día)
+  const handleSelectSlot = ({ start, end }) => {
+    // Buscar si el día seleccionado tiene eventos
+    const selectedDate = moment(start).format("YYYY-MM-DD");
+    const eventsForDay = events.filter(event => moment(event.start).format("YYYY-MM-DD") === selectedDate);
+
+    if (eventsForDay.length > 0) {
+      // Si hay eventos en el día, selecciona el primero para editarlo
+      const firstEvent = eventsForDay[0];
+      setSelectedEvent(firstEvent);
+      setFormData({
+        start: moment(firstEvent.start).format("HH:mm"),
+        end: moment(firstEvent.end).format("HH:mm"),
+        facility: firstEvent.facility,
+        date: selectedDate,
+      });
+      setShowModal(true); // Muestra el modal para editar
+    } else {
+      // Si no hay eventos en el día, configura el formulario para crear uno nuevo
+      setSelectedEvent(null);
+      setFormData({
+        start: "",
+        end: "",
+        facility: "",
+        date: selectedDate,
+      });
+      setShowModal(true); // Muestra el modal para crear un nuevo evento
+    }
   };
+
 
   // Maneja el cambio de valores en el formulario del modal
   const handleChange = (e) => {

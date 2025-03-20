@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { FaSignOutAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import "./FacilityView.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -15,30 +15,15 @@ const customIcon = new L.Icon({
 });
 
 const FacilityView = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [facility, setFacility] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
-  const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editedFacility, setEditedFacility] = useState({});
 
-  const signOut = () => {
-    sessionStorage.removeItem("Token");
-    sessionStorage.removeItem("userId");
 
-    navigate("/", { replace: true });
-    window.history.pushState(null, "", "/"); // Evita que el usuario pueda regresar con el botón atrás
-  };
 
   useEffect(() => {
-    const userId = sessionStorage.getItem("userId");
-    if (userId) {
-      fetch(`http://localhost:4000/employee/${userId}`)
-        .then((response) => response.json())
-        .then((data) => setUser(data))
-        .catch((err) => console.log("Error fetching user data:", err));
-    }
 
     const fetchFacility = async () => {
       try {
@@ -102,31 +87,7 @@ const FacilityView = () => {
   if (!facility) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="dashboard-container">
-      <aside className="sidebar">
-        <h2 className="logo">Admin Dashboard</h2>
-        {user && (
-          <div className="user-profile">
-            <img src={user.image || "/default-avatar.jpg"} alt={user.name} className="profile-image" />
-            <p className="user-name">{user.name}</p>
-          </div>
-        )}
-        <nav>
-          <ul>
-            <li><Link to="/dashboard">Dashboard</Link></li>
-            <li><Link to="/employees">Manage Employees</Link></li>
-            <li><Link to="/facilities">Manage Facilities</Link></li>
-            <li><Link to="/payrolls">Manage Payrolls</Link></li>
-            <li><Link to="/incidents">Manage Incidents</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-            <li>
-              <button className="logout-btn" onClick={signOut}>
-                <FaSignOutAlt /> Sign Out
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </aside>
+
       <div className="content-map">
         <div className="facility-view">
           <aside className="facility-map">
@@ -194,7 +155,6 @@ const FacilityView = () => {
           </main>
         </div>
       </div>
-    </div>
   );
 };
 

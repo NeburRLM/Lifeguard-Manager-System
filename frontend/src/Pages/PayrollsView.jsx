@@ -1,13 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { FaSort } from "react-icons/fa";
-import { FaSignOutAlt } from "react-icons/fa";
 import "./PayrollsView.css";
 
 function PayrollsView() {
-  const navigate = useNavigate();
   const { id } = useParams(); // Obtener el ID del empleado de la URL
-  const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [payrolls, setPayrolls] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc"); // Controlar el orden de las nóminas
@@ -15,16 +12,9 @@ function PayrollsView() {
   const [searchYear, setSearchYear] = useState("");
   const [filteredPayrolls, setFilteredPayrolls] = useState([]);
 
-  const signOut = () => {
-    sessionStorage.removeItem("Token");
-    sessionStorage.removeItem("userId");
-    navigate("/", { replace: true });
-    window.history.pushState(null, "", "/");
-  };
 
   // Cargar los datos del empleado y sus nóminas
   useEffect(() => {
-    fetchData();
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(`http://localhost:4000/employee/${id}`);
@@ -50,15 +40,6 @@ function PayrollsView() {
     fetchPayrollsData();
   }, [id]);
 
-  const fetchData = () => {
-    const userId = sessionStorage.getItem("userId");
-    if (userId) {
-      fetch(`http://localhost:4000/employee/${userId}`)
-        .then((response) => response.json())
-        .then((data) => setUser(data))
-        .catch((err) => console.log("Error fetching user data:", err));
-    }
-  };
 
   const handleSort = () => {
     const sortedPayrolls = [...filteredPayrolls];
@@ -97,35 +78,6 @@ function PayrollsView() {
      }, [searchMonth, searchYear, handleSearch]);
 
   return (
-    <div className="dashboard-container">
-      <aside className="sidebar">
-        <h2 className="logo">Admin Dashboard</h2>
-        {user && (
-          <div className="user-profile">
-            <img
-              src={user.image || "/default-avatar.jpg"}
-              alt={user.name}
-              className="profile-image"
-            />
-            <p className="user-name">{user.name}</p>
-          </div>
-        )}
-        <nav>
-          <ul>
-            <li><Link to="/dashboard">Dashboard</Link></li>
-            <li><Link to="/employees">Manage Employees</Link></li>
-            <li><Link to="/facilities">Manage Facilities</Link></li>
-            <li><Link to="/payrolls">Manage Payrolls</Link></li>
-            <li><Link to="/incidents">Manage Incidents</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-            <li>
-              <button className="logout-btn" onClick={signOut}>
-                <FaSignOutAlt /> Sign Out
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </aside>
 
       <main className="content">
         <div className="payroll-details-container">
@@ -190,7 +142,6 @@ function PayrollsView() {
           </div>
         </div>
       </main>
-    </div>
   );
 }
 

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort, FaTimes } from "react-icons/fa";
+import { useParams, Link } from "react-router-dom";
+import { FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort, FaTimes } from "react-icons/fa";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [user, setUser] = useState(null);
@@ -36,13 +35,7 @@ const EmployeeView = () => {
     setNewSchedule({ ...newSchedule, month: parseInt(event.target.value) });
   };
 
-  const signOut = () => {
-    sessionStorage.removeItem("Token");
-    sessionStorage.removeItem("userId");
 
-    navigate("/", { replace: true });
-    window.history.pushState(null, "", "/"); // Evita que el usuario pueda regresar con el botón atrás
-  };
 
   useEffect(() => {
     fetchData();
@@ -224,39 +217,8 @@ const EmployeeView = () => {
   if (!employee) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="dashboard-container">
-      <aside className="sidebar">
-        <h2 className="logo">Admin Dashboard</h2>
 
-        {user && (
-          <div className="user-profile">
-            <img
-              src={user?.image || "/default-avatar.jpg"}
-              alt={user?.name}
-              className="profile-image"
-            />
-            <p className="user-name">{user.name}</p>
-          </div>
-        )}
-
-        <nav>
-          <ul>
-            <li><Link to="/dashboard">Dashboard</Link></li>
-            <li><Link to="/employees">Manage Employees</Link></li>
-            <li><Link to="/facilities">Manage Facilities</Link></li>
-            <li><Link to="/payrolls">Manage Payrolls</Link></li>
-            <li><Link to="/incidents">Manage Incidents</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-            <li>
-              <button className="logout-btn" onClick={signOut}>
-                <FaSignOutAlt /> Sign Out
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-
-      <main className="content">
+     <div>
         <header className="header">
           <h4>Employee Details</h4>
         </header>
@@ -350,7 +312,7 @@ const EmployeeView = () => {
             )}
           </ul>
         </div>
-      </main>
+
 
       {showScheduleModal && (
         <div className="modal-overlay">
@@ -390,9 +352,7 @@ const EmployeeView = () => {
 
           </div>
         </div>
-      )}
-
-
+     )}
     </div>
   );
 };
