@@ -41,3 +41,22 @@
 .payroll-title {
   margin-top: 50px; /* Ajusta el valor según el espacio que desees */
 }
+
+.deletee-btn {
+
+      top: 50px;
+      left: 265px;
+      padding: 15px 25px;
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 20px;
+      font-weight: bold;
+      z-index: 1000;
+}
+
+.deletee-btn:hover {
+  background-color: #b71c1c;
+}

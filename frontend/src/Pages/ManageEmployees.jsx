@@ -30,7 +30,8 @@ function ManageEmployees() {
       alert("No token found, please log in again.");
       return;
     }
-
+    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este empleado?");
+    if (!confirmDelete) return;
     // Configuración de la solicitud con el token en los encabezados
     fetch(`http://localhost:4000/employee/${id}`, {
       method: "DELETE",

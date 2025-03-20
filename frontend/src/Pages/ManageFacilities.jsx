@@ -31,7 +31,8 @@ const handleDelete = (id) => {
       alert("No token found, please log in again.");
       return;
     }
-
+    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar esta instalación?");
+    if (!confirmDelete) return;
     // Configuración de la solicitud con el token en los encabezados
     fetch(`http://localhost:4000/facility/${id}`, {
       method: "DELETE",

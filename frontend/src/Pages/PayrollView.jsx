@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import "moment/locale/es";
 import { Calendar, momentLocalizer } from "react-big-calendar";
@@ -13,6 +13,7 @@ moment.updateLocale("es", { week: { dow: 1 } });
 const localizer = momentLocalizer(moment);
 
 const PayrollView = () => {
+  const navigate = useNavigate();
   const { id, scheduleId } = useParams();
   const location = useLocation();
   const [employee, setEmployee] = useState(null);
@@ -146,12 +147,36 @@ const PayrollView = () => {
     fetchAttendanceData();
   }, [fetchEmployeeData, fetchAttendanceData]);
 
+  const handleDeletePayroll = () => {
+      if (!payrollId) {
+        alert("No se encontró un ID de nómina válido.");
+        return;
+      }
+
+      const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar esta nómina?");
+      if (!confirmDelete) return;
+
+      fetch(`http://localhost:4000/payroll/${payrollId}`, { method: "DELETE" })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            alert(`Error al eliminar: ${data.error}`);
+          } else {
+            alert("Nómina eliminada exitosamente.");
+            navigate(-1); // Vuelve a la página anterior
+          }
+        })
+        .catch((error) => console.log("Error al eliminar la nómina:", error));
+    };
+
+
   if (!employee || !currentSchedule || !payroll) {
     return <div>Cargando...</div>;
   }
 
   return (
     <div className="schedule-view-container" style={{ minHeight: "100vh", overflowY: "auto" }}>
+      <button className="deletee-btn" onClick={handleDeletePayroll}>Eliminar Nómina</button>
       <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
       <div className="calendar-container">
         <Calendar
@@ -189,6 +214,7 @@ const PayrollView = () => {
           <PayslipPDF employee={employee} payroll={payroll} />
         </PDFViewer>
       </div>
+
     </div>
   );
 };
