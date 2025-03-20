@@ -4,6 +4,8 @@ import "./ManageFacilities.css"; // Archivo CSS para estilos
 
 function ManageFacilities() {
   const [facilities, setFacilities] = useState([]);
+  const [filteredFacilities, setFilteredFacilities] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
 
   // Cargar las instalaciones al montar el componente
@@ -13,12 +15,29 @@ function ManageFacilities() {
       .then((data) => {
         if (data.length > 0) {
           setFacilities(data);
+          setFilteredFacilities(data);
         } else {
           alert("No facilities found");
         }
       })
       .catch((error) => console.log("Error fetching facilities:", error));
   }, []);
+
+
+const handleSearch = (e) => {
+   const value = e.target.value;
+   setSearchTerm(value);
+
+   const normalizeString = (str) =>
+     str ? str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
+   setFilteredFacilities(
+     facilities.filter((facility) =>
+       normalizeString(facility.name).includes(normalizeString(value))
+     )
+   );
+ };
+
 
 
 
@@ -68,44 +87,64 @@ const handleDelete = (id) => {
 
 
   return (
+    <main className="content">
+      <header className="header">
+        <h4>Manage Facilities</h4>
+      </header>
 
+      <div className="facility-container">
+        <h2>Facility List</h2>
 
-      <main className="content">
-        <header className="header">
-          <h4>Manage Facilities</h4>
-        </header>
-
-        <div className="facility-container">
-          <h2>Facility List</h2>
-           <div className="add-btn-container">
-             <Link to="/createFacility" className="add-btn">➕ Add Facility</Link>
-           </div>
-          <table className="facility-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Facility Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facilities.map((facility) => (
-                <tr key={facility.id}>
-                  <td>{facility.name}</td>
-                  <td>{facility.facility_type}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <Link to={`/facilityview/${facility.id}`} className="view-btn">👁 View</Link>
-                      <button onClick={() => handleDelete(facility.id)} className="delete-btn">🗑 Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="add-btn-container">
+          <Link to="/createFacility" className="add-btn">
+            ➕ Add Facility
+          </Link>
         </div>
+
+        <div className="controlsFacilities">
+          <input
+            type="text"
+            placeholder="Buscar por nombre"
+            value={searchTerm}
+            onChange={handleSearch}
+            className="search-inputFacilities"
+          />
+        </div>
+
+        <table className="facility-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Facility Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredFacilities.map((facility) => (
+              <tr key={facility.id}>
+                <td>{facility.name}</td>
+                <td>{facility.facility_type}</td>
+                <td>
+                  <div className="action-buttons">
+                    <Link to={`/facilityview/${facility.id}`} className="view-btn">
+                      👁 View
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(facility.id)}
+                      className="delete-btn"
+                    >
+                      🗑 Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
+
 }
 
 export default ManageFacilities;

@@ -1,7 +1,22 @@
+/* Contenido principal */
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.header {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
 .employee-container {
   padding: 20px;
-  max-width: 800px;
-  margin: 0 auto 20px auto;  /* Elimina el margen superior */
+  max-width: 95vw; /* Ocupa casi toda la pantalla */
+  margin: 0 auto 20px auto;
 }
 
 .add-btn-container {
@@ -23,16 +38,22 @@
 }
 
 .employee-table {
-  width: 100%;
+  width: 100%; /* Usa el 100% del contenedor */
+  max-width: 1400px; /* Aumenta el tamaño máximo */
+  margin: 20px auto;
   border-collapse: collapse;
-  margin-top: 10px;  /* Reduce el margen superior de la tabla */
+  table-layout: fixed; /* Hace que las columnas se repartan el espacio */
 }
 
 .employee-table th,
 .employee-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
+  padding: 6px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  border: 1px solid #ccc;
+  word-wrap: break-word; /* Asegura que el texto largo se divida en varias líneas */
+    overflow: hidden; /* Evita que el texto se desborde */
+    white-space: nowrap; /* Mantiene el texto en una sola línea si cabe */
 }
 
 .employee-table th {
@@ -47,6 +68,7 @@
 .employee-table tr:hover {
   background-color: #ddd;
 }
+
 
 .view-btn,
 .delete-btn {
@@ -85,6 +107,10 @@
 .employee-table td {
   text-align: center;
   vertical-align: middle;
+  max-width: 200px; /* Limita el ancho de las celdas para evitar solapamiento */
+    text-overflow: ellipsis; /* Agrega "..." si el texto es demasiado largo */
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .action-buttons {
@@ -125,4 +151,32 @@
 
 .delete-btn:hover {
   background-color: #c82333;
+}
+
+.controlsEmployees {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.search-inputEmployees {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 250px;
+}
+
+.sort-btnEmployees {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+}
+
+.sort-btnEmployees:hover {
+  background-color: #0056b3;
 }

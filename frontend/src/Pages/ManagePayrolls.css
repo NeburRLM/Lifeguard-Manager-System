@@ -7,6 +7,9 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+    justify-content: center; /* Centrar contenido verticalmente */
+
+        text-align: center; /* Asegura que el texto esté centrado */
 }
 
 /* Contenedor de todos los controles (selección de mes/año, buscador y ordenar) */
