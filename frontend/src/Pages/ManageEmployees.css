@@ -79,10 +79,9 @@
 /* Centrar el título */
 .employee-container h2 {
   text-align: center;
+  margin-bottom: 20px;
 }
 
-/* Alineación de los botones en la misma línea */
-/* Asegurar que la celda de acciones no tenga un fondo blanco */
 .employee-table td {
   text-align: center;
   vertical-align: middle;
@@ -91,7 +90,7 @@
 .action-buttons {
   display: flex;
   justify-content: center;
-  gap: 8px; /* Separación entre los botones */
+  gap: 8px;
 }
 
 /* Estilos de los botones */

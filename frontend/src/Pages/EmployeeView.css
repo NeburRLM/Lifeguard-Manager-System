@@ -446,3 +446,26 @@ body {
 .sort-option:hover {
   background-color: #f0f0f0;
 }
+
+.delete-image-btn {
+  background-color: #d9534f; /* Rojo llamativo */
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Espacio entre el icono y el texto */
+  transition: background 0.3s, transform 0.2s;
+}
+
+.delete-image-btn:hover {
+  background-color: #c9302c; /* Rojo más oscuro en hover */
+  transform: scale(1.05); /* Pequeño efecto de crecimiento */
+}
+
+.delete-image-btn i {
+  font-size: 18px;
+}

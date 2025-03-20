@@ -152,6 +152,11 @@ const EmployeeView = () => {
             setEmployee(updatedEmployee);
             setFormData(updatedEmployee);
             setIsEditing(false);
+
+            if (updatedEmployee.id === user?.id) {
+                setUser(updatedEmployee);
+            }
+
           })
           .catch((err) => console.error("Error al recargar los datos del empleado:", err));
       } else {
@@ -226,8 +231,8 @@ const EmployeeView = () => {
         {user && (
           <div className="user-profile">
             <img
-              src={formData.previewImage || user.image || "/default-avatar.jpg"}
-              alt={user.name}
+              src={user?.image || "/default-avatar.jpg"}
+              alt={user?.name}
               className="profile-image"
             />
             <p className="user-name">{user.name}</p>

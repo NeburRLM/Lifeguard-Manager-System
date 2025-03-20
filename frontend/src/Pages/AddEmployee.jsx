@@ -174,7 +174,7 @@ const AddEmployee = () => {
           />
         </div>
         <div className="button-group">
-          <button type="submit">Add Employee</button>
+          <button type="submit" className="submit-button">Add Employee</button>
           <button type="button" className="cancel-button" onClick={handleCancel}>
             Cancel
           </button>
