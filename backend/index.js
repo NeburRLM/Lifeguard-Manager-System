@@ -1507,14 +1507,19 @@ app.post('/payroll/generate-monthly', async (req, res) => {
         const attendanceRepository = dataSource.getRepository(AttendanceSchema);
         const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
 
+        const employees = await employeeRepository.find({
+                    relations: ['work_schedule', 'work_schedule.schedules']
+                });
+
         // Obtener todos los empleados activos
-        const employees = await employeeRepository.find();
+        //const employees = await employeeRepository.find();
 
         if (!employees.length) {
           return res.status(404).json({ error: "No hay empleados registrados." });
         }
 
         const generatedPayrolls = [];
+        const errors = [];
 
         // Obtener el último día del mes
         const lastDay = getLastDayOfMonth(year, month);
@@ -1522,6 +1527,29 @@ app.post('/payroll/generate-monthly', async (req, res) => {
         const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
         for (const employee of employees) {
+          // Verificar si ya existe una nómina para este empleado en el mes y año
+          const existingPayroll = await payrollRepository.findOne({
+            where: {
+                employee: { id: employee.id },
+                month: month,
+                year: year
+            }
+          });
+          if (existingPayroll) {
+            // Si ya existe una nómina para este empleado en esas fechas, no la creamos
+            errors.push(`Ya existe una nómina para ${employee.name} en ${month}/${year}.`);
+            continue;
+          }
+
+          const workSchedule = employee.work_schedule.find(ws =>
+              Number(ws.month) === Number(month) && Number(ws.year) === Number(year)
+          );
+
+                      if (!workSchedule) {
+                          errors.push(`El empleado ${employee.name} no tiene un horario de trabajo para ${month}/${year}.`);
+                          continue;
+                      }
+
           // Obtener el salario base, earnings y deductions del rol del empleado
           const roleSalary = await roleSalaryRepository.findOne({ where: { role: employee.role } });
 
@@ -1542,10 +1570,10 @@ app.post('/payroll/generate-monthly', async (req, res) => {
             }
           });
 
-          if (!attendances.length) {
+          /*if (!attendances.length) {
             console.log(`No hay registros de asistencia para ${employee.name} en ${month}/${year}.`);
             continue;
-          }
+          }*/
 
           let totalHours = 0;
 
@@ -1646,6 +1674,9 @@ app.post('/payroll/generate-monthly', async (req, res) => {
           generatedPayrolls.push(newPayroll);
         }
 
+        if (errors.length > 0) {
+            return res.status(207).json({ message: "Algunas nóminas no se generaron.", errors, payrolls: generatedPayrolls });
+        }
 
         res.status(201).json({ message: "Nóminas generadas correctamente.", payrolls: generatedPayrolls });
     } catch (error) {

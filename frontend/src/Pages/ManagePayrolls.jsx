@@ -92,7 +92,7 @@ function ManagePayrolls() {
       alert("Selecciona un mes y un año.");
       return;
     }
-
+ try {
     const response = await fetch("http://localhost:4000/payroll/generate-monthly", {
       method: "POST",
       headers: {
@@ -103,11 +103,22 @@ function ManagePayrolls() {
 
     const data = await response.json();
     if (response.ok) {
-      alert("Nóminas generadas correctamente.");
-      setShowModal(false);
-    } else {
-      alert(data.error || "Error al generar nóminas.");
-    }
+          let message = "Nóminas generadas correctamente.";
+
+          // Manejar el código 207 que indica errores parciales
+          if (response.status === 207) {
+            message = "Algunas nóminas no se generaron:\n" + data.errors.join("\n");
+          }
+
+          alert(message);
+          setShowModal(false);
+        } else {
+          alert(data.error || "Error al generar nóminas.");
+        }
+      } catch (error) {
+        console.error("Error al generar nóminas:", error);
+        alert("Error al conectar con el servidor.");
+      }
   };
 
   const updateRoleSalaries = async () => {

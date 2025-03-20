@@ -22,11 +22,9 @@ const PayrollView = () => {
   const [payroll, setPayroll] = useState(null);
   const { payrollId } = useParams();
 
-
   const queryParams = new URLSearchParams(location.search);
   const monthFromURL = parseInt(queryParams.get("month"), 10);
   const yearFromURL = parseInt(queryParams.get("year"), 10);
-
 
   const validMonth = !isNaN(monthFromURL) && monthFromURL >= 1 && monthFromURL <= 12 ? monthFromURL : new Date().getMonth() + 1;
   const validYear = !isNaN(yearFromURL) && yearFromURL > 1900 ? yearFromURL : new Date().getFullYear();
@@ -40,71 +38,57 @@ const PayrollView = () => {
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
+  const fetchRoleSalary = useCallback((payrollId) => {
+    fetch(`http://localhost:4000/role_salary/${payrollId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const earnings = data.earnings || [];
+        const deductions = data.deductions || [];
+        const monthName = capitalize(moment().month(validMonth - 1).format("MMMM"));
 
-const fetchRoleSalary = useCallback((payrollId) => {
-  fetch(`http://localhost:4000/role_salary/${payrollId}`)
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Role salary data:", payrollId);
+        const modifiedEarnings = earnings.map((earning) => {
+          if (earning.name.includes("Paga Extra X")) {
+            return {
+              ...earning,
+              name: `Paga Extra ${monthName}`,
+            };
+          }
+          return earning;
+        });
 
-      const earnings = data.earnings || [];
-      const deductions = data.deductions || [];
+        const totalEarned = parseFloat(earnings.reduce((total, earning) => total + parseFloat(earning.amount || 0), 0).toFixed(2));
+        const totalDeductions = parseFloat(deductions.reduce((total, deduction) => total + parseFloat(deduction.amount || 0), 0).toFixed(2));
+        const netSalary = parseFloat((totalEarned - totalDeductions).toFixed(2));
 
-      const monthName = capitalize(moment().month(validMonth - 1).format("MMMM"));
-
-      const modifiedEarnings = earnings.map((earning) => {
-        if (earning.name.includes("Paga Extra X")) {
-          return {
-            ...earning,
-            name: `Paga Extra ${monthName}`,
-          };
-        }
-        return earning;
-      });
-
-      // Convertir valores a números antes de calcular
-      const totalEarned = parseFloat(
-        earnings.reduce((total, earning) => total + parseFloat(earning.amount || 0), 0).toFixed(2)
-      );
-
-      const totalDeductions = parseFloat(
-        deductions.reduce((total, deduction) => total + parseFloat(deduction.amount || 0), 0).toFixed(2)
-      );
-
-      const netSalary = parseFloat((totalEarned - totalDeductions).toFixed(2));
-
-      setPayroll({
-        month: `${monthName}`,
-        year: `${validYear}`,
-        company: "LIFEGUARD COMPANY, S.L.",
-        cif: "B00000000",
-        address: "CL SOCO, 0 - 43850 CAMBRILS",
-        period: `DEL 01 AL 31 ${monthName} ${validYear}`,
-        bankAccount: "ES00-0000-0000**************",
-        totalEarned,
-        totalDeductions,
-        netSalary,
-        earnings: modifiedEarnings,
-        deductions,
-      });
-    })
-    .catch((error) => console.log("Error fetching role salary data:", error));
-}, [validMonth, validYear]);
+        setPayroll({
+          month: `${monthName}`,
+          year: `${validYear}`,
+          company: "LIFEGUARD COMPANY, S.L.",
+          cif: "B00000000",
+          address: "CL SOCO, 0 - 43850 CAMBRILS",
+          period: `DEL 01 AL 31 ${monthName} ${validYear}`,
+          bankAccount: "ES00-0000-0000**************",
+          totalEarned,
+          totalDeductions,
+          netSalary,
+          earnings: modifiedEarnings,
+          deductions,
+        });
+      })
+      .catch((error) => console.log("Error fetching role salary data:", error));
+  }, [validMonth, validYear]);
 
   const fetchEmployeeData = useCallback(() => {
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Employee data:", data);
         setEmployee(data);
 
         let schedule = data.work_schedule.find((ws) => ws.id === scheduleId);
 
         if (!schedule) {
           schedule = data.work_schedule.find(
-            (ws) =>
-              ws.month === validMonth &&
-              ws.year === validYear
+            (ws) => ws.month === validMonth && ws.year === validYear
           );
         }
 
@@ -114,8 +98,6 @@ const fetchRoleSalary = useCallback((payrollId) => {
         }
 
         setCurrentSchedule(schedule);
-
-
         fetchRoleSalary(payrollId);
 
         const formattedSchedules = schedule.schedules.map((shift) => ({
@@ -127,7 +109,7 @@ const fetchRoleSalary = useCallback((payrollId) => {
           type: "schedule",
         }));
 
-        setEvents(formattedSchedules);
+        setEvents(formattedSchedules); // Inicializamos los eventos con el horario
       })
       .catch((error) => console.log("Error fetching employee data:", error));
   }, [id, scheduleId, validMonth, validYear, payrollId, fetchRoleSalary]);
@@ -138,8 +120,6 @@ const fetchRoleSalary = useCallback((payrollId) => {
     fetch(`http://localhost:4000/attendance/${id}?month=${validMonth}&year=${validYear}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Attendance data:", data);
-
         if (data.status !== "success" || !data.data) return;
 
         const formattedAttendance = data.data.map((attendance) => ({
@@ -151,8 +131,9 @@ const fetchRoleSalary = useCallback((payrollId) => {
           type: "attendance",
         }));
 
+        // Actualizamos eventos al mismo tiempo con los eventos de "attendance"
         setEvents((prevEvents) => {
-          const filteredEvents = prevEvents.filter(event => event.type !== "attendance");
+          const filteredEvents = prevEvents.filter((event) => event.type !== "attendance");
           return [...filteredEvents, ...formattedAttendance];
         });
       })
@@ -160,7 +141,7 @@ const fetchRoleSalary = useCallback((payrollId) => {
   }, [id, validMonth, validYear]);
 
   useEffect(() => {
-    setEvents([]);
+    setEvents([]); // Limpiamos los eventos antes de empezar a cargar
     fetchEmployeeData();
     fetchAttendanceData();
   }, [fetchEmployeeData, fetchAttendanceData]);
@@ -171,48 +152,45 @@ const fetchRoleSalary = useCallback((payrollId) => {
 
   return (
     <div className="schedule-view-container" style={{ minHeight: "100vh", overflowY: "auto" }}>
-          <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
-          <div className="calendar-container">
-            <Calendar
-              localizer={localizer}
-              events={events}
-              startAccessor="start"
-              endAccessor="end"
-              style={{ height: 600, width: "100%" }}
-              date={currentMonth}
-              onNavigate={(date) => setCurrentMonth(date)}
-              toolbar={true}
-              selectable={true}
-              eventPropGetter={(event) => {
-                let backgroundColor = "#1976D2";
+      <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
+      <div className="calendar-container">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 600, width: "100%" }}
+          date={currentMonth}
+          onNavigate={(date) => setCurrentMonth(date)}
+          toolbar={true}
+          selectable={true}
+          eventPropGetter={(event) => {
+            let backgroundColor = "#1976D2";
+            if (event.type === "attendance") {
+              backgroundColor = "#D32F2F";
+            }
+            return {
+              style: {
+                backgroundColor: backgroundColor,
+                color: "white",
+                borderRadius: "5px",
+                padding: "5px",
+                border: "1px solid white",
+              },
+            };
+          }}
+        />
+      </div>
 
-                if (event.type === "attendance") {
-                  backgroundColor = "#D32F2F";
-                }
+      <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
 
-                return {
-                  style: {
-                    backgroundColor: backgroundColor,
-                    color: "white",
-                    borderRadius: "5px",
-                    padding: "5px",
-                    border: "1px solid white",
-                  },
-                };
-              }}
-            />
-          </div>
+      <div style={{ height: "800px", overflowY: "auto" }}>
+        <PDFViewer width="100%" height="100%">
+          <PayslipPDF employee={employee} payroll={payroll} />
+        </PDFViewer>
+      </div>
+    </div>
+  );
+};
 
-          <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
-
-          <div style={{ height: "800px", overflowY: "auto" }}>
-            <PDFViewer width="100%" height="100%">
-              <PayslipPDF employee={employee} payroll={payroll} />
-            </PDFViewer>
-          </div>
-        </div>
-      );
-    };
-
-    export default PayrollView;
-
+export default PayrollView;
