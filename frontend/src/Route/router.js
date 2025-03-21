@@ -15,6 +15,7 @@ import ManagePayrolls from "../Pages/ManagePayrolls"
 import PayrollsView from "../Pages/PayrollsView"
 import PayrollView from "../Pages/PayrollView"
 import ManageIncidents from "../Pages/ManageIncidents"
+import IncidentView from "../Pages/IncidentView"
 import ProfileView from "../Pages/ProfileView"
 
 const router = createBrowserRouter([
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
          {
               path: "incidents",
               element: <ManageIncidents />
+         },
+         {
+              path: "incidentview/:id",
+              element: <IncidentView />
          },
          {
               path: "profile",

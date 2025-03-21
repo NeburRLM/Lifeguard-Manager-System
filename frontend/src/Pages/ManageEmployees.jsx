@@ -129,6 +129,7 @@ function ManageEmployees() {
                 <thead>
                   <tr>
                     <th>Name</th>
+                    <th>Dni</th>
                     <th>Email</th>
                     <th>Role</th>
                     <th>Actions</th>
@@ -138,6 +139,7 @@ function ManageEmployees() {
                   {filteredEmployees.map((employee, index) => (
                     <tr key={index}>
                       <td>{employee.name}</td>
+                      <td>{employee.id}</td>
                       <td>{employee.email}</td>
                       <td>{employee.role}</td>
                       <td>
