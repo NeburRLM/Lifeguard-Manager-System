@@ -82,7 +82,9 @@ function ManageEmployees() {
         // Verificamos el mensaje de la respuesta
         if (message.includes("eliminado correctamente")) {  // Verificamos si el mensaje contiene "eliminado correctamente"
           // Si la eliminación fue exitosa, actualizamos el estado de los empleados
-          setEmployees(employees.filter((employee) => employee.id !== id));
+          const updatedEmployees = employees.filter((employee) => employee.id !== id);
+          setEmployees(updatedEmployees);
+          setFilteredEmployees(updatedEmployees);
           alert("Empleado eliminado correctamente");  // Ventanita emergene de éxito
         } else {
           alert("Error deleting employee");

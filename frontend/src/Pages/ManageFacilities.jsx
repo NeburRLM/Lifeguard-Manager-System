@@ -71,7 +71,9 @@ const handleDelete = (id) => {
         // Verificamos el mensaje de la respuesta
         if (message.includes("eliminada correctamente")) {  // Verificamos si el mensaje contiene "eliminado correctamente"
           // Si la eliminación fue exitosa, actualizamos el estado de los empleados
-          setFacilities(facilities.filter((facility) => facility.id !== id));
+          const updatedFacilities = facilities.filter((facility) => facility.id !== id);
+          setFacilities(updatedFacilities);
+          setFilteredFacilities(updatedFacilities);
           alert("Instalacion eliminada correctamente");  // Ventanita emergente de éxito
         } else {
           alert("Error deleting facility");
