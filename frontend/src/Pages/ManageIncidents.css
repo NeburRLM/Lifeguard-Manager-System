@@ -115,3 +115,25 @@
   border-color: #007bff;
   background-color: #f1faff;
 }
+
+/* Estilos para el select */
+.incidentType-select {
+  padding: 8px 12px; /* Reducimos el padding para que sea más estrecho */
+    font-size: 14px; /* Hacemos la fuente un poco más pequeña */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  width: 250px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.incidentType-select:hover {
+  border-color: #007bff;
+}
+
+.incidentType-select:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #f1faff;
+}
