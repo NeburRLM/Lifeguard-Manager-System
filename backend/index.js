@@ -8,6 +8,7 @@ import { IncidentSchema } from './postgresql/schemas/incident-schema.js';
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
 import { RoleSalarySchema } from "./postgresql/schemas/roleSalary-schema.js";
+import moment from 'moment-timezone';
 import { Between } from 'typeorm';
 import { In } from 'typeorm';
 import bcrypt from 'bcrypt';
@@ -1367,6 +1368,78 @@ app.get('/incidents', async (req, res) => {
         res.status(500).json({ message: "Error al obtener los incidentes.", error: error.message });
     }
 });
+
+
+// DELETE para eliminar un incidente a partire de su id
+app.delete('/incidents/:id', async (req, res) => {
+    try {
+        const { id } = req.params; // Obtener el id del incidente de los parámetros de la URL
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        // Buscar el incidente por id
+        const incident = await incidentRepository.findOne({ where: { id } });
+
+        if (!incident) {
+            return res.status(404).json({ message: 'Incident not found' });
+        }
+
+        // Eliminar el incidente
+        await incidentRepository.remove(incident);
+
+        res.status(200).json({ message: 'Incident deleted successfully' });
+    } catch (error) {
+        console.error("Error al eliminar el incidente:", error);
+        res.status(500).json({ message: "Error al eliminar el incidente.", error: error.message });
+    }
+});
+
+
+// DELETE para eliminar todas las incidencias
+app.delete('/incidents', async (req, res) => {
+    try {
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        // Eliminar todos los incidentes
+        const deleteResult = await incidentRepository.clear(); // Elimina todos los registros de la tabla
+
+        res.status(200).json({ message: 'All incidents have been deleted successfully' });
+    } catch (error) {
+        console.error("Error al eliminar los incidentes:", error);
+        res.status(500).json({ message: "Error al eliminar los incidentes.", error: error.message });
+    }
+});
+
+
+
+// GET para obtener una incidencia segun su id
+app.get('/incidents/:id', async (req, res) => {
+    try {
+        const { id } = req.params;  // Obtener el id de los parámetros de la URL
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        // Buscar el incidente por su ID, incluyendo las relaciones con 'facility' y 'reported_by'
+        const incident = await incidentRepository.findOne({
+            where: { id },  // Buscar el incidente por ID
+            relations: ['facility', 'reported_by']  // Incluir las relaciones
+        });
+
+        // Si no se encuentra el incidente
+        if (!incident) {
+            return res.status(404).json({ message: 'Incident not found' });
+        }
+
+        // Si el incidente se encuentra, devolverlo
+        res.status(200).json(incident);
+    } catch (error) {
+        console.error("Error al obtener la incidencia:", error);
+        res.status(500).json({ message: "Error al obtener la incidencia.", error: error.message });
+    }
+});
+
+
+
+
+
 
 
 app.get('/facility/:facilityId/incidents', async (req, res) => {
