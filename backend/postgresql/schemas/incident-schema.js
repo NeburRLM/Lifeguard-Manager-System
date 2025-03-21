@@ -9,20 +9,9 @@ export const IncidentSchema = new EntitySchema({
             primary: true,  // Clave primaria
             generated: "uuid"   // Generación automática
         },
-        type: {     // Columna que almacena el tipo de incidente
-            type: "enum",   // Tipo de datos enum
-            enum: [     // Lista de valores posibles para el tipo de incidente
-                "Heridas en la piel y cortes",
-                "Picaduras de medusa",
-                "Picaduras de pez araña",
-                "Picadura desconocida",
-                "Quemaduras solares",
-                "Golpes de calor",
-                "Ahogamiento en la playa",
-                "Atragantamiento",
-                "Insolación"
-            ],
-            nullable: false  // No se pueden insertar valores nulos, es obligatorio
+        type: {
+            type: "varchar",  // Tipo de incidencia
+            nullable: false
         },
         description: {  // Columna que almacena la descripción del incidente
             type: "text"    // Tipo de datos texto, para describir el incidente

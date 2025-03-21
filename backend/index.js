@@ -8,6 +8,8 @@ import { IncidentSchema } from './postgresql/schemas/incident-schema.js';
 import { PayrollSchema } from './postgresql/schemas/payroll-schema.js';
 import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
 import { RoleSalarySchema } from "./postgresql/schemas/roleSalary-schema.js";
+import { IncidentTypesSchema } from "./postgresql/schemas/incidentTypes-schema.js";
+import { RoleTypesSchema } from "./postgresql/schemas/rolesType-schema.js";
 import moment from 'moment-timezone';
 import { Between } from 'typeorm';
 import { In } from 'typeorm';
@@ -477,6 +479,68 @@ function calculateAmount(role) {
             return 10.00; // Sueldo por hora por defecto
     }
 }
+
+
+
+
+app.post('/role-type', async (req, res) => {
+    let rolesTypes = Array.isArray(req.body) ? req.body : [req.body]; // Convertir en array si no lo es
+
+    try {
+        const roleTypeRepository = dataSource.getRepository(RoleTypesSchema);
+
+        let createdRoleTypes = [];
+
+        for (let roleType of rolesTypes) {
+            const { type } = roleType;
+
+            // Validar el tipo de incidente
+            if (!type) {
+                return res.status(400).json({ message: "El campo 'type' es obligatorio." });
+            }
+
+            // Verificar que no exista ya un tipo de incidente con el mismo nombre
+            const existingType = await roleTypeRepository.findOne({ where: { type } });
+            if (existingType) {
+                return res.status(400).json({ message: `El tipo de rol '${type}' ya existe.` });
+            }
+
+            // Crear el nuevo tipo de incidente
+            const newRoleType = roleTypeRepository.create({
+                type,
+            });
+
+            await roleTypeRepository.save(newRoleType);
+            createdRoleTypes.push(newRoleType);
+        }
+
+        res.status(201).json(createdRoleTypes.length === 1 ? createdRoleTypes[0] : createdRoleTypes);
+    } catch (error) {
+        console.error("Error al crear el tipo de rol:", error);
+        res.status(500).json({ message: "Error al crear el tipo de rol.", error: error.message });
+    }
+});
+
+
+
+
+app.get('/roles-types', async (req, res) => {
+    try {
+        const roleTypeRepository = dataSource.getRepository(RoleTypesSchema);
+
+        // Obtener todos los tipos de incidentes
+        const rolesTypes = await roleTypeRepository.find();
+
+        if (rolesTypes.length === 0) {
+            return res.status(404).json({ message: "No se encontraron tipos de roles." });
+        }
+
+        res.status(200).json(rolesTypes);
+    } catch (error) {
+        console.error("Error al obtener los tipos de roles:", error);
+        res.status(500).json({ message: "Error al obtener los tipos de roles.", error: error.message });
+    }
+});
 
 
 
@@ -1278,71 +1342,140 @@ app.delete('/employee/:employeeId/work_schedule/:workScheduleId', async (req, re
 
 
 
+app.post('/incident-type', async (req, res) => {
+    let incidentTypes = Array.isArray(req.body) ? req.body : [req.body]; // Convertir en array si no lo es
+
+    try {
+        const incidentTypeRepository = dataSource.getRepository(IncidentTypesSchema);
+
+        let createdIncidentTypes = [];
+
+        for (let incidentType of incidentTypes) {
+            const { type } = incidentType;
+
+            // Validar el tipo de incidente
+            if (!type) {
+                return res.status(400).json({ message: "El campo 'type' es obligatorio." });
+            }
+
+            // Verificar que no exista ya un tipo de incidente con el mismo nombre
+            const existingType = await incidentTypeRepository.findOne({ where: { type } });
+            if (existingType) {
+                return res.status(400).json({ message: `El tipo de incidente '${type}' ya existe.` });
+            }
+
+            // Crear el nuevo tipo de incidente
+            const newIncidentType = incidentTypeRepository.create({
+                type,
+            });
+
+            await incidentTypeRepository.save(newIncidentType);
+            createdIncidentTypes.push(newIncidentType);
+        }
+
+        res.status(201).json(createdIncidentTypes.length === 1 ? createdIncidentTypes[0] : createdIncidentTypes);
+    } catch (error) {
+        console.error("Error al crear el tipo de incidente:", error);
+        res.status(500).json({ message: "Error al crear el tipo de incidente.", error: error.message });
+    }
+});
 
 
+
+
+app.get('/incident-types', async (req, res) => {
+    try {
+        const incidentTypeRepository = dataSource.getRepository(IncidentTypesSchema);
+
+        // Obtener todos los tipos de incidentes
+        const incidentTypes = await incidentTypeRepository.find();
+
+        if (incidentTypes.length === 0) {
+            return res.status(404).json({ message: "No se encontraron tipos de incidentes." });
+        }
+
+        res.status(200).json(incidentTypes);
+    } catch (error) {
+        console.error("Error al obtener los tipos de incidente:", error);
+        res.status(500).json({ message: "Error al obtener los tipos de incidente.", error: error.message });
+    }
+});
 
 
 
 
 app.post('/incident', async (req, res) => {
-    const { type, description, facilityId, reportedById } = req.body;
-
-    // Validar los datos requeridos
-    if (!type || !description || !facilityId || !reportedById) {
-        return res.status(400).json({ message: "Todos los campos son requeridos." });
-    }
-
-    // Validar que el tipo de incidente sea uno de los valores permitidos
-    const validIncidentTypes = [
-        "Heridas en la piel y cortes",
-        "Picaduras de medusa",
-        "Picaduras de pez araña",
-        "Picadura desconocida",
-        "Quemaduras solares",
-        "Golpes de calor",
-        "Ahogamiento en la playa",
-        "Atragantamiento",
-        "Insolación"
-    ];
-
-    if (!validIncidentTypes.includes(type)) {
-        return res.status(400).json({ message: "Tipo de incidente no válido." });
-    }
+    let incidents = Array.isArray(req.body) ? req.body : [req.body]; // Convertir en array si no lo es
 
     try {
+        const incidentTypeRepository = dataSource.getRepository(IncidentTypesSchema);
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
         const facilityRepository = dataSource.getRepository(FacilitySchema);
         const employeeRepository = dataSource.getRepository(EmployeeSchema);
 
-        // Buscar la instalación y el empleado
-        const facility = await facilityRepository.findOne({ where: { id: facilityId } });
-        const employee = await employeeRepository.findOne({ where: { id: reportedById } });
+        let createdIncidents = [];
+        let failedIncidents = []; // Para almacenar las incidencias que fallan
 
-        if (!facility) {
-            return res.status(404).json({ message: "Instalación no encontrada." });
+        for (let incident of incidents) {
+            const { type, description, facilityId, reportedById } = incident;
+
+            // Validar los datos requeridos
+            if (!type || !description || !facilityId || !reportedById) {
+                failedIncidents.push({ message: "Todos los campos son requeridos en cada incidente." });
+                continue; // Saltamos a la siguiente incidencia
+            }
+
+            // Buscar el tipo de incidente en la base de datos
+            const incidentType = await incidentTypeRepository.findOne({ where: { type } });
+
+            // Si no existe el tipo de incidente, se registra el error
+            if (!incidentType) {
+                failedIncidents.push({ message: `Tipo de incidente no válido: ${type}` });
+                continue; // Saltamos a la siguiente incidencia
+            }
+
+            // Buscar la instalación y el empleado
+            const facility = await facilityRepository.findOne({ where: { id: facilityId } });
+            const employee = await employeeRepository.findOne({ where: { id: reportedById } });
+
+            if (!facility) {
+                failedIncidents.push({ message: `Instalación no encontrada: ${facilityId}` });
+                continue; // Saltamos a la siguiente incidencia
+            }
+
+            if (!employee) {
+                failedIncidents.push({ message: `Empleado no encontrado: ${reportedById}` });
+                continue; // Saltamos a la siguiente incidencia
+            }
+
+            // Crear la incidencia
+            const newIncident = incidentRepository.create({
+                type: incidentType.type,  // Usamos el valor de 'type' de la tabla 'incident_types'
+                description,
+                facility,
+                reported_by: employee
+            });
+
+            await incidentRepository.save(newIncident);
+            createdIncidents.push(newIncident);
         }
-        if (!employee) {
-            return res.status(404).json({ message: "Empleado no encontrado." });
+
+        // Si se crearon incidencias, las retornamos
+        if (createdIncidents.length > 0) {
+            return res.status(201).json(createdIncidents);
         }
 
-        // Crear el incidente
-        const incidentRepository = dataSource.getRepository(IncidentSchema);
-
-        const newIncident = incidentRepository.create({
-            type,
-            description,
-            facility,  // Asociamos la instalación
-            reported_by: employee  // Asociamos al empleado que reporta
-        });
-
-        // Guardar el incidente en la base de datos
-        await incidentRepository.save(newIncident);
-
-        res.status(201).json(newIncident);
+        // Si no se crearon incidencias válidas, devolvemos un mensaje con los errores
+        res.status(400).json({ failedIncidents });
     } catch (error) {
-        console.error("Error al crear el incidente:", error);
-        res.status(500).json({ message: "Error al crear el incidente.", error: error.message });
+        console.error("Error al crear los incidentes:", error);
+        res.status(500).json({ message: "Error al crear los incidentes.", error: error.message });
     }
 });
+
+
+
+
 
 
 
@@ -1470,25 +1603,17 @@ app.get('/facility/:facilityId/incidents', async (req, res) => {
 app.get('/incidents/type/:type', async (req, res) => {
     const { type } = req.params;  // Obtenemos el tipo de incidente desde la URL
 
-    // Lista de tipos de incidentes válidos
-    const validIncidentTypes = [
-        "Heridas en la piel y cortes",
-        "Picaduras de medusa",
-        "Picaduras de pez araña",
-        "Picadura desconocida",
-        "Quemaduras solares",
-        "Golpes de calor",
-        "Ahogamiento en la playa",
-        "Atragantamiento",
-        "Insolación"
-    ];
-
-    // Verificamos si el tipo de incidente es válido
-    if (!validIncidentTypes.includes(type)) {
-        return res.status(400).json({ message: "Tipo de incidente no válido." });
-    }
-
     try {
+        const incidentTypeRepository = dataSource.getRepository(IncidentTypesSchema);
+
+        // Verificamos si el tipo de incidente existe en la base de datos
+        const incidentType = await incidentTypeRepository.findOne({ where: { type } });
+
+        if (!incidentType) {
+            return res.status(400).json({ message: "Tipo de incidente no válido." });
+        }
+
+        // Ahora que sabemos que el tipo es válido, buscamos los incidentes
         const incidentRepository = dataSource.getRepository(IncidentSchema);
 
         // Buscamos los incidentes filtrados por el tipo
@@ -1510,6 +1635,7 @@ app.get('/incidents/type/:type', async (req, res) => {
         res.status(500).json({ message: "Error al obtener los incidentes.", error: error.message });
     }
 });
+
 
 
 

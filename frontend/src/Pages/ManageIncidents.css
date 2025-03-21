@@ -1,0 +1,117 @@
+/* Contenido principal */
+.content {
+  flex: 1;
+  padding: 20px;
+   max-height: calc(100vh - 80px); /* Calcula la altura disponible, restando el header */
+    overflow-y: auto; /* Muestra el scroll vertical cuando sea necesario */
+
+}
+
+.header {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.incident-container {
+  padding: 20px;
+  max-width: 95vw; /* Ocupa casi toda la pantalla */
+  margin: 0 auto 20px auto;
+
+}
+
+.incident-table {
+  width: 100%; /* Usa el 100% del contenedor */
+  max-width: 1400px; /* Aumenta el tamaño máximo */
+  margin: 20px auto;
+  border-collapse: collapse;
+  table-layout: fixed; /* Hace que las columnas se repartan el espacio */
+}
+
+.incident-table th,
+.incident-table td {
+  padding: 6px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  border: 1px solid #ccc;
+  word-wrap: break-word; /* Asegura que el texto largo se divida en varias líneas */
+    overflow: hidden; /* Evita que el texto se desborde */
+    white-space: nowrap; /* Mantiene el texto en una sola línea si cabe */
+}
+
+.incident-table th {
+  background-color: #007bff;
+  color: white;
+}
+
+.incident-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.incident-table tr:hover {
+  background-color: #ddd;
+}
+
+.incident-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.incident-table td {
+  text-align: center;
+  vertical-align: middle;
+  max-width: 200px; /* Limita el ancho de las celdas para evitar solapamiento */
+    text-overflow: ellipsis; /* Agrega "..." si el texto es demasiado largo */
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Cambia el color de fondo al pasar el mouse */
+.clickable-row:hover {
+    background-color: #f0f0f0;
+}
+
+/* Estilos para el contenedor del filtro */
+.filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* Estilos para la etiqueta del filtro */
+.filter-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Estilos para el select */
+.facility-select {
+  padding: 8px 12px; /* Reducimos el padding para que sea más estrecho */
+    font-size: 14px; /* Hacemos la fuente un poco más pequeña */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  width: 250px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.facility-select:hover {
+  border-color: #007bff;
+}
+
+.facility-select:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #f1faff;
+}
