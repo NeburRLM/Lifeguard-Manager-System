@@ -79,12 +79,24 @@
     background-color: #f0f0f0;
 }
 
+    .controlsIncidents {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
 /* Estilos para el contenedor del filtro */
 .filter-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+
+/* Contenedor para los controles de filtro */
+.filter-controls {
+  display: flex;
+  gap: 10px; /* Espacio entre los selectores */
 }
 
 /* Estilos para la etiqueta del filtro */
@@ -101,7 +113,7 @@
   border-radius: 5px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
-  width: 250px;
+  width: 200px; /* Ajusta el ancho según sea necesario */
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -118,12 +130,12 @@
 
 /* Estilos para el select */
 .incidentType-select {
-  padding: 8px 12px; /* Reducimos el padding para que sea más estrecho */
+  padding: 8px 15px; /* Reducimos el padding para que sea más estrecho */
     font-size: 14px; /* Hacemos la fuente un poco más pequeña */
   border-radius: 5px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
-  width: 250px;
+  width: 200px; /* Ajusta el ancho según sea necesario */
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -136,4 +148,20 @@
   outline: none;
   border-color: #007bff;
   background-color: #f1faff;
+}
+
+.analysis-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-button:hover {
+  background-color: #0056b3;
 }

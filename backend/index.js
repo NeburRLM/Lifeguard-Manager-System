@@ -1638,7 +1638,31 @@ app.get('/incidents/type/:type', async (req, res) => {
 
 
 
+// GET para obtener incidentes por rango de fechas
+app.get('/incidents/date-range', async (req, res) => {
+    const { startDate, endDate } = req.query; // Obtén las fechas de inicio y fin de los parámetros de consulta
 
+    try {
+        const incidentRepository = dataSource.getRepository(IncidentSchema);
+
+        const incidents = await incidentRepository.find({
+            where: {
+                date: Between(new Date(startDate), new Date(endDate)) // Filtra por el rango de fechas
+            },
+            relations: ['facility', 'reported_by'],
+            order: { date: "DESC" }
+        });
+
+        if (incidents.length === 0) {
+            return res.status(404).json({ message: "No se encontraron incidentes en este rango de fechas." });
+        }
+
+        res.status(200).json(incidents);
+    } catch (error) {
+        console.error("Error al obtener los incidentes por rango de fechas:", error);
+        res.status(500).json({ message: "Error al obtener los incidentes.", error: error.message });
+    }
+});
 
 
 

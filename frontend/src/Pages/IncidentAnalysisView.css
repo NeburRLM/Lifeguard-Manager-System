@@ -1,0 +1,37 @@
+/* Contenido principal */
+.content {
+    flex: 1;
+    padding: 20px;
+    max-height: calc(100vh - 80px); /* Calcula la altura disponible, restando el header */
+    overflow-y: hidden; /* Oculta el scroll vertical general */
+}
+
+.header {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.filter-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.facility-select, .incidentType-select, .year-select, .month-select, .day-select, .sort-select {
+    width: 200px;
+}
+
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    width: 100%;
+    height: calc(100vh - 200px); /* Ajusta la altura del contenedor del gráfico */
+}

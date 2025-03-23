@@ -8,6 +8,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@react-google-maps/api": "^2.20.6",
     "@react-pdf/renderer": "^4.3.0",
+    "antd": "^5.24.4",
     "bootstrap": "^5.3.3",
     "cra-template": "1.2.0",
     "jspdf": "^3.0.0",
@@ -27,7 +28,8 @@
     "react-leaflet": "^4.2.1",
     "react-map-gl": "^8.0.1",
     "react-router-dom": "^7.1.5",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "recharts": "^2.15.1"
   },
   "scripts": {
     "start": "react-scripts start",

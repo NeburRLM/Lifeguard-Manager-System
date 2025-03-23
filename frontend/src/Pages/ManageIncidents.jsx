@@ -61,6 +61,10 @@ function ManageIncidents() {
         setSelectedIncidentType(e.target.value);
     };
 
+    const handleAnalysisClick = () => {
+            navigate("/incident-analysis");
+        };
+
     return (
         <main className="content">
             <header className="header">
@@ -69,35 +73,41 @@ function ManageIncidents() {
 
             <div className="incident-container">
                 <h2>Incident List</h2>
+                  <div className="controlsIncidents">
+                    {/* Dropdowns para filtrar por instalación y tipo de incidente */}
+                    <div className="filter-controls">
+                        <select
+                            id="facility-filter"
+                            onChange={handleFacilityChange}
+                            value={selectedFacility}
+                            className="facility-select"
+                        >
+                            <option value="all">All Facilities</option>
+                            {facilities.map((facility) => (
+                                <option key={facility.id} value={facility.id}>{facility.name}</option>
+                            ))}
+                        </select>
 
-                {/* Dropdown para filtrar por instalación */}
-                <select
-                    id="facility-filter"
-                    onChange={handleFacilityChange}
-                    value={selectedFacility}
-                    className="facility-select"
-                >
-                    <option value="all">All Facilities</option>
-                    {facilities.map((facility) => (
-                        <option key={facility.id} value={facility.id}>{facility.name}</option>
-                    ))}
-                </select>
+                        <select
+                            id="incidentType-filter"
+                            onChange={handleIncidentTypeChange}
+                            value={selectedIncidentType}
+                            className="incidentType-select"
+                        >
+                            <option value="all">All Incident Types</option>
+                            {incidentTypes.map((incidentType) => (
+                                <option key={incidentType.id} value={incidentType.type}>
+                                    {incidentType.type}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                {/* Dropdown para filtrar por tipo de incidente */}
-                <select
-                    id="incidentType-filter"
-                    onChange={handleIncidentTypeChange}
-                    value={selectedIncidentType}
-                    className="incidentType-select"
-                >
-                    <option value="all">All Incident Types</option>
-                    {incidentTypes.map((incidentType) => (
-                        <option key={incidentType.id} value={incidentType.type}>
-                            {incidentType.type}
-                        </option>
-                    ))}
-                </select>
-
+                    {/* Botón de análisis de incidencias */}
+                    <button className="analysis-button" onClick={handleAnalysisClick}>
+                        Incident Analysis
+                    </button>
+                  </div>
                 <table className="incident-table">
                     <thead>
                         <tr>

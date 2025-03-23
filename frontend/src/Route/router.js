@@ -17,6 +17,8 @@ import PayrollView from "../Pages/PayrollView"
 import ManageIncidents from "../Pages/ManageIncidents"
 import IncidentView from "../Pages/IncidentView"
 import ProfileView from "../Pages/ProfileView"
+import IncidentAnalysisView from "../Pages/IncidentAnalysisView"
+
 
 const router = createBrowserRouter([
   {
@@ -79,6 +81,10 @@ const router = createBrowserRouter([
          {
               path: "incidentview/:id",
               element: <IncidentView />
+         },
+         {
+              path: "incident-analysis",
+              element: <IncidentAnalysisView />
          },
          {
               path: "profile",
