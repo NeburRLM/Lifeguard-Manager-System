@@ -209,7 +209,12 @@ const getTrendChartData = () => {
             if (filterIncidentsByDate(incident, year, month, day)) {
                 let key;
 
-                if (year !== "all" && month === "all" && day === "all") {
+                if (year === "all" && month === "all" && day === "all") {
+                    key = new Date(incident.date).toLocaleString('default', { month: 'long', year: 'numeric' });
+                } else if (year === "all" && month !== "all" && day === "all") {
+                    const incidentDate = new Date(incident.date);
+                    key = `${incidentDate.getDate()} ${incidentDate.getFullYear()}`;
+                } else if (year !== "all" && month === "all" && day === "all") {
                     key = new Date(incident.date).toLocaleString('default', { month: 'long' }); // Mes (Enero, Febrero, etc.)
                 } else if (year !== "all" && month !== "all" && day === "all") {
                     key = new Date(incident.date).getDate().toString(); // Día del mes
@@ -227,45 +232,79 @@ const getTrendChartData = () => {
         }, {});
     };
 
-    // Obtener datos de la selección principal
+    const getFullRange = (startDate, endDate, unit) => {
+        const range = [];
+        const current = new Date(startDate);
+        while (current <= endDate) {
+            if (unit === "month") {
+                range.push(current.toLocaleString('default', { month: 'long', year: 'numeric' }));
+                current.setMonth(current.getMonth() + 1);
+            } else if (unit === "day") {
+                range.push(`${current.getDate()} ${current.getFullYear()}`);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+        return range;
+    };
+
     const selectedData = groupByTimeUnit(filteredIncidents, selectedYear, selectedMonth, selectedDay);
 
-    // Obtener datos de la comparación (si está activado el modo comparación)
     let comparisonData = {};
     if (isComparisonMode) {
         comparisonData = groupByTimeUnit(comparisonFilteredIncidents, comparisonYear, selectedMonth, selectedDay);
     }
 
-    // Crear una lista completa de todas las claves posibles (todos los días o horas del día seleccionado)
     const allKeys = new Set([
         ...Object.keys(selectedData),
         ...Object.keys(comparisonData),
-        ...(selectedYear !== "all" && selectedMonth === "all" ? Array.from({ length: 12 }, (_, i) => new Date(2000, i).toLocaleString('default', { month: 'long' })) : []), // Meses
-        ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay === "all" ? Array.from({ length: 31 }, (_, i) => (i + 1).toString()) : []), // Días
-        ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay !== "all" ? Array.from({ length: 24 }, (_, i) => `${i}:00`) : []), // Horas (00:00 a 23:00)
+        ...(selectedYear === "all" && selectedMonth === "all" && selectedDay === "all" ? getFullRange(new Date(Math.min(...filteredIncidents.map(i => new Date(i.date)))), new Date(Math.max(...filteredIncidents.map(i => new Date(i.date)))), "month") : []),
+        ...(selectedYear === "all" && selectedMonth !== "all" && selectedDay === "all" ? getFullRange(new Date(Math.min(...filteredIncidents.map(i => new Date(i.date)))), new Date(Math.max(...filteredIncidents.map(i => new Date(i.date)))), "day") : []),
+        ...(selectedYear !== "all" && selectedMonth === "all" ? Array.from({ length: 12 }, (_, i) => new Date(2000, i).toLocaleString('default', { month: 'long' })) : []),
+        ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay === "all" ? Array.from({ length: 31 }, (_, i) => (i + 1).toString()) : []),
+        ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay !== "all" ? Array.from({ length: 24 }, (_, i) => `${i}:00`) : []),
     ]);
 
-    // Formatear los datos para la gráfica
     const trendChartData = Array.from(allKeys).map(key => ({
         key,
         count: selectedData[key] || 0,
         comparisonCount: comparisonData[key] || 0
     }));
 
-    // Ordenar los datos correctamente
     trendChartData.sort((a, b) => {
-        if (selectedYear !== "all" && selectedMonth === "all" && selectedDay === "all") {
+        if (selectedYear === "all" && selectedMonth === "all" && selectedDay === "all") {
+            const aParts = a.key.split(' ');
+                    const bParts = b.key.split(' ');
+
+                    const aMonth = aParts.slice(0, -1).join(' ').toLowerCase(); // Captura el mes incluso si tiene espacios
+                    const bMonth = bParts.slice(0, -1).join(' ').toLowerCase();
+                    const aYear = parseInt(aParts[aParts.length - 1]); // Asegura que sea número
+                    const bYear = parseInt(bParts[bParts.length - 1]);
             const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-            return months.indexOf(a.key.toLowerCase()) - months.indexOf(b.key.toLowerCase()); // Ordenar por mes
+
+            if (aYear !== bYear) {
+                        return aYear - bYear; // Primero ordena por año
+                    }
+
+                    return months.indexOf(aMonth) - months.indexOf(bMonth);
+
+        } else if (selectedYear === "all" && selectedMonth !== "all" && selectedDay === "all") {
+            const [aDay, aYear] = a.key.split(' ');
+            const [bDay, bYear] = b.key.split(' ');
+            if (aYear === bYear) {
+                return parseInt(aDay) - parseInt(bDay);
+            }
+            return parseInt(aYear) - parseInt(bYear);
+        } else if (selectedYear !== "all" && selectedMonth === "all" && selectedDay === "all") {
+            const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            return months.indexOf(a.key.toLowerCase()) - months.indexOf(b.key.toLowerCase());
         } else if (selectedYear !== "all" && selectedMonth !== "all" && selectedDay === "all") {
-            return parseInt(a.key) - parseInt(b.key); // Ordenar por día del mes
+            return parseInt(a.key) - parseInt(b.key);
         } else if (selectedYear !== "all" && selectedMonth !== "all" && selectedDay !== "all") {
-            // Ordenar por hora
             const aHour = parseInt(a.key.split(':')[0]);
             const bHour = parseInt(b.key.split(':')[0]);
             return aHour - bHour;
         } else {
-            return new Date(a.key) - new Date(b.key); // Ordenar por fecha exacta
+            return new Date(a.key) - new Date(b.key);
         }
     });
 
@@ -432,8 +471,8 @@ const handleLineChartClick = (e) => {
 
                             <Legend formatter={(value) =>
                                                             value === "count"
-                                                                ? `${selectedYear}-${selectedMonth}-${selectedDay}`
-                                                                : `${comparisonYear}-${selectedMonth}-${selectedDay}`
+                                                                ? `${selectedDay}-${selectedMonth}-${selectedYear}`
+                                                                : `${selectedDay}-${selectedMonth}-${comparisonYear}`
                                                         } />
                             <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={3} />
                             {isComparisonMode && (
@@ -446,7 +485,7 @@ const handleLineChartClick = (e) => {
 
 
 
-                <TabPane tab="Distribución por Gravedad" key="4">
+                <TabPane tab="Mapa de calor" key="4">
                     <div className="chart-container">
                         <PieChart width={800} height={650}>
                             <Pie data={getSeverityChartData()} dataKey="count" nameKey="severity" cx="50%" cy="50%" outerRadius={200} fill="#8884d8" label>
