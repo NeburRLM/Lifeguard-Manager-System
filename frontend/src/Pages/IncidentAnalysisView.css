@@ -3,7 +3,7 @@
     flex: 1;
     padding: 20px;
     max-height: calc(100vh - 80px); /* Calcula la altura disponible, restando el header */
-    overflow-y: hidden; /* Oculta el scroll vertical general */
+    overflow-y: auto; /* Agrega el scroll vertical general */
 }
 
 .header {
@@ -28,10 +28,11 @@
 }
 
 .chart-container {
-    display: flex;
+    display: auto;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 40px;
     width: 100%;
-    height: calc(100vh - 200px); /* Ajusta la altura del contenedor del gráfico */
+    height: calc(80vh - 160px); /* Ajusta la altura del contenedor del gráfico */
+    /* Elimina el scroll del contenedor */
 }

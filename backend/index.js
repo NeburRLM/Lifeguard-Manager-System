@@ -1453,7 +1453,10 @@ app.post('/incident', async (req, res) => {
                 type: incidentType.type,  // Usamos el valor de 'type' de la tabla 'incident_types'
                 description,
                 facility,
-                reported_by: employee
+                reported_by: employee,
+                //date: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+                //date: new Date(new Date().setDate(new Date().getDate() - 1))
+                //date: new Date(2024, 5, 10)
             });
 
             await incidentRepository.save(newIncident);
