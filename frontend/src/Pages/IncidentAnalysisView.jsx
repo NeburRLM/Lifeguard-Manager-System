@@ -11,26 +11,49 @@ import 'leaflet/dist/leaflet.css';
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-function HeatmapLayer({ points }) {
+function HeatmapLayer({ points, maxIntensity }) {
     const map = useMap();
 
-    useEffect(() => {
-        const heatLayer = L.heatLayer(points, { radius: 25 }).addTo(map);
-        return () => {
-            map.removeLayer(heatLayer);
-        };
-    }, [map, points]);
+useEffect(() => {
+    // Capa para la acumulación de incidentes (todos con intensidad 1)
+    const accumulationLayer = L.heatLayer(
+        points.map(incident => [incident[0], incident[1], 1]), // Acumulación con intensidad 1
+        {
+            radius: 25,
+            blur: 15,
+            max: maxIntensity,
+            gradient: { 0.1: 'blue', 0.5: 'yellow', 1: 'blue' }
+        }
+    ).addTo(map);
+
+    // Capa para los incidentes graves (por ejemplo, ahogamientos con intensidad 3)
+    const severityLayer = L.heatLayer(
+        points.filter(incident => incident[2] === 3).map(incident => [incident[0], incident[1], 3]), // Filtrar solo incidentes graves
+        {
+            radius: 25,
+            blur: 15,
+            max: maxIntensity,
+            gradient: { 0.1: 'red', 0.5: 'red', 1: 'red' } // Un gradiente diferente o más enfocado a incidentes graves
+        }
+    ).addTo(map);
+
+    // Cleanup function para remover las capas cuando el mapa se actualice
+    return () => {
+        map.removeLayer(accumulationLayer);
+        map.removeLayer(severityLayer);
+    };
+}, [map, points, maxIntensity]);
+
 
     return null;
 }
-
 
 function IncidentAnalysisView() {
     const [incidents, setIncidents] = useState([]);
     const [facilities, setFacilities] = useState([]);
     const [incidentTypes, setIncidentTypes] = useState([]);
     const [selectedFacility] = useState("all");
-    const [selectedIncidentType] = useState("all");
+    const [selectedIncidentType, setSelectedIncidentType] = useState("all");
     const [selectedYear, setSelectedYear] = useState("all");
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedDay, setSelectedDay] = useState("all");
@@ -44,6 +67,7 @@ function IncidentAnalysisView() {
         const [colors, setColors] = useState({});
         const [selectedHourIncidents, setSelectedHourIncidents] = useState([]);
         const [isModalVisible, setIsModalVisible] = useState(false);
+
 
     const generateColors = useCallback((incidentTypes) => {
         const newColors = {};
@@ -371,9 +395,27 @@ const handleLineChartClick = (e) => {
 
     const { trendData, comparisonData } = getTrendChartData();
 
-    const getHeatmapData = () => {
-            return filteredIncidents.map(incident => [incident.latitude, incident.longitude, 1]);
-        };
+const getHeatmapData = () => {
+    return filteredIncidents.map(incident => {
+        let intensity = 1; // Intensity por defecto para la acumulación de incidentes
+
+        // Aumentar la intensidad para los incidentes graves
+        if (incident.type === "Ahogamiento en la playa") {
+            intensity = 3;  // Mayor intensidad para incidentes graves
+        }
+
+        return [incident.latitude, incident.longitude, intensity];
+    });
+};
+
+
+
+const maxIntensity = Math.max(...filteredIncidents.map(incident => {
+    if (incident.type === "Ahogamiento en la playa") {
+        return 3; // Alta intensidad para ahogamientos
+    }
+    return 1; // Intensidad baja para otros incidentes
+}));
 
     return (
         <main className="content">
@@ -508,14 +550,19 @@ const handleLineChartClick = (e) => {
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                             />
                             <HeatmapLayer
-                                fitBoundsOnLoad
-                                fitBoundsOnUpdate
                                 points={getHeatmapData()}
-                                longitudeExtractor={m => m[1]}
-                                latitudeExtractor={m => m[0]}
-                                intensityExtractor={m => m[2]}
+                                maxIntensity={maxIntensity}
                             />
                         </MapContainer>
+                        {/* Botón flotante para seleccionar el tipo de incidente */}
+                                        <div style={{ position: "absolute", top: "10px", right: "10px", background: "#007BFF", padding: "10px", borderRadius: "5px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", zIndex: 1000  }}>
+                                            <Select defaultValue="all" style={{ width: 200 }} onChange={setSelectedIncidentType}>
+                                                <Option value="all">Todos los incidentes</Option>
+                                                {incidentTypes.map(type => (
+                                                    <Option key={type.type} value={type.type}>{type.type}</Option>
+                                                ))}
+                                            </Select>
+                                        </div>
                     </div>
                 </TabPane>
             </Tabs>

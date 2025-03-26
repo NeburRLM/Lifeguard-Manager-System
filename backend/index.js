@@ -1473,10 +1473,10 @@ app.post('/incident', async (req, res) => {
                 cityOfOrigin,
                 countryOfOrigin,
                 gender,
-                language
-                //date: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+                language,
+                //date: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
                 //date: new Date(new Date().setDate(new Date().getDate() - 1))
-                //date: new Date(2024, 5, 10)
+                date: new Date(2024, 5, 10)
             });
 
             await incidentRepository.save(newIncident);
