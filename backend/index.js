@@ -1417,13 +1417,23 @@ app.post('/incident', async (req, res) => {
         let failedIncidents = []; // Para almacenar las incidencias que fallan
 
         for (let incident of incidents) {
-            const { type, description, facilityId, reportedById } = incident;
+            const {
+                            type, description, facilityId, reportedById, latitude, longitude,
+                            firstName, lastName, dni, age, cityOfOrigin, countryOfOrigin, gender, language
+                        } = incident;
+
 
             // Validar los datos requeridos
-            if (!type || !description || !facilityId || !reportedById) {
+            if (!type || !description || !facilityId || !reportedById || !latitude || !longitude) {
                 failedIncidents.push({ message: "Todos los campos son requeridos en cada incidente." });
                 continue; // Saltamos a la siguiente incidencia
             }
+
+            // Validar los nuevos campos de la persona atendida
+                        if (!firstName || !lastName || !dni || !age || !cityOfOrigin || !countryOfOrigin || !gender || !language) {
+                            failedIncidents.push({ message: "Todos los campos de la persona atendida son requeridos." });
+                            continue;
+                        }
 
             // Buscar el tipo de incidente en la base de datos
             const incidentType = await incidentTypeRepository.findOne({ where: { type } });
@@ -1454,6 +1464,16 @@ app.post('/incident', async (req, res) => {
                 description,
                 facility,
                 reported_by: employee,
+                latitude,
+                longitude,
+                firstName,
+                lastName,
+                dni,
+                age,
+                cityOfOrigin,
+                countryOfOrigin,
+                gender,
+                language
                 //date: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
                 //date: new Date(new Date().setDate(new Date().getDate() - 1))
                 //date: new Date(2024, 5, 10)

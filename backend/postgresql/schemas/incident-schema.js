@@ -19,7 +19,47 @@ export const IncidentSchema = new EntitySchema({
         date: {     // Columna para la fecha y hora del incidente
             type: "timestamp",  // Tipo de datos timestamp (fecha y hora)
             default: () => "CURRENT_TIMESTAMP"  // Valor predeterminado es la fecha y hora actual
-        }
+        },
+        latitude: { // Columna para la latitud
+            type: "float"   // Tipo de datos float
+        },
+        longitude: {    // Columna para la longitud
+            type: "float"   // Tipo de datos float
+        },
+        firstName: { // Nombre de la persona atendida
+                    type: "varchar",
+                    nullable: false
+                },
+                lastName: { // Apellidos de la persona atendida
+                    type: "varchar",
+                    nullable: false
+                },
+                dni: {  // DNI de la persona atendida
+                    type: "varchar",
+                    nullable: false
+                },
+                age: { // Edad de la persona atendida
+                    type: "int",
+                    nullable: false
+                },
+                cityOfOrigin: { // Ciudad de procedencia
+                    type: "varchar",
+                    nullable: false
+                },
+                countryOfOrigin: { // País de procedencia
+                    type: "varchar",
+                    nullable: false
+                },
+                gender: {  // Sexo de la persona atendida
+                    type: "varchar",
+                    nullable: false
+                },
+                language: {  // Idioma de la persona atendida
+                    type: "varchar",
+                    nullable: false
+                }
+
+
     },
     relations: {    // Definición de las relaciones con otras entidades
         facility: { // Relación con la entidad Facility (instalación)

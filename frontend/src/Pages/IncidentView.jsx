@@ -31,9 +31,9 @@ function IncidentView() {
     return (
         <div className="incident-details">
             <h2>Incident Details</h2>
-            <MapContainer center={[incident.facility.latitude, incident.facility.longitude]} zoom={17} className="map">
+            <MapContainer center={[incident.latitude, incident.longitude]} zoom={17} className="map">
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[incident.facility.latitude, incident.facility.longitude]} icon={customIcon}>
+                <Marker position={[incident.latitude, incident.longitude]} icon={customIcon}>
                     <Popup>{incident.facility.name}</Popup>
                 </Marker>
             </MapContainer>

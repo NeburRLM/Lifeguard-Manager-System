@@ -2,10 +2,28 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Tabs, Select, Button, Modal } from 'antd';
 import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Brush } from 'recharts';
 import { ZoomInOutlined, ZoomOutOutlined } from '@ant-design/icons';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet.heat';
 import './IncidentAnalysisView.css';
+import 'leaflet/dist/leaflet.css';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
+
+function HeatmapLayer({ points }) {
+    const map = useMap();
+
+    useEffect(() => {
+        const heatLayer = L.heatLayer(points, { radius: 25 }).addTo(map);
+        return () => {
+            map.removeLayer(heatLayer);
+        };
+    }, [map, points]);
+
+    return null;
+}
+
 
 function IncidentAnalysisView() {
     const [incidents, setIncidents] = useState([]);
@@ -344,14 +362,7 @@ const handleLineChartClick = (e) => {
             setIsModalVisible(false);
         };
 
-    const getSeverityChartData = () => {
-        const groupedData = filteredIncidents.reduce((acc, incident) => {
-            acc[incident.severity] = (acc[incident.severity] || 0) + 1;
-            return acc;
-        }, {});
 
-        return Object.entries(groupedData).map(([severity, count]) => ({ severity, count }));
-    };
 
     const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -359,6 +370,10 @@ const handleLineChartClick = (e) => {
         const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.2, 0.5));
 
     const { trendData, comparisonData } = getTrendChartData();
+
+    const getHeatmapData = () => {
+            return filteredIncidents.map(incident => [incident.latitude, incident.longitude, 1]);
+        };
 
     return (
         <main className="content">
@@ -487,14 +502,20 @@ const handleLineChartClick = (e) => {
 
                 <TabPane tab="Mapa de calor" key="4">
                     <div className="chart-container">
-                        <PieChart width={800} height={650}>
-                            <Pie data={getSeverityChartData()} dataKey="count" nameKey="severity" cx="50%" cy="50%" outerRadius={200} fill="#8884d8" label>
-                                {getSeverityChartData().map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                        </PieChart>
+                        <MapContainer center={[41.066797, 1.070257]} zoom={13} style={{ height: "600px", width: "100%" }}>
+                            <TileLayer
+                                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                            />
+                            <HeatmapLayer
+                                fitBoundsOnLoad
+                                fitBoundsOnUpdate
+                                points={getHeatmapData()}
+                                longitudeExtractor={m => m[1]}
+                                latitudeExtractor={m => m[0]}
+                                intensityExtractor={m => m[2]}
+                            />
+                        </MapContainer>
                     </div>
                 </TabPane>
             </Tabs>
