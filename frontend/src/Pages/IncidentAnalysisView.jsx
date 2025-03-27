@@ -78,11 +78,11 @@ function IncidentAnalysisView() {
         const newColors = {};
         const usedColors = new Set();
 
-        // Paleta de colores predefinida para asegurar diferentes tonalidades fuertes
+        // Paleta de colores predefinida para asegurar diferentes tonalidades fuertes y distintas
         const predefinedColors = [
-            "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF",
-            "#800000", "#008000", "#000080", "#808000", "#800080", "#008080",
-            "#FF4500", "#32CD32", "#1E90FF", "#FFD700", "#DA70D6", "#40E0D0"
+            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b",
+            "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#393b79", "#637939",
+            "#8c6d31", "#843c39", "#7b4173", "#a55194", "#6b6ecf", "#b5cf6b",
         ];
 
         incidentTypes.forEach((incidentType, index) => {
@@ -95,7 +95,8 @@ function IncidentAnalysisView() {
                 // Generar un color aleatorio si se agotan los predefinidos
                 do {
                     color = generateRandomColor();
-                } while (usedColors.has(color) || isColorLight(color));
+                } while (usedColors.has(color) || isColorLight(color) || isColorSimilar(color, usedColors));
+
             }
 
             usedColors.add(color);
@@ -115,6 +116,22 @@ function IncidentAnalysisView() {
         const b = parseInt(color.substring(5, 7), 16);
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         return brightness > 200;
+    };
+
+    const isColorSimilar = (color, usedColors) => {
+        const threshold = 100; // Ajusta este valor para mayor o menor sensibilidad a la similitud de colores
+        const [r1, g1, b1] = [parseInt(color.substring(1, 3), 16), parseInt(color.substring(3, 5), 16), parseInt(color.substring(5, 7), 16)];
+
+        for (const usedColor of usedColors) {
+            const [r2, g2, b2] = [parseInt(usedColor.substring(1, 3), 16), parseInt(usedColor.substring(3, 5), 16), parseInt(usedColor.substring(5, 7), 16)];
+            const distance = Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(g2 - g1, 2) + Math.pow(b2 - b1, 2));
+
+            if (distance < threshold) {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     useEffect(() => {
@@ -141,7 +158,7 @@ function IncidentAnalysisView() {
             .catch((error) => console.log("Error fetching incident types:", error));
     }, [generateColors]);
 
-    
+
 
     const filterIncidents = useCallback(() => {
         let filtered = incidents;

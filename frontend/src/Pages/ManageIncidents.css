@@ -107,52 +107,97 @@
 }
 
 /* Estilos para el select */
-.facility-select {
-  padding: 8px 12px; /* Reducimos el padding para que sea más estrecho */
-    font-size: 14px; /* Hacemos la fuente un poco más pequeña */
+.facility-select, .incidentType-select {
+  padding: 6px 10px; /* Reducimos el padding para que sea más estrecho */
+  font-size: 14px; /* Hacemos la fuente un poco más pequeña */
   border-radius: 5px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
-  width: 200px; /* Ajusta el ancho según sea necesario */
+  width: 150px; /* Ajusta el ancho según sea necesario */
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.facility-select:hover {
+.facility-select:hover, .incidentType-select:hover {
   border-color: #007bff;
 }
 
-.facility-select:focus {
+.facility-select:focus, .incidentType-select:focus {
   outline: none;
   border-color: #007bff;
   background-color: #f1faff;
 }
 
-/* Estilos para el select */
-.incidentType-select {
-  padding: 8px 15px; /* Reducimos el padding para que sea más estrecho */
-    font-size: 14px; /* Hacemos la fuente un poco más pequeña */
+/* Contenedor para los selectores de fecha */
+.date-selectors {
+  display: flex;
+  gap: 10px; /* Espacio entre los selectores */
+}
+
+/* Estilos para los selectores de fecha */
+.date-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.date-selector label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.date-selector input,
+.date-selector select {
+  padding: 8px 12px;
+  font-size: 14px;
   border-radius: 5px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
-  width: 200px; /* Ajusta el ancho según sea necesario */
+  width: 100px; /* Ajusta el ancho según sea necesario */
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.incidentType-select:hover {
+.date-selector input:hover,
+.date-selector select:hover {
   border-color: #007bff;
 }
 
-.incidentType-select:focus {
+.date-selector input:focus,
+.date-selector select:focus {
   outline: none;
   border-color: #007bff;
   background-color: #f1faff;
+}
+
+
+.button-group {
+  display: flex;
+  align-items: center; /* Asegura que los botones estén alineados verticalmente */
+  gap: 10px; /* Espacio entre los botones */
+}
+
+.generatePDF-button {
+  padding: 10px 18px;
+  font-size: 15px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.generatePDF-button:hover {
+  background-color: #0056b3;
 }
 
 .analysis-button {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 10px 18px;
+  font-size: 15px;
   border-radius: 5px;
   border: none;
   background-color: #007bff;
@@ -165,3 +210,5 @@
 .analysis-button:hover {
   background-color: #0056b3;
 }
+
+
