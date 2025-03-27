@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Tabs, Select, Button, Modal } from 'antd';
-import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Brush } from 'recharts';
+import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Brush, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { ZoomInOutlined, ZoomOutOutlined } from '@ant-design/icons';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -53,7 +53,7 @@ function IncidentAnalysisView() {
     const [facilities, setFacilities] = useState([]);
     const [incidentTypes, setIncidentTypes] = useState([]);
     const [selectedFacility] = useState("all");
-    const [selectedIncidentType, setSelectedIncidentType] = useState("all");
+    const [selectedIncidentType] = useState("all");
     const [selectedYear, setSelectedYear] = useState("all");
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedDay, setSelectedDay] = useState("all");
@@ -61,12 +61,17 @@ function IncidentAnalysisView() {
     const [sortOrder, setSortOrder] = useState('default'); // 'default', 'asc', 'desc'
     const [isComparisonMode, setIsComparisonMode] = useState(false);
     const [comparisonYear, setComparisonYear] = useState("all");
-     const [comparisonMonth, setComparisonMonth] = useState("all");  // Agregado
-        const [comparisonDay, setComparisonDay] = useState("all");      // Agregado
+
+
+
         const [comparisonFilteredIncidents, setComparisonFilteredIncidents] = useState([]);
         const [colors, setColors] = useState({});
         const [selectedHourIncidents, setSelectedHourIncidents] = useState([]);
         const [isModalVisible, setIsModalVisible] = useState(false);
+        const [activeTab, setActiveTab] = useState("1");
+        const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
+        const [pieSelectedIncidentType, setPieSelectedIncidentType] = useState("all"); // Añadido
+        const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
 
     const generateColors = useCallback((incidentTypes) => {
@@ -393,19 +398,21 @@ const handleLineChartClick = (e) => {
         const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.2, 2));
         const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.2, 0.5));
 
-    const { trendData, comparisonData } = getTrendChartData();
+
 
 const getHeatmapData = () => {
-    return filteredIncidents.map(incident => {
-        let intensity = 1; // Intensity por defecto para la acumulación de incidentes
+    return filteredIncidents
+        .filter(incident => heatmapSelectedIncidentType === "all" || incident.type === heatmapSelectedIncidentType)
+        .map(incident => {
+            let intensity = 2; // Intensidad por defecto para la acumulación de incidentes
 
-        // Aumentar la intensidad para los incidentes graves
-        if (incident.type === "Ahogamiento en la playa") {
-            intensity = 3;  // Mayor intensidad para incidentes graves
-        }
+            // Aumentar la intensidad para los incidentes graves
+            if (incident.type === "Ahogamiento en la playa") {
+                intensity = 3;  // Mayor intensidad para incidentes graves
+            }
 
-        return [incident.latitude, incident.longitude, intensity];
-    });
+            return [incident.latitude, incident.longitude, intensity];
+        });
 };
 
 
@@ -416,6 +423,43 @@ const maxIntensity = Math.max(...filteredIncidents.map(incident => {
     }
     return 1; // Intensidad baja para otros incidentes
 }));
+
+
+// Definir franjas de edad
+const ageRanges = [
+    { label: "0-10", min: 0, max: 10 },
+    { label: "11-20", min: 11, max: 20 },
+    { label: "21-30", min: 21, max: 30 },
+    { label: "31-40", min: 31, max: 40 },
+    { label: "41-50", min: 41, max: 50 },
+    { label: "51-60", min: 51, max: 60 },
+    { label: "61-70", min: 61, max: 70 },
+    { label: "71-80", min: 71, max: 80 },
+    { label: "81-90", min: 81, max: 90 },
+    { label: "91+", min: 91, max: Infinity }
+];
+
+// Generar datos para el gráfico de pastel
+const getPieChartData = () => {
+    return incidentTypes.map(({ type }) => {
+        const count = filteredIncidents.filter(incident => incident.type === type).length;
+        return { name: type, value: count };
+    });
+};
+
+// Generar datos para el gráfico de edades
+const getAgePieChartData = () => {
+    if (!selectedIncidentForAge) return [];
+
+    const ageCounts = ageRanges.map(({ label, min, max }) => ({
+        name: label,
+        value: filteredIncidents.filter(
+            incident => incident.type === selectedIncidentForAge && incident.age >= min && incident.age <= max
+        ).length
+    }));
+
+    return ageCounts.filter(ageGroup => ageGroup.value > 0); // Eliminar grupos sin datos
+ };
 
     return (
         <main className="content">
@@ -448,9 +492,11 @@ const maxIntensity = Math.max(...filteredIncidents.map(incident => {
                     <Option value="asc">Ascending Order</Option>
                     <Option value="desc">Descending Order</Option>
                 </Select>
-                <Button onClick={() => setIsComparisonMode(!isComparisonMode)} className="comparison-button">
-                    {isComparisonMode ? "Disable Comparison Mode" : "Enable Comparison Mode"}
-                </Button>
+                {activeTab !== "4" && (
+                        <Button onClick={() => setIsComparisonMode(!isComparisonMode)} className="comparison-button">
+                            {isComparisonMode ? "Disable Comparison Mode" : "Enable Comparison Mode"}
+                        </Button>
+                    )}
             </div>
 
             {isComparisonMode && (
@@ -465,7 +511,7 @@ const maxIntensity = Math.max(...filteredIncidents.map(incident => {
                 </div>
             )}
 
-            <Tabs defaultActiveKey="1">
+            <Tabs defaultActiveKey="1" onChange={key => setActiveTab(key)}>
                 <TabPane tab="Distribución por Instalación" key="1">
                     <div className="chart-container">
                         <BarChart width={Math.max(1200, facilities.length * 50)} height={650} data={getSiteChartData()}>
@@ -555,16 +601,76 @@ const maxIntensity = Math.max(...filteredIncidents.map(incident => {
                             />
                         </MapContainer>
                         {/* Botón flotante para seleccionar el tipo de incidente */}
-                                        <div style={{ position: "absolute", top: "10px", right: "10px", background: "#007BFF", padding: "10px", borderRadius: "5px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", zIndex: 1000  }}>
-                                            <Select defaultValue="all" style={{ width: 200 }} onChange={setSelectedIncidentType}>
-                                                <Option value="all">Todos los incidentes</Option>
-                                                {incidentTypes.map(type => (
-                                                    <Option key={type.type} value={type.type}>{type.type}</Option>
-                                                ))}
-                                            </Select>
-                                        </div>
+                        <div style={{ position: "absolute", top: "10px", right: "10px", background: "#007BFF", padding: "10px", borderRadius: "5px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", zIndex: 1000 }}>
+                            <Select defaultValue="all" style={{ width: 200 }} onChange={setHeatmapSelectedIncidentType}>
+                                <Option value="all">Todos los incidentes</Option>
+                                {incidentTypes.map(type => (
+                                    <Option key={type.type} value={type.type}>{type.type}</Option>
+                                ))}
+                            </Select>
+                        </div>
                     </div>
                 </TabPane>
+
+
+
+                <TabPane tab="Gráfico de Quesitos" key="5">
+                    <div className="chart-container">
+                        <ResponsiveContainer width="100%" height={400}>
+                            <PieChart>
+                                <Pie
+                                    data={getPieChartData()}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={150}
+                                    fill="#8884d8"
+                                    label
+                                    onClick={(data) => setSelectedIncidentForAge(data.name)}
+                                >
+                                    {getPieChartData().map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={colors[entry.name]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Gráfico de edades al hacer clic en una porción */}
+                    {selectedIncidentForAge && (
+                        <div style={{ marginTop: "-200px" }}> {/* Ajusté el margen superior para mover el gráfico hacia arriba */}
+                            <h3>Distribución de edades para "{selectedIncidentForAge}"</h3>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <PieChart>
+                                    <Pie
+                                        data={getAgePieChartData()}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={150}
+                                        label
+                                        stroke="white" // Líneas blancas entre las franjas
+                                        strokeWidth={2}
+                                    >
+                                        {getAgePieChartData().map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={colors[entry.name] || generateRandomColor()} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </TabPane>
+
+
+
+
             </Tabs>
             {/* Modal que se abre cuando se hace clic en una hora */}
                         <Modal
