@@ -78,17 +78,44 @@ function IncidentAnalysisView() {
         const newColors = {};
         const usedColors = new Set();
 
-        incidentTypes.forEach(incidentType => {
+        // Paleta de colores predefinida para asegurar diferentes tonalidades fuertes
+        const predefinedColors = [
+            "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF",
+            "#800000", "#008000", "#000080", "#808000", "#800080", "#008080",
+            "#FF4500", "#32CD32", "#1E90FF", "#FFD700", "#DA70D6", "#40E0D0"
+        ];
+
+        incidentTypes.forEach((incidentType, index) => {
             let color;
-            do {
-                color = generateRandomColor();
-            } while (usedColors.has(color) || isColorLight(color));
+
+            // Si hay colores predefinidos, úsalos primero
+            if (index < predefinedColors.length) {
+                color = predefinedColors[index];
+            } else {
+                // Generar un color aleatorio si se agotan los predefinidos
+                do {
+                    color = generateRandomColor();
+                } while (usedColors.has(color) || isColorLight(color));
+            }
 
             usedColors.add(color);
             newColors[incidentType.type] = color;
         });
+
         setColors(newColors);
     }, []);
+
+    const generateRandomColor = () => {
+        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    };
+
+    const isColorLight = (color) => {
+        const r = parseInt(color.substring(1, 3), 16);
+        const g = parseInt(color.substring(3, 5), 16);
+        const b = parseInt(color.substring(5, 7), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 200;
+    };
 
     useEffect(() => {
         fetch("http://localhost:4000/incidents")
@@ -114,17 +141,7 @@ function IncidentAnalysisView() {
             .catch((error) => console.log("Error fetching incident types:", error));
     }, [generateColors]);
 
-    const generateRandomColor = () => {
-        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
-    };
-
-    const isColorLight = (color) => {
-        const r = parseInt(color.substring(1, 3), 16);
-        const g = parseInt(color.substring(3, 5), 16);
-        const b = parseInt(color.substring(5, 7), 16);
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        return brightness > 200;
-    };
+    
 
     const filterIncidents = useCallback(() => {
         let filtered = incidents;
@@ -146,6 +163,12 @@ function IncidentAnalysisView() {
 
         setFilteredIncidents(filtered);
     }, [incidents, selectedFacility, selectedIncidentType, selectedYear, selectedMonth, selectedDay]);
+
+
+    // Establecer un efecto para restablecer selectedIncidentForAge cuando activeTab cambie
+        useEffect(() => {
+            setSelectedIncidentForAge(null); // Restablecer la selección cuando se cambia de pestaña
+        }, [activeTab]); // Se activa cada vez que el activeTab cambia
 
     useEffect(() => {
         filterIncidents();
@@ -492,7 +515,7 @@ const getAgePieChartData = () => {
                     <Option value="asc">Ascending Order</Option>
                     <Option value="desc">Descending Order</Option>
                 </Select>
-                {activeTab !== "4" && (
+                {activeTab !== "4" && activeTab !== "5" && (
                         <Button onClick={() => setIsComparisonMode(!isComparisonMode)} className="comparison-button">
                             {isComparisonMode ? "Disable Comparison Mode" : "Enable Comparison Mode"}
                         </Button>
@@ -614,7 +637,7 @@ const getAgePieChartData = () => {
 
 
 
-                <TabPane tab="Gráfico de Quesitos" key="5">
+                <TabPane tab="Distribución por Tipo/Edad" key="5">
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height={400}>
                             <PieChart>
