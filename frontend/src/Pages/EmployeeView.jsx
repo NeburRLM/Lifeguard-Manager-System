@@ -224,59 +224,79 @@ const EmployeeView = () => {
         </header>
 
         <div className="employee-details-container">
-          <div className="employee-info">
-            {isEditing ? (
-              <>
-                <input type="file" accept="image/*" onChange={handleFileChange} />
-                <img
-                  src={formData.previewImage || formData.image || "/default-avatar.jpg"}
-                  alt="Employee"
-                  className="employee-image"
-                />
-                {formData.image && (
-                  <button className="delete-image-btn" onClick={handleDeleteImage}>
-                    Eliminar Imagen
-                  </button>
-                )}
-              </>
-            ) : (
-              <img src={employee.image || "/default-avatar.jpg"} alt={employee.name} className="employee-image" />
-            )}
+                  <div className="employee-info">
+                    <div className="employee-image-section">
+                      {isEditing ? (
+                        <>
+                          <input type="file" accept="image/*" onChange={handleFileChange} className="file-input" />
+                          <img
+                            src={formData.previewImage || formData.image || "/default-avatar.jpg"}
+                            alt="Employee"
+                            className="employee-image"
+                          />
+                          {formData.image && (
+                            <button className="delete-image-btn" onClick={handleDeleteImage}>
+                              Eliminar Imagen
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <img src={employee.image || "/default-avatar.jpg"} alt={employee.name} className="employee-image" />
+                          <h3 className="employee-name">{employee.name}</h3> {/* Nombre debajo de la imagen */}
+                        </>
+                      )}
+                    </div>
 
-            <div className="details-grid">
-              {isEditing ? (
-                <>
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} />
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
-                  <input type="text" name="role" value={formData.role} onChange={handleInputChange} />
-                  <input type="text" name="birthdate" value={formData.birthdate} onChange={handleInputChange} />
-                  <input type="text" name="phone_number" value={formData.phone_number} onChange={handleInputChange} />
-                  <input type="number" name="hourlyRate" value={formData.hourlyRate} onChange={handleInputChange} />
-                </>
-              ) : (
-                <>
-                  <h2>{employee.name}</h2>
-                  <p><strong>Email:</strong> {employee.email}</p>
-                  <p><strong>Role:</strong> {employee.role}</p>
-                  <p><strong>Birthdate:</strong> {employee.birthdate}</p>
-                  <p><strong>Phone:</strong> {employee.phone_number}</p>
-                  <p><strong>Hourly Rate:</strong> ${employee.hourlyRate}</p>
-                </>
-              )}
-            </div>
-          </div>
+                    <div className="details-grid">
+                      {isEditing ? (
+                        <>
+                          <div className="input-group">
+                            <label htmlFor="name">Nombre</label>
+                            <input type="text" name="name" value={formData.name} onChange={handleInputChange} />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="email">Email</label>
+                            <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="role">Rol</label>
+                            <input type="text" name="role" value={formData.role} onChange={handleInputChange} />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="birthdate">Fecha de Nacimiento</label>
+                            <input type="text" name="birthdate" value={formData.birthdate} onChange={handleInputChange} />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="phone_number">Teléfono</label>
+                            <input type="text" name="phone_number" value={formData.phone_number} onChange={handleInputChange} />
+                          </div>
 
-          <div className="action-buttons">
-            {isEditing ? (
-              <>
-                <button className="save-btn green-btn" onClick={handleSave}><FaSave /> Guardar</button>
-                <button className="cancel-btn" onClick={handleCancelEdit}><FaTimes />Cancelar</button>
-              </>
-            ) : (
-              <button className="edit-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
-            )}
-          </div>
-        </div>
+                        </>
+                      ) : (
+                        <>
+                          <p><strong>DNI:</strong> {employee.id}</p>
+                          <p><strong>Email:</strong> {employee.email}</p>
+
+                          <p><strong>Role:</strong> {employee.role}</p>
+                          <p><strong>Phone:</strong> {employee.phone_number}</p>
+                          <p><strong>Birthdate:</strong> {employee.birthdate}</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="action-buttons">
+                    {isEditing ? (
+                      <>
+                        <button className="save-btn green-btn" onClick={handleSave}><FaSave /> Guardar</button>
+                        <button className="cancel-btn" onClick={handleCancelEdit}><FaTimes />Cancelar</button>
+                      </>
+                    ) : (
+                      <button className="edit-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
+                    )}
+                  </div>
+                </div>
 
         <div className="schedule-container">
           <h3>Work Schedule for {employee.name}</h3>
