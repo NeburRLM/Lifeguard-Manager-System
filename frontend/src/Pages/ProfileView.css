@@ -6,14 +6,15 @@
   height: 100%;
 }
 
-.profile-content {
+.profile-contentP {
   text-align: center;
 }
 
-.profile-image-section {
+.profile-image-sectionP {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 70px;
   margin-bottom: 20px;
 }
 
@@ -25,32 +26,38 @@
   border: 3px solid #007bff;
 }
 
-.profile-details {
+.profile-detailsP {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
 }
 
-.profile-details h3 {
+.profile-detailsP h3 {
   color: #333;
   font-size: 26px;
   margin-bottom: 10px;
 }
 
-.profile-details p, .profile-details input {
+.profile-detailsP p, .profile-detailsP input {
   color: #555;
   font-size: 18px;
   margin: 5px 0;
   text-align: center;
 }
 
-.profile-actions {
-
+.profile-actionsP {
   margin-top: 20px;
+    display: flex;
+    flex-direction: column; /* Cambia a columna */
+      align-items: center; /* Centra los botones horizontalmente */
+    gap: 15px;
+  }
+
+.edit-actionsP {
+  display: flex;
+  gap: 10px;
 }
-
-
 
 .editProfile-btn {
   background-color: #007bff;
@@ -63,6 +70,21 @@
 }
 
 .editProfile-btn:hover {
+  background-color: #0056b3;
+}
+
+.changePassword-btn {
+  background-color: #007bff;
+  color: white;
+  display: block;
+  padding: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.changePassword-btn:hover {
   background-color: #0056b3;
 }
 
@@ -131,4 +153,61 @@ input[type='file'] {
   color: #007bff;
   text-align: center;
   margin-top: 20%;
+}
+
+.password-modalP {
+  position: fixed;
+  top: 0;
+  left: 180px; /* Ajusta esto según el ancho del sidebar */
+    width: calc(100% - 180px); /* Ocupa solo el espacio restante */
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-contentP {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  text-align: center;
+}
+
+.modal-contentP h3 {
+  margin-bottom: 20px;
+}
+
+.error-textP {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.input-groupP {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.input-groupP label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.input-groupP input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-buttonsP {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }

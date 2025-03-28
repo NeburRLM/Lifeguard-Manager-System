@@ -205,6 +205,51 @@ app.get('/employee/:id', async (req, res) => {
 });
 
 
+app.put('/employee/change-password/:id', async (req, res) => {
+    const { id } = req.params; // Obtener el ID del empleado de la URL
+    const { currentPassword, newPassword } = req.body; // Obtener la contraseña actual y nueva del cuerpo de la solicitud
+
+    try {
+        // Buscar al empleado por su ID
+        const employee = await dataSource.getRepository(EmployeeSchema)
+            .createQueryBuilder("employee")
+            .where("employee.id = :id", { id })
+            .getOne();
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        // Comparar la contraseña actual proporcionada con la contraseña almacenada
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, employee.password);
+
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        // Verificar que la nueva contraseña no sea igual a la actual
+        const isNewPasswordSameAsCurrent = await bcrypt.compare(newPassword, employee.password);
+
+        if (isNewPasswordSameAsCurrent) {
+            return res.status(400).json({ message: 'The new password must be different from the current password.' });
+        }
+
+        // Si la contraseña actual es válida y la nueva es diferente, proceder con la actualización
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // Actualizar la contraseña en la base de datos
+        employee.password = hashedPassword;
+        await dataSource.getRepository(EmployeeSchema).save(employee); // Guardamos la actualización
+
+        res.json({ message: 'Password updated successfully' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error updating password', error: error.message });
+    }
+});
+
 
 
 

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes, FaKey } from "react-icons/fa";
 import "./ProfileView.css";
 
 function ProfileView() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  ////
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+    const [error, setError] = useState("");
 
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
@@ -131,6 +135,53 @@ function ProfileView() {
     }
   };
 
+
+  const handlePasswordChange = (e) => {
+      const { name, value } = e.target;
+      setPasswordData({ ...passwordData, [name]: value });
+    };
+
+    const handleChangePassword = async () => {
+        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+            setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        try {
+            const token = sessionStorage.getItem("Token");
+            const response = await fetch(`http://localhost:4000/employee/change-password/${user.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordData.currentPassword,
+                    newPassword: passwordData.newPassword,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message);  // Lanzamos el error con el mensaje recibido
+            }
+
+            alert("Contraseña actualizada con éxito");
+            setShowPasswordModal(false);
+            setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+        } catch (error) {
+            console.error("Error al cambiar contraseña:", error);
+            setError(error.message);  // Aquí guardamos el mensaje de error para mostrarlo en el UI
+        }
+    };
+
+    const handleCancelPasswordModal = () => {
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+        setError(""); // Limpiar el error cuando se cierra el modal
+    };
+
+
   if (!user) return <div className="loading">Cargando...</div>;
 
   return (
@@ -139,9 +190,9 @@ function ProfileView() {
             <header className="header">
               <h4>Profile User</h4>
             </header>
-    <div className="profile-container">
-      <div className="profile-content">
-        <div className="profile-image-section">
+    <div className="profile-containerP">
+      <div className="profile-contentP">
+        <div className="profile-image-sectionP">
           {isEditing ? (
             <>
               <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -161,7 +212,7 @@ function ProfileView() {
           )}
         </div>
 
-        <div className="profile-details">
+        <div className="profile-detailsP">
           {isEditing ? (
             <>
               <input type="text" name="name" value={formData.name || ""} onChange={handleInputChange} />
@@ -173,6 +224,7 @@ function ProfileView() {
           ) : (
             <>
               <h3>{user.name}</h3>
+              <p><strong>DNI:</strong> {user.id}</p>
               <p><strong>Email:</strong> {user.email}</p>
               <p><strong>Rol:</strong> {user.role}</p>
               <p><strong>Fecha de Nacimiento:</strong> {user.birthdate}</p>
@@ -181,20 +233,49 @@ function ProfileView() {
           )}
         </div>
 
-        <div className="profile-actions">
+        <div className="profile-actionsP">
           {isEditing ? (
-            <>
-              <button className="saveProfile-btn" onClick={handleSave}><FaSave /> Guardar</button>
-              <button className="cancelProfile-btn" onClick={handleCancelEdit}><FaTimes /> Cancelar</button>
-            </>
+            <div className="edit-actionsP">
+                <button className="saveProfile-btn" onClick={handleSave}><FaSave /> Guardar</button>
+                <button className="cancelProfile-btn" onClick={handleCancelEdit}><FaTimes /> Cancelar</button>
+            </div>
           ) : (
+            <>
             <button className="editProfile-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
+            <button className="changePassword-btn" onClick={() => setShowPasswordModal(true)}><FaKey /> Cambiar Contraseña</button>
+            </>
           )}
         </div>
       </div>
     </div>
+
+     {showPasswordModal && (
+             <div className="password-modalP">
+               <div className="modal-contentP">
+                 <h3>Cambiar Contraseña</h3>
+                 {error && <p className="error-textP">{error}</p>}
+                 <div className="input-groupP">
+                   <label htmlFor="currentPassword">Contraseña actual</label>
+                   <input type="password" name="currentPassword" placeholder="Contraseña actual" value={passwordData.currentPassword} onChange={handlePasswordChange} />
+                 </div>
+                 <div className="input-groupP">
+                   <label htmlFor="newPassword">Nueva contraseña</label>
+                   <input type="password" name="newPassword" placeholder="Nueva contraseña" value={passwordData.newPassword} onChange={handlePasswordChange} />
+                 </div>
+                 <div className="input-groupP">
+                   <label htmlFor="confirmNewPassword">Confirmar nueva contraseña</label>
+                   <input type="password" name="confirmNewPassword" placeholder="Confirmar nueva contraseña" value={passwordData.confirmNewPassword} onChange={handlePasswordChange} />
+                 </div>
+                 <div className="modal-buttonsP">
+                   <button className="saveProfile-btn" onClick={handleChangePassword}><FaSave /> Guardar</button>
+                   <button className="cancelProfile-btn" onClick={handleCancelPasswordModal}><FaTimes /> Cancelar</button>
+                 </div>
+               </div>
+             </div>
+           )}
     </div>
   );
 }
 
 export default ProfileView;
+
