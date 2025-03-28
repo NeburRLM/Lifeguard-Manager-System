@@ -46,22 +46,20 @@
 }
 
 .profile-actions {
+
   margin-top: 20px;
 }
 
-button {
-  padding: 12px 20px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s;
-  margin: 5px;
-}
+
 
 .editProfile-btn {
   background-color: #007bff;
   color: white;
+  padding: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
 .editProfile-btn:hover {
@@ -71,6 +69,12 @@ button {
 .saveProfile-btn {
   background-color: #28a745;
   color: white;
+    padding: 10px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-right: 5px;
 }
 
 .saveProfile-btn:hover {
@@ -80,6 +84,12 @@ button {
 .cancelProfile-btn {
   background-color: #dc3545;
   color: white;
+    padding: 10px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 5px;
 }
 
 .cancelProfile-btn:hover {
@@ -90,6 +100,10 @@ button {
   background-color: #ff4d4d;
   color: white;
   margin-top: 10px;
+    padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
 }
 
 .deleteProfile-image-btn:hover {
