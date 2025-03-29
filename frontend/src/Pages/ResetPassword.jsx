@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 const ResetPassword = () => {
@@ -7,6 +7,12 @@ const ResetPassword = () => {
   const [message, setMessage] = useState('');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+
+  useEffect(() => {
+    if (!token) {
+      setMessage('Token no proporcionado.');
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

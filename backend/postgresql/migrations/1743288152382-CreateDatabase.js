@@ -1,7 +1,7 @@
 //const { MigrationInterface, QueryRunner } = require("typeorm");
 
-export class CreateDatabase1743008451661 {
-    name = 'CreateDatabase1743008451661'
+export class CreateDatabase1743288152382 {
+    name = 'CreateDatabase1743288152382'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "work_schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_f5251879700e5ca0d2e353fa34f" PRIMARY KEY ("id"))`);
@@ -15,7 +15,7 @@ export class CreateDatabase1743008451661 {
         await queryRunner.query(`CREATE TYPE "public"."facilities_facility_type_enum" AS ENUM('Pool', 'Beach')`);
         await queryRunner.query(`CREATE TABLE "facilities" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying(100) NOT NULL, "location" character varying(255) NOT NULL, "facility_type" "public"."facilities_facility_type_enum" NOT NULL, "latitude" double precision NOT NULL, "longitude" double precision NOT NULL, CONSTRAINT "PK_2e6c685b2e1195e6d6394a22bc7" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."employees_role_enum" AS ENUM('Boss', 'Lifeguard', 'Coordinator')`);
-        await queryRunner.query(`CREATE TABLE "employees" ("id" character varying(9) NOT NULL, "name" character varying(100) NOT NULL, "role" "public"."employees_role_enum" NOT NULL, "email" character varying(100) NOT NULL, "password" character varying(255) NOT NULL, "birthdate" date, "phone_number" character varying(15), "hourlyRate" numeric(10,2) NOT NULL, "image" character varying, CONSTRAINT "UQ_b9535a98350d5b26e7eb0c26af4" UNIQUE ("id"), CONSTRAINT "UQ_765bc1ac8967533a04c74a9f6af" UNIQUE ("email"), CONSTRAINT "UQ_027a331b2053bb37f39fb2704fb" UNIQUE ("phone_number"), CONSTRAINT "UQ_9920edfb66899c3062b046749c2" UNIQUE ("image"), CONSTRAINT "PK_b9535a98350d5b26e7eb0c26af4" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "employees" ("id" character varying(9) NOT NULL, "name" character varying(100) NOT NULL, "role" "public"."employees_role_enum" NOT NULL, "email" character varying(100) NOT NULL, "password" character varying(255) NOT NULL, "birthdate" date, "phone_number" character varying(15), "hourlyRate" numeric(10,2) NOT NULL, "image" character varying, "resetToken" character varying(255), CONSTRAINT "UQ_b9535a98350d5b26e7eb0c26af4" UNIQUE ("id"), CONSTRAINT "UQ_765bc1ac8967533a04c74a9f6af" UNIQUE ("email"), CONSTRAINT "UQ_027a331b2053bb37f39fb2704fb" UNIQUE ("phone_number"), CONSTRAINT "UQ_9920edfb66899c3062b046749c2" UNIQUE ("image"), CONSTRAINT "PK_b9535a98350d5b26e7eb0c26af4" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "attendances" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" date NOT NULL, "check_in" TIME NOT NULL, "check_out" TIME, "employee_id" character varying NOT NULL, "facility_id" uuid NOT NULL, CONSTRAINT "PK_483ed97cd4cd43ab4a117516b69" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "idx_attendance_employee" ON "attendances" ("employee_id") `);
         await queryRunner.query(`CREATE INDEX "idx_attendance_facility" ON "attendances" ("facility_id") `);

@@ -2385,39 +2385,32 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 function generateResetToken(userId) {
-  // El token expira en 30 minutos
-  return jwt.sign({ userId }, 'secreto_clave', { expiresIn: '30m' });
+  const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET_KEY, { expiresIn: '30m' });
+  return resetToken;
 }
 
-
-
-
 app.post('/employee/forgot-password', async (req, res) => {
-   const { email } = req.body;
+  const { email } = req.body;
+  const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
 
-   // Lógica para verificar si el email existe en la base de datos
-   const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
+  if (!employee) {
+    return res.status(404).json({ message: 'No user found with this email.' });
+  }
 
-   if (!employee) {
-     return res.status(404).json({ message: 'No user found with this email.' });
-   }
+  const resetToken = generateResetToken(employee.id);
+  employee.resetToken = resetToken; // Almacenar el token en la base de datos
+  await dataSource.getRepository(EmployeeSchema).save(employee);
+  await sendPasswordResetEmail(employee.email, resetToken);
 
-   // Lógica para generar un token de restablecimiento
-   const resetToken = generateResetToken(); // Necesitarás implementar esto
-   await sendPasswordResetEmail(employee.email, resetToken); // Función para enviar el correo
+  res.json({ message: 'An email with password reset instructions has been sent.' });
+});
 
-   res.json({ message: 'An email with password reset instructions has been sent.' });
- });
-
-
-
-// Función para enviar el correo con el enlace de restablecimiento de contraseña
 async function sendPasswordResetEmail(email, resetToken) {
   const resetUrl = `http://localhost:4000/reset-password?token=${resetToken}`;
 
   const msg = {
-    to: email, // Correo del destinatario
-    from: 'lifeguardtfg@gmail.com', // Correo remitente verificado en SendGrid
+    to: email,
+    from: 'lifeguardtfg@gmail.com',
     subject: 'Restablecer tu contraseña',
     text: `
         Hola,
@@ -2435,7 +2428,7 @@ async function sendPasswordResetEmail(email, resetToken) {
         Saludos,
         El equipo de Lifeguard S.L.
       `,
-      html: `
+    html: `
         <p>Hola,</p>
         <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
         <p>Para continuar con el proceso, haz clic en el siguiente enlace:</p>
@@ -2456,30 +2449,31 @@ async function sendPasswordResetEmail(email, resetToken) {
   }
 }
 
-
 app.post('/reset-password', async (req, res) => {
-    const { token, password } = req.body;
+  const { token, password } = req.body;
 
-    // Verifica el token y encuentra al usuario en la base de datos
-    const user = await dataSource.getRepository(EmployeeSchema).findOne({ where: { resetToken: token } });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await dataSource.getRepository(EmployeeSchema).findOne({ where: { id: decoded.userId, resetToken: token } });
 
     if (!user) {
-        return res.status(400).json({ message: 'Token inválido o expirado.' });
+      return res.status(400).json({ message: 'Token inválido o expirado.' });
     }
 
-    // Hashea la nueva contraseña y guárdala
-    user.password = hashPassword(password); // Usa bcrypt o similar
-    user.resetToken = null; // Elimina el token usado
+    user.password = await bcrypt.hash(password, 10);
+    user.resetToken = null;
     await dataSource.getRepository(EmployeeSchema).save(user);
 
     res.json({ message: 'Contraseña actualizada con éxito.' });
+  } catch (error) {
+    return res.status(400).json({ message: 'Token inválido o expirado.' });
+  }
 });
 
 app.get('/reset-password', (req, res) => {
-    // Aquí obtenemos el token y lo agregamos a la URL del frontend
-    const token = req.query.token; // Obtener el token directamente desde la query
-    const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
-    res.redirect(resetUrl); // Redirigir a la URL correcta del frontend
+  const token = req.query.token;
+  const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
+  res.redirect(resetUrl);
 });
 
 

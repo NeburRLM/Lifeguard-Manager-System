@@ -46,7 +46,12 @@ export const EmployeeSchema = new EntitySchema({
             type: String,   // Tipo de datos cadena de texto
             nullable: true, // Puede ser nula
             unique: true,   // Es única
-        }
+        },
+         resetToken: {
+            type: "varchar",
+            length: 255,
+            nullable: true,
+         }
     },
     relations: {    // Relación con el cuadrante mensual de trabajo
         work_schedule: {
