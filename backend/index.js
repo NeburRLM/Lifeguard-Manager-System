@@ -16,6 +16,8 @@ import { In } from 'typeorm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
@@ -2371,17 +2373,114 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+sgMail.setApiKey('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');
 
 
 
 
 
+function generateResetToken(userId) {
+  // El token expira en 30 minutos
+  return jwt.sign({ userId }, 'secreto_clave', { expiresIn: '30m' });
+}
 
 
 
 
+app.post('/employee/forgot-password', async (req, res) => {
+   const { email } = req.body;
+
+   // Lógica para verificar si el email existe en la base de datos
+   const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
+
+   if (!employee) {
+     return res.status(404).json({ message: 'No user found with this email.' });
+   }
+
+   // Lógica para generar un token de restablecimiento
+   const resetToken = generateResetToken(); // Necesitarás implementar esto
+   await sendPasswordResetEmail(employee.email, resetToken); // Función para enviar el correo
+
+   res.json({ message: 'An email with password reset instructions has been sent.' });
+ });
 
 
+
+// Función para enviar el correo con el enlace de restablecimiento de contraseña
+async function sendPasswordResetEmail(email, resetToken) {
+  const resetUrl = `http://localhost:4000/reset-password?token=${resetToken}`;
+
+  const msg = {
+    to: email, // Correo del destinatario
+    from: 'lifeguardtfg@gmail.com', // Correo remitente verificado en SendGrid
+    subject: 'Restablecer tu contraseña',
+    text: `
+        Hola,
+
+        Hemos recibido una solicitud para restablecer tu contraseña.
+
+        Para continuar con el proceso, haz clic en el siguiente enlace:
+
+        ${resetUrl}
+
+        Si no has solicitado este cambio, puedes ignorar este mensaje.
+
+        Este enlace expirará en 30 minutos.
+
+        Saludos,
+        El equipo de Lifeguard S.L.
+      `,
+      html: `
+        <p>Hola,</p>
+        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+        <p>Para continuar con el proceso, haz clic en el siguiente enlace:</p>
+        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">Restablecer contraseña</a></p>
+        <p>Si no has solicitado este cambio, puedes ignorar este mensaje.</p>
+        <p><strong>Este enlace expirará en 30 minutos.</strong></p>
+        <br>
+        <p>Saludos,</p>
+        <p><strong>El equipo de Lifeguard S.L.</strong></p>
+      `,
+  };
+
+  try {
+    await sgMail.send(msg);
+    console.log('Correo enviado con éxito');
+  } catch (error) {
+    console.error('Error al enviar el correo:', error.response.body);
+  }
+}
+
+
+app.post('/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+
+    // Verifica el token y encuentra al usuario en la base de datos
+    const user = await dataSource.getRepository(EmployeeSchema).findOne({ where: { resetToken: token } });
+
+    if (!user) {
+        return res.status(400).json({ message: 'Token inválido o expirado.' });
+    }
+
+    // Hashea la nueva contraseña y guárdala
+    user.password = hashPassword(password); // Usa bcrypt o similar
+    user.resetToken = null; // Elimina el token usado
+    await dataSource.getRepository(EmployeeSchema).save(user);
+
+    res.json({ message: 'Contraseña actualizada con éxito.' });
+});
+
+app.get('/reset-password', (req, res) => {
+    // Aquí obtenemos el token y lo agregamos a la URL del frontend
+    const token = req.query.token; // Obtener el token directamente desde la query
+    const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
+    res.redirect(resetUrl); // Redirigir a la URL correcta del frontend
+});
 
 
 

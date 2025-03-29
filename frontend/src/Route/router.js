@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import React from "react";
 import Login from "../Pages/Login";
+import ForgotPassword from "../Pages/ForgotPassword";
+import ResetPassword from '../Pages/ResetPassword';
 import Dashboard from "../Pages/Dashboard";
 import ManageEmployees from "../Pages/ManageEmployees";
 import { RequireToken } from "../Components/Auth"; // Importamos la autenticación
@@ -25,6 +27,14 @@ const router = createBrowserRouter([
     path: "/",
     element: <Login />,
   },
+  {
+      path: "/forgot-password", // Aquí agregamos la ruta para "Forgot Password"
+      element: <ForgotPassword />, // Componente que muestra el formulario de recuperación
+    },
+    {
+          path: "/reset-password", // Aquí agregamos la ruta para "Forgot Password"
+          element: <ResetPassword />, // Componente que muestra el formulario de recuperación
+        },
 
   {
     path: "/",
