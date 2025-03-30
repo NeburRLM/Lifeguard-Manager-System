@@ -281,6 +281,7 @@ const EmployeeView = () => {
                           <p><strong>Role:</strong> {employee.role}</p>
                           <p><strong>Phone:</strong> {employee.phone_number}</p>
                           <p><strong>Birthdate:</strong> {employee.birthdate}</p>
+                          <p><strong>Hire date:</strong> {new Date(employee.hire_date).toLocaleDateString("es-ES")}</p>
                         </>
                       )}
                     </div>

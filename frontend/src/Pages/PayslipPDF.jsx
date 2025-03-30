@@ -26,7 +26,7 @@ const PayslipPDF = ({ employee, payroll }) => (
         <Text style={styles.text}>TRABAJADOR: {employee.name}</Text>
         <Text style={styles.text}>DNI: {employee.id}</Text>
         <Text style={styles.text}>CATEGORÍA: {employee.role}</Text>
-        <Text style={styles.text}>FECHA DE ALTA:</Text>
+        <Text style={styles.text}>FECHA DE ALTA: {new Date(employee.hire_date).toLocaleDateString("es-ES")}</Text>
         <Text style={styles.text}>PERÍODO DE LIQUIDACIÓN: {payroll.period}</Text>
       </View>
 

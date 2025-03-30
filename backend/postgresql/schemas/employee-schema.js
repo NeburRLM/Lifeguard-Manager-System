@@ -47,6 +47,10 @@ export const EmployeeSchema = new EntitySchema({
             nullable: true, // Puede ser nula
             unique: true,   // Es única
         },
+        hire_date: {    // Columna para la fecha de contratación
+            type: "timestamp",  // Tipo de datos timestamp
+            default: () => "CURRENT_TIMESTAMP",  // Valor por defecto: fecha y hora actual
+        },
          resetToken: {
             type: "varchar",
             length: 255,
