@@ -12,6 +12,7 @@ const AddFacility = () => {
     longitude: "",
   });
 
+  const [facilities, setFacilites] = useState([]);
   const [error, setError] = useState(""); // Estado para errores
 
   // Manejo de cambios en los inputs
@@ -20,6 +21,24 @@ const AddFacility = () => {
     setFormData({ ...formData, [name]: value });
     setError(""); // Limpiar error al escribir
   };
+
+
+   useEffect(() => {
+       fetch("http://localhost:4000/facilities-types")
+         .then((response) => response.json())
+         .then((data) => {
+           if (Array.isArray(data)) {
+             setFacilites(data); // Actualizar el estado con los roles obtenidos
+           } else {
+             setError("Error al obtener las instalaciones.");
+           }
+         })
+         .catch((error) => {
+           console.error("Error al obtener las instalaciones:", error);
+           setError("Error al obtener las instalaciones.");
+         });
+     }, []);
+
 
   // Validar y enviar formulario
   const handleSubmit = (e) => {
@@ -127,10 +146,24 @@ const AddFacility = () => {
           <input type="text" name="location" value={formData.location} onChange={handleInputChange} required />
         </div>
 
-        <div className="form-group">
-          <label>Facility Type</label>
-          <input type="text" name="facility_type" value={formData.facility_type} onChange={handleInputChange} required />
+      <div className="form-group">
+        <label>Facility Type</label>
+        <div className="content-selectFac">
+          <select
+            name="facility_type" // Cambio aquí: de "role" a "facility_type"
+            value={formData.facility_type}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Seleccionar tipo de instalación...</option>
+            {facilities.map((facility) => (
+              <option key={facility.id} value={facility.type}>
+                {facility.type}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
 
         <div className="form-group">
           <label>Latitude</label>

@@ -10,6 +10,7 @@ import { AttendanceSchema } from './postgresql/schemas/attendance-schema.js';
 import { RoleSalarySchema } from "./postgresql/schemas/roleSalary-schema.js";
 import { IncidentTypesSchema } from "./postgresql/schemas/incidentTypes-schema.js";
 import { RoleTypesSchema } from "./postgresql/schemas/rolesType-schema.js";
+import { FacilityTypesSchema } from "./postgresql/schemas/facilitiesType-schema.js";
 import moment from 'moment-timezone';
 import { Between } from 'typeorm';
 import { In } from 'typeorm';
@@ -589,6 +590,65 @@ app.get('/roles-types', async (req, res) => {
     }
 });
 
+
+
+app.post('/facility-type', async (req, res) => {
+    let facilitiesTypes = Array.isArray(req.body) ? req.body : [req.body]; // Convertir en array si no lo es
+
+    try {
+        const facilityTypeRepository = dataSource.getRepository(FacilityTypesSchema);
+
+        let createdFacilityTypes = [];
+
+        for (let facilityType of facilitiesTypes) {
+            const { type } = facilityType;
+
+            // Validar el tipo de incidente
+            if (!type) {
+                return res.status(400).json({ message: "El campo 'type' es obligatorio." });
+            }
+
+            // Verificar que no exista ya un tipo de incidente con el mismo nombre
+            const existingType = await facilityTypeRepository.findOne({ where: { type } });
+            if (existingType) {
+                return res.status(400).json({ message: `El tipo de instalación '${type}' ya existe.` });
+            }
+
+            // Crear el nuevo tipo de incidente
+            const newFacilityType = facilityTypeRepository.create({
+                type,
+            });
+
+            await facilityTypeRepository.save(newFacilityType);
+            createdFacilityTypes.push(newFacilityType);
+        }
+
+        res.status(201).json(createdFacilityTypes.length === 1 ? createdFacilityTypes[0] : createdFacilityTypes);
+    } catch (error) {
+        console.error("Error al crear el tipo de instalación:", error);
+        res.status(500).json({ message: "Error al crear el tipo de instalación.", error: error.message });
+    }
+});
+
+
+
+app.get('/facilities-types', async (req, res) => {
+    try {
+        const facilityTypeRepository = dataSource.getRepository(FacilityTypesSchema);
+
+        // Obtener todos los tipos de incidentes
+        const facilitiesTypes = await facilityTypeRepository.find();
+
+        if (facilitiesTypes.length === 0) {
+            return res.status(404).json({ message: "No se encontraron tipos de instalaciones." });
+        }
+
+        res.status(200).json(facilitiesTypes);
+    } catch (error) {
+        console.error("Error al obtener los tipos de instalaciones:", error);
+        res.status(500).json({ message: "Error al obtener los tipos de instalaciones.", error: error.message });
+    }
+});
 
 
 // Ruta para crear un nuevo empleado
