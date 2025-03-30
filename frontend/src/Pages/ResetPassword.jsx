@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import './ResetPassword.css';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -7,6 +8,7 @@ const ResetPassword = () => {
   const [message, setMessage] = useState('');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
@@ -29,30 +31,40 @@ const ResetPassword = () => {
 
     const data = await response.json();
     setMessage(data.message);
+
+    if (data.message === 'Contraseña actualizada con éxito.') {
+          setTimeout(() => {
+            navigate('/'); // Redirige a la página de Login
+          }, 2000); // Espera 2 segundos antes de redirigir
+        }
   };
 
   return (
-    <div>
-      <h2>Restablecer contraseña</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder="Nueva contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirmar contraseña"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Cambiar contraseña</button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
+    <div className="centered-containerR">
+        <div className="reset-password-containerR">
+              <h2>Restablecer contraseña</h2>
+              <form onSubmit={handleSubmit} className="reset-password-formR">
+                <input
+                  type="password"
+                  placeholder="Nueva contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Confirmar contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <button type="submit" className="reset-buttonR">
+                  Cambiar contraseña
+                </button>
+              </form>
+              {message && <p className="messageR">{message}</p>}
+            </div>
+      </div>
   );
 };
 

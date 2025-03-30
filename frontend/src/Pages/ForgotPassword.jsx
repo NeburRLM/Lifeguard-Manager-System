@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import './ForgotPassword.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,28 +33,33 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="forgot-password-container">
-      <h2>Forgot Password</h2>
-      {error && <p className="error-message">{error}</p>}
-      {message && <p className="success-message">{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">Email or DNI</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="reset-button">
-          Send Reset Link
-        </button>
-      </form>
-    </div>
-  );
-};
+      <div className="centered-containerF">
+      <div className="forgot-password-containerF">
+        <h2>Forgot Password</h2>
+        {error && <p className="error-messageF">{error}</p>}
+        {message && <p className="success-messageF">{message}</p>}
+        <form onSubmit={handleSubmit} className="forgot-password-formF">
+          <div className="form-groupF">
+            <label htmlFor="email">Enter your email associated with your account</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="reset-buttonF">
+            Send Reset Link
+          </button>
+        </form>
+      </div>
+      <div className="image-containerF">
+        <img src="/LogoSL.png" alt="Descripción de la imagen" />
+      </div>
+      </div>
+    );
+  };
 
 export default ForgotPassword;
