@@ -85,3 +85,49 @@
     opacity: 0;
   }
 }
+
+/* Contenedor del select */
+.content-selectAdd {
+  position: relative;
+  width: 100%;
+  max-width: 300px; /* Ajusta el ancho máximo según tus necesidades */
+  margin: 10px 0;
+}
+
+/* Estilos básicos del select */
+.content-selectAdd select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  appearance: none; /* Elimina la apariencia predeterminada del select */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+}
+
+/* Estilos del contenedor para agregar una flecha personalizada */
+.content-selectAdd::after {
+  content: "\25BE"; /* Símbolo de flecha hacia abajo */
+  font-size: 16px;
+  color: #333;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Estilo del select cuando está enfocado */
+.content-selectAdd select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Estilo del select cuando está deshabilitado */
+.content-selectAdd select:disabled {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
+}

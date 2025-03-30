@@ -13,6 +13,7 @@ const AddEmployee = () => {
     phone_number: "",
   });
 
+  const [roles, setRoles] = useState([]);
   const [error, setError] = useState(""); // Estado para manejar los errores
 
   const handleInputChange = (e) => {
@@ -20,6 +21,23 @@ const AddEmployee = () => {
     setFormData({ ...formData, [name]: value });
     setError(""); // Limpiar el error cuando el usuario cambia algún campo
   };
+
+ useEffect(() => {
+     fetch("http://localhost:4000/roles-types")
+       .then((response) => response.json())
+       .then((data) => {
+         if (Array.isArray(data)) {
+           setRoles(data); // Actualizar el estado con los roles obtenidos
+         } else {
+           setError("Error al obtener los roles.");
+         }
+       })
+       .catch((error) => {
+         console.error("Error al obtener los roles:", error);
+         setError("Error al obtener los roles.");
+       });
+   }, []);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -129,13 +147,17 @@ const AddEmployee = () => {
         </div>
         <div className="form-group">
           <label>Role</label>
-          <input
-            type="text"
-            name="role"
-            value={formData.role}
-            onChange={handleInputChange}
-            required
-          />
+          <div className="content-selectAdd">
+            <select name="role" value={formData.role} onChange={handleInputChange} required>
+              <option value="">Seleccionar rol...</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.type}>
+                  {role.type}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {error && error.includes("Todos los campos") && (
             <div className="error-message">{error}</div>
           )}
