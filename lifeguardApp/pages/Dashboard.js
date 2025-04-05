@@ -1,85 +1,116 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import { ScrollView, ImageBackground } from "react-native";
+import ForecastSearch from "../components/ForecastSearch";
+import CurrentForecast from "../components/CurrentForecast";
+import DailyForecast from "../components/DailyForecast";
+import styled from "styled-components/native";
+import bgImg from "../assets/4.png";
 
 const Dashboard = () => {
-  const [userName, setUserName] = useState('');
-  const [weather, setWeather] = useState('');
-  const [weatherIcon, setWeatherIcon] = useState('');
+  const [toggleSearch, setToggleSearch] = useState("city");
+  const [city, setCity] = useState("Toronto");
+  const [postalCode, setPostalCode] = useState("L4W1S9");
+  const [lat, setLat] = useState(43.6532);
+  const [long, setLong] = useState(-79.3832);
+  const [weather, setWeather] = useState({});
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userId = await AsyncStorage.getItem('userId');
-      if (userId) {
-        try {
-          const res = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
-          const data = await res.json();
-          setUserName(data.name);
-        } catch (err) {
-          console.error('Error fetching user:', err);
+  const controller = new AbortController();
+  const signal = controller.signal;
+
+
+  //fetch lat long by city
+  const fetchLatLongHandler = () => {
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=Cambrils&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es'`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setLat(data.coord.lat);
+        setLong(data.coord.lon);
+        console.log("Weather Data:", data);
+      });
+  };
+
+  //fetch lat long by postal code/zip since OpenWeather Api only accepts zips
+  const fetchByPostalHandler = () => {
+    fetch(
+      `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=ca&format=json`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.length > 0) {
+          setLat(parseFloat(data[0].lat));
+          setLong(parseFloat(data[0].lon));
+        } else {
+          console.log("Postal code not found");
         }
-      }
-    };
+      })
+      .catch((err) => console.log("Error fetching postal code", err));
 
-    const fetchWeather = async () => {
-      try {
-        const res = await fetch('https://api.weatherapi.com/v1/forecast.json?key=c4fb3b4a1ecb46f19b9233301250404&q=43850&days=1');
-        const data = await res.json();
-        setWeather(data.forecast.forecastday[0].day.condition.text);
-        setWeatherIcon(data.forecast.forecastday[0].day.condition.icon);
-      } catch (err) {
-        console.error('Error fetching weather:', err);
-      }
-    };
+  };
 
-    // Fetch user and weather on component mount
-    fetchUser();
-    fetchWeather();
-
-    // Set interval to update weather at 10 PM every day
-    const now = new Date();
-    let millisTill10PM = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0, 0) - now;
-    if (millisTill10PM < 0) {
-      millisTill10PM += 86400000; // it's after 10 PM, set for 10 PM tomorrow.
-    }
-    const timeoutId = setTimeout(() => {
-      fetchWeather();
-      setInterval(fetchWeather, 86400000); // 24 hours in milliseconds
-    }, millisTill10PM);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
+  //updates the weather when lat long changes
+  useEffect(() => {
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=Cambrils&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es'`,
+      { signal }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setWeather(data);
+      })
+      .catch((err) => {
+        console.log("error", err);
+      });
+    return () => controller.abort();
+  }, [lat, long]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.greeting}>Hello, {userName}</Text>
-      <Text style={styles.weather}>Weather: {weather}</Text>
-      {weatherIcon ? <Image source={{ uri: `https:${weatherIcon}` }} style={styles.weatherIcon} /> : null}
-    </View>
+    <Container>
+      <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
+        <ForecastSearch
+          city={city}
+          setCity={setCity}
+          fetchLatLongHandler={fetchLatLongHandler}
+          toggleSearch={toggleSearch}
+          setToggleSearch={setToggleSearch}
+          fetchByPostalHandler={fetchByPostalHandler}
+          setPostalCode={setPostalCode}
+          postalCode={postalCode}
+        />
+        <CurrentForecast currentWeather={weather} timezone={weather.timezone} />
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
+          <FutureForecastContainer>
+            {weather.daily ? (
+              weather.daily.map((day, index) => {
+                if (index !== 0) {
+                  return <DailyForecast key={day.dt} day={day} index={index} />;
+                }
+              })
+            ) : (
+              <NoWeather>No Weather to show</NoWeather>
+            )}
+          </FutureForecastContainer>
+        </ScrollView>
+      </ImageBackground>
+    </Container>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  weather: {
-    fontSize: 18,
-    color: '#666',
-  },
-  weatherIcon: {
-    width: 50,
-    height: 50,
-    marginTop: 10,
-  },
-});
+const Container = styled.View`
+  flex: 1;
+  background-color: dodgerblue;
+`;
+
+const NoWeather = styled.Text`
+  text-align: center;
+  color: white;
+`;
+
+const FutureForecastContainer = styled.View`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
 export default Dashboard;
