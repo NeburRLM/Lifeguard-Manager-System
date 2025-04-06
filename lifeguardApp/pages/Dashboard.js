@@ -1,97 +1,96 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, ImageBackground } from "react-native";
-import ForecastSearch from "../components/ForecastSearch";
+import { ImageBackground, Text, View, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import CurrentForecast from "../components/CurrentForecast";
-import DailyForecast from "../components/DailyForecast";
 import styled from "styled-components/native";
 import bgImg from "../assets/4.png";
+import { useNavigation } from "@react-navigation/native"; // 👈 para navegar
 
 const Dashboard = () => {
-  const [toggleSearch, setToggleSearch] = useState("city");
-  const [city, setCity] = useState("Toronto");
-  const [postalCode, setPostalCode] = useState("L4W1S9");
-  const [lat, setLat] = useState(43.6532);
-  const [long, setLong] = useState(-79.3832);
   const [weather, setWeather] = useState({});
+  const [lat, setLat] = useState(null);
+  const [long, setLong] = useState(null);
+  const [employeeName, setEmployeeName] = useState("");
+  const [locationName, setLocationName] = useState("");
+  const [hasScheduleToday, setHasScheduleToday] = useState(true);
 
-  const controller = new AbortController();
-  const signal = controller.signal;
+  const navigation = useNavigation(); // 👈 hook para navegación
 
-
-  //fetch lat long by city
-  const fetchLatLongHandler = () => {
-    fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=Cambrils&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es'`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setLat(data.coord.lat);
-        setLong(data.coord.lon);
-        console.log("Weather Data:", data);
-      });
-  };
-
-  //fetch lat long by postal code/zip since OpenWeather Api only accepts zips
-  const fetchByPostalHandler = () => {
-    fetch(
-      `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=ca&format=json`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.length > 0) {
-          setLat(parseFloat(data[0].lat));
-          setLong(parseFloat(data[0].lon));
-        } else {
-          console.log("Postal code not found");
-        }
-      })
-      .catch((err) => console.log("Error fetching postal code", err));
-
-  };
-
-  //updates the weather when lat long changes
   useEffect(() => {
-    fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=Cambrils&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es'`,
-      { signal }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setWeather(data);
-      })
-      .catch((err) => {
-        console.log("error", err);
-      });
-    return () => controller.abort();
+    const fetchUser = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        try {
+          const res = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const employee = await res.json();
+          setEmployeeName(employee.name);
+
+          const today = new Date().toISOString().split("T")[0];
+          const allSchedules = employee.work_schedule.flatMap(ws => ws.schedules);
+          const todaySchedule = allSchedules.find(sch => sch.date === today);
+
+          if (todaySchedule && todaySchedule.facility) {
+            setLat(todaySchedule.facility.latitude);
+            setLong(todaySchedule.facility.longitude);
+            setLocationName(todaySchedule.facility.name);
+          } else {
+            setHasScheduleToday(false);
+          }
+        } catch (err) {
+          console.error("Error fetching employee data:", err);
+        }
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (lat && long) {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es`,
+        { signal }
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setWeather({ ...data, name: locationName });
+        })
+        .catch((err) => console.log("Error fetching weather", err));
+
+      return () => controller.abort();
+    }
   }, [lat, long]);
 
   return (
     <Container>
       <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
-        <ForecastSearch
-          city={city}
-          setCity={setCity}
-          fetchLatLongHandler={fetchLatLongHandler}
-          toggleSearch={toggleSearch}
-          setToggleSearch={setToggleSearch}
-          fetchByPostalHandler={fetchByPostalHandler}
-          setPostalCode={setPostalCode}
-          postalCode={postalCode}
-        />
-        <CurrentForecast currentWeather={weather} timezone={weather.timezone} />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
-          <FutureForecastContainer>
-            {weather.daily ? (
-              weather.daily.map((day, index) => {
-                if (index !== 0) {
-                  return <DailyForecast key={day.dt} day={day} index={index} />;
-                }
-              })
-            ) : (
-              <NoWeather>No Weather to show</NoWeather>
-            )}
-          </FutureForecastContainer>
-        </ScrollView>
+        <Greeting>Hola, {employeeName}</Greeting>
+
+        {!hasScheduleToday ? (
+          <FreeDayMessage>🏖️ Hoy es tu día de fiesta, ¡disfrútalo al máximo! 🎉</FreeDayMessage>
+        ) : weather.main ? (
+          <CurrentForecast currentWeather={weather} timezone={weather.timezone} />
+        ) : (
+          <NoWeather>No hay datos del clima disponibles</NoWeather>
+        )}
+
+        {hasScheduleToday && (  // Aquí agregamos la condición
+            <>
+              <MessageButtons>Directo a</MessageButtons>
+              <ButtonsContainer>
+                <ActionButton onPress={() => navigation.navigate("Fichar")}>
+                  <ButtonText>📍 Fichar</ButtonText>
+                </ActionButton>
+
+                <ActionButton onPress={() => navigation.navigate("Incidencia")}>
+                  <ButtonText>📝 Incidencia</ButtonText>
+                </ActionButton>
+              </ButtonsContainer>
+            </>
+        )}
       </ImageBackground>
     </Container>
   );
@@ -102,15 +101,52 @@ const Container = styled.View`
   background-color: dodgerblue;
 `;
 
+const Greeting = styled.Text`
+  font-size: 24px;
+  color: white;
+  margin: 40px 20px 20px 20px;
+  font-weight: bold;
+`;
+
+const MessageButtons = styled.Text`
+  font-size: 20px;
+  color: white;
+  margin: 40px 20px 1px 20px;
+  font-weight: bold;
+`;
+
+
 const NoWeather = styled.Text`
   text-align: center;
   color: white;
+  margin-top: 50px;
 `;
 
-const FutureForecastContainer = styled.View`
-  display: flex;
+const FreeDayMessage = styled.Text`
+  text-align: center;
+  color: white;
+  font-size: 20px;
+  margin-top: 50px;
+  padding: 20px;
+`;
+
+const ButtonsContainer = styled.View`
+  margin-top: 30px;
+  padding: 0 20px;
+  gap: 15px;
+`;
+
+const ActionButton = styled(TouchableOpacity)`
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 15px;
+  border-radius: 15px;
   align-items: center;
-  justify-content: center;
+`;
+
+const ButtonText = styled.Text`
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
 `;
 
 export default Dashboard;
