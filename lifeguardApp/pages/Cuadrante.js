@@ -96,7 +96,7 @@ const Cuadrante = () => {
         </ScheduleItem>
       ));
     } else {
-      return <NoScheduleText>FIESTA</NoScheduleText>;
+      return <NoScheduleText>¡Hoy es día libre!</NoScheduleText>;
     }
   };
 
@@ -104,25 +104,19 @@ const Cuadrante = () => {
     <Container>
       <Header>
         <Greeting>Calendario de trabajo</Greeting>
-        <Text>{employeeName}</Text>
+        <EmployeeName>{employeeName}</EmployeeName>
       </Header>
 
       <Calendar
         onDayPress={handleDayPress}
         monthFormat={'MMMM yyyy'}
         markedDates={Object.keys(formattedSchedule).reduce((acc, date) => {
-          acc[date] = { marked: true, selectedColor: 'blue', selectedTextColor: 'white' };
+          acc[date] = { marked: true, selectedColor: '#4B89DC', selectedTextColor: 'white' };
           return acc;
         }, {})}
-        style={{
-          borderWidth: 1,
-          borderColor: 'gray',
-          height: 350,
-          marginBottom: 20,
-        }}
-        // Aquí hacemos que el día actual esté seleccionado al cargar
+        style={calendarStyle}
         current={selectedDate}
-        selectedDayColor={'blue'}
+        selectedDayColor={'#4B89DC'}
         selectedDayTextColor={'white'}
         firstDay={1} // Inicia la semana el lunes
       />
@@ -138,20 +132,29 @@ const Cuadrante = () => {
 // Estilos con styled-components
 const Container = styled.View`
   flex: 1;
-  background-color: #f4f4f4;
+  background-color: #f0f4f8;
   padding: 20px;
 `;
 
 const Header = styled.View`
   margin-bottom: 20px;
   align-items: center;
+  padding-bottom: 20px;
+  border-bottom-width: 1px;
+  border-bottom-color: #dcdcdc;
 `;
 
 const Greeting = styled.Text`
-  font-size: 24px;
+  font-size: 26px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+`;
+
+const EmployeeName = styled.Text`
+  font-size: 18px;
+  font-weight: 500;
+  color: #555;
 `;
 
 const ScheduleContainer = styled.View`
@@ -159,21 +162,39 @@ const ScheduleContainer = styled.View`
 `;
 
 const ScheduleItem = styled.View`
-  background-color: #e7f7ff;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  background-color: #e0f7fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  shadow-color: #000;
+  shadow-opacity: 0.1;
+  shadow-radius: 5px;
+  elevation: 3;
 `;
 
 const ScheduleText = styled.Text`
   font-size: 16px;
   color: #333;
+  margin-bottom: 5px;
 `;
 
 const NoScheduleText = styled.Text`
   font-size: 16px;
-  color: red;
+  color: #ff6347;
+  font-weight: bold;
   text-align: left;
 `;
+
+const calendarStyle = {
+  borderWidth: 1,
+  borderColor: '#dcdcdc',
+  height: 350,
+  borderRadius: 10,
+  shadowColor: '#000',
+  shadowOpacity: 0.2,
+  shadowRadius: 5,
+  elevation: 3,
+};
 
 export default Cuadrante;
