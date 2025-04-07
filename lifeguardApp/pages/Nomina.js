@@ -4,9 +4,14 @@ import {
   TextInput, StyleSheet, Modal, ScrollView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { printToFileAsync } from 'expo-print';
+import { shareAsync } from 'expo-sharing';
+import moment from "moment";
+import "moment/locale/es";
 
 const Nomina = () => {
   const [employeeName, setEmployeeName] = useState('');
+  const [employeeData, setEmployeeData] = useState(null);
   const [payrolls, setPayrolls] = useState([]);
   const [filteredPayrolls, setFilteredPayrolls] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -26,6 +31,7 @@ const Nomina = () => {
           const response = await fetch(`http://10.0.2.2:4000/employee/${userId}`);
           const employeeData = await response.json();
           setEmployeeName(employeeData.name);
+          setEmployeeData(employeeData);
 
           const payrollResponse = await fetch(`http://10.0.2.2:4000/payroll/${userId}`);
           const payrollData = await payrollResponse.json();
@@ -53,9 +59,113 @@ const Nomina = () => {
     setFilteredPayrolls(filtered);
   };
 
-  const openPayrollPdf = (payroll) => {
-    // Lógica para abrir PDF aquí
-    console.log("Abrir nómina PDF de:", payroll);
+  const openPayrollPdf = async (payroll) => {
+    try {
+      const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+      const monthName = capitalize(moment().month(payroll.month - 1).format("MMMM"));
+
+      const earnings = JSON.parse(payroll.earnings);
+      const deductions = JSON.parse(payroll.deductions);
+
+      const totalEarnings = earnings.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+      const totalDeductions = deductions.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+      const netTotal = totalEarnings - totalDeductions;
+
+      const hireDateFormatted = new Date(employeeData.hire_date).toLocaleDateString("es-ES");
+
+      const html = `
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial;
+                padding: 65px 20px 20px 20px;
+                font-size: 12px;
+              }
+              h1 {
+                text-align: center;
+                font-size: 18px;
+              }
+              p {
+                margin: 2px 0;
+                line-height: 1.3;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+              }
+              th, td {
+                border: 1px solid #000;
+                padding: 6px;
+                text-align: center;
+              }
+              th {
+                background-color: #f0f0f0;
+              }
+              .section-title {
+                margin-top: 20px;
+                font-weight: bold;
+                font-size: 14px;
+              }
+              .label-strong {
+                font-weight: bold;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>NÓMINA - ${payroll.month}/${payroll.year}</h1>
+            <p><strong>EMPRESA:</strong> LIFEGUARD COMPANY, S.L.</p>
+            <p><strong>CIF:</strong> B00000000</p>
+            <p><strong>DIRECCIÓN:</strong> CL SOCO, 0 - 43850 CAMBRILS</p>
+            <p><strong>TRABAJADOR:</strong> ${employeeData.name}</p>
+            <p><strong>DNI:</strong> ${payroll.employee_id}</p>
+            <p><strong>CATEGORIA:</strong> ${employeeData.role}</p>
+            <p><strong>FECHA DE ALTA:</strong> ${hireDateFormatted}</p>
+            <p><strong>PERÍODO DE LIQUIDACIÓN:</strong> DEL 01 AL 31 ${monthName} ${payroll.year}</p>
+
+            <div class="section-title">Conceptos Devengados</div>
+            <table>
+              <tr><th>Concepto</th><th>Importe (€)</th></tr>
+              ${earnings.map(e => `
+                <tr>
+                  <td>${e.name}</td>
+                  <td>${e.amount}</td>
+                </tr>
+              `).join('')}
+            </table>
+
+            <div class="section-title">Deducciones</div>
+            <table>
+              <tr><th>Concepto</th><th>Porcentaje</th><th>Importe (€)</th></tr>
+              ${deductions.map(d => `
+                <tr>
+                  <td>${d.name}</td>
+                  <td>${d.percentage}</td>
+                  <td>${d.amount}</td>
+                </tr>
+              `).join('')}
+            </table>
+
+            <div class="section-title">Totales</div>
+            <table>
+              <tr><td class="label-strong">Total Horas</td><td>${payroll.total_hours}</td></tr>
+              <tr><td class="label-strong">Total Devengado</td><td>${totalEarnings.toFixed(2)} €</td></tr>
+              <tr><td class="label-strong">Total Deducciones</td><td>${totalDeductions.toFixed(2)} €</td></tr>
+              <tr><td class="label-strong">Total Neto</td><td>${netTotal.toFixed(2)} €</td></tr>
+            </table>
+            <p style="margin-top: 10px;">Abonado en cuenta: ES00-0000-0000**************</p>
+          </body>
+        </html>
+      `;
+
+
+      const file = await printToFileAsync({ html, base64: false });
+      await shareAsync(file.uri);
+    } catch (error) {
+      console.error("Error generando PDF:", error);
+    }
   };
 
   return (
