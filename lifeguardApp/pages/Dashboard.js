@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [employeeName, setEmployeeName] = useState("");
   const [locationName, setLocationName] = useState("");
   const [hasScheduleToday, setHasScheduleToday] = useState(true);
+  const [currentDate, setCurrentDate] = useState('');
 
   const navigation = useNavigation(); // 👈 hook para navegación
 
@@ -28,7 +29,10 @@ const Dashboard = () => {
           const today = new Date().toISOString().split("T")[0];
           const allSchedules = employee.work_schedule.flatMap(ws => ws.schedules);
           const todaySchedule = allSchedules.find(sch => sch.date === today);
-
+          const todayD = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = todayD.toLocaleDateString('es-ES', options);
+            setCurrentDate(formattedDate);
           if (todaySchedule && todaySchedule.facility) {
             setLat(todaySchedule.facility.latitude);
             setLong(todaySchedule.facility.longitude);
@@ -69,6 +73,8 @@ const Dashboard = () => {
       <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
         <Greeting>Hola, {employeeName}</Greeting>
 
+        <CurrentDate>{currentDate}</CurrentDate>
+
         {!hasScheduleToday ? (
           <FreeDayMessage>🏖️ Hoy es tu día de fiesta, ¡disfrútalo al máximo! 🎉</FreeDayMessage>
         ) : weather.main ? (
@@ -104,7 +110,7 @@ const Container = styled.View`
 const Greeting = styled.Text`
   font-size: 24px;
   color: white;
-  margin: 40px 20px 20px 20px;
+  margin: 40px 20px 10px 20px;
   font-weight: bold;
 `;
 
@@ -147,6 +153,14 @@ const ButtonText = styled.Text`
   color: white;
   font-size: 18px;
   font-weight: bold;
+`;
+
+const CurrentDate = styled.Text`
+  font-size: 14px;
+  color: white;
+  margin: 0px 20px 20px;
+  text-align: left;
+
 `;
 
 export default Dashboard;

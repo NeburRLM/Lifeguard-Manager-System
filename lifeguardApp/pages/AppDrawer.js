@@ -29,7 +29,7 @@ export default function AppDrawer() {
     >
       <Drawer.Screen name="Inicio" component={DashboardScreen} />
       <Drawer.Screen name="Cuadrante" component={CuadranteScreen} />
-      <Drawer.Screen name="Fichar" component={IncidenciaScreen} />
+      <Drawer.Screen name="Fichar" component={FicharScreen} />
       <Drawer.Screen name="Incidencia" component={IncidenciaScreen} />
       <Drawer.Screen name="Nómina" component={NominaScreen} />
     </Drawer.Navigator>
