@@ -9,6 +9,9 @@ const Fichar = () => {
   const [workSchedule, setWorkSchedule] = useState({});
   const [todaySchedule, setTodaySchedule] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [countdown, setCountdown] = useState('');
+  const [canFichar, setCanFichar] = useState(false);
+
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -74,9 +77,58 @@ const Fichar = () => {
     fetchUserData();
   }, []);
 
+useEffect(() => {
+  let timer;
+
+  if (todaySchedule?.start_time) {
+    const updateCountdown = () => {
+      const now = new Date();
+      const [hours, minutes] = todaySchedule.start_time.split(':').map(Number);
+
+      const target = new Date();
+      target.setHours(hours);
+      target.setMinutes(minutes);
+      target.setSeconds(0);
+
+      const diff = target - now;
+
+      if (diff > 0) {
+        const remainingHours = Math.floor(diff / (1000 * 60 * 60));
+        const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const remainingSeconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        setCountdown(
+          `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+        );
+
+        // ✅ Permitir fichar si faltan 10 minutos o menos
+        setCanFichar(diff <= 10 * 60 * 1000); // 10 minutos
+      } else {
+        setCountdown('¡Es hora de fichar!');
+        setCanFichar(true); // Tiempo pasado, también puede fichar
+        clearInterval(timer);
+      }
+    };
+
+    updateCountdown();
+    timer = setInterval(updateCountdown, 1000);
+  }
+
+  return () => clearInterval(timer);
+}, [todaySchedule]);
+
+
+
   const handleFichar = () => {
-    console.log("Fichaje registrado");
+    if (!canFichar) {
+      console.warn("Aún no puedes fichar.");
+      return;
+    }
+
+    console.log("Fichaje registrado correctamente");
+    // Aquí puedes hacer el POST al backend también
   };
+
 
   return (
     <View style={styles.container}>
@@ -119,9 +171,28 @@ const Fichar = () => {
       </View>
 
 
-      <TouchableOpacity style={styles.ficharButton} onPress={handleFichar}>
+      <TouchableOpacity
+        style={[
+          styles.ficharButton,
+          { backgroundColor: canFichar ? '#007AFF' : '#ccc' }
+        ]}
+        onPress={handleFichar}
+        disabled={!canFichar}
+      >
         <Text style={styles.ficharText}>📍 Fichar ahora</Text>
       </TouchableOpacity>
+
+
+      {countdown && (
+        <View style={styles.row}>
+          <Icon name="hourglass-outline" size={20} color="#FF9500" style={styles.icon} />
+          <Text style={[styles.scheduleText, { color: '#FF9500' }]}>
+            Tiempo restante: <Text style={styles.bold}>{countdown}</Text>
+          </Text>
+        </View>
+      )}
+
+
     </View>
   );
 };
