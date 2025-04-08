@@ -1797,10 +1797,11 @@ app.get('/incidents/date-range', async (req, res) => {
 
 
 app.post('/attendance', async (req, res) => {
-    const { employeeId, check_in, check_out, date, facilityId } = req.body;
+    console.log("POST /attendance -> Body recibido:", req.body);
+    const { employeeId, check_in, date, facilityId, note } = req.body;
 
     // Comprobar si falta algún dato importante
-    if (!employeeId || !check_in || !check_out || !date || !facilityId) {
+    if (!employeeId || !check_in || !date || !facilityId) {
         return res.status(400).json({ error: "Se requiere el ID del empleado, hora de entrada, hora de salida, fecha y el ID de la instalación." });
     }
 
@@ -1826,9 +1827,10 @@ app.post('/attendance', async (req, res) => {
         const newAttendance = attendanceRepository.create({
             employee,
             check_in,
-            check_out,
+            check_out: null,
             date,
-            facility // Asegúrate de asociar la instalación (facility)
+            facility, // Asegúrate de asociar la instalación (facility)
+            note
         });
 
         // Guardar la nueva asistencia en la base de datos
@@ -1841,6 +1843,53 @@ app.post('/attendance', async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor al crear la asistencia." });
     }
 });
+
+
+app.put('/attendance/checkout', async (req, res) => {
+    console.log("PUT /attendance/checkout -> Body recibido:", req.body);
+    const { employeeId, date, check_out } = req.body;
+
+    // Validación básica
+    if (!employeeId || !date || !check_out) {
+        return res.status(400).json({ error: "Faltan datos requeridos: employeeId, date o check_out." });
+    }
+
+    try {
+        const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+
+        // Buscar la asistencia del día con check_out aún en null
+        const attendance = await attendanceRepository.findOne({
+            where: {
+                employee: { id: employeeId },
+                date: date,
+                check_out: null
+            },
+            relations: ['employee'] // importante para que el repositorio reconozca la relación
+        });
+
+        if (!attendance) {
+            return res.status(404).json({ error: "No se encontró una asistencia pendiente de check-out para este empleado y fecha." });
+        }
+
+        attendance.check_out = check_out;
+
+        await attendanceRepository.save(attendance);
+
+        res.status(200).json({ message: "Check-out registrado con éxito.", attendance });
+    } catch (error) {
+        console.error("Error al registrar el check-out:", error);
+        res.status(500).json({ error: "Error interno del servidor al registrar el check-out." });
+    }
+});
+
+
+
+
+
+
+
+
+
 
 
 const getLastDayOfMonth = (year, month) => {
@@ -2091,11 +2140,29 @@ app.get('/attendance/:id', async (req, res) => {
         const formattedAttendances = attendances.map((attendance) => {
             const attendanceDate = new Date(attendance.date);
             const checkInTime = attendance.check_in; // '8:00:00'
-            const checkOutTime = attendance.check_out; // '16:00:00'
+            let checkOutTime = attendance.check_out; // Puede ser null o vacío
 
-            // Extraemos las horas, minutos y segundos de check_in y check_out
-            const [checkInHour, checkInMinute] = checkInTime.split(':');
-            const [checkOutHour, checkOutMinute] = checkOutTime.split(':');
+            // Si check_in es válido, separamos en horas y minutos
+            const [checkInHour, checkInMinute] = checkInTime ? checkInTime.split(':') : [null, null];
+
+            // Si check_out es válido, separamos en horas y minutos, si no, asignamos valores por defecto
+            let [checkOutHour, checkOutMinute] = checkOutTime ? checkOutTime.split(':') : [null, null];
+
+            // Si check_in no es válido, retornamos un error
+            if (!checkInHour || !checkInMinute) {
+                return res.status(400).json({
+                    status: "error",
+                    message: `Check-in no válido en la asistencia de ${attendance.date}.`
+                });
+            }
+
+            // Para check_out, si no existe, podemos manejarlo de manera flexible:
+            if (!checkOutHour || !checkOutMinute) {
+                // Aquí puedes asignar un valor predeterminado o dejarlo como nulo
+                // Por ejemplo, podríamos dejarlo como "00:00:00" si no se hizo check-out
+                checkOutHour = '00';
+                checkOutMinute = '00';
+            }
 
             // Crear una nueva fecha combinando la fecha y la hora de check_in y check_out
             const checkInDateTime = new Date(attendanceDate);
@@ -2124,6 +2191,7 @@ app.get('/attendance/:id', async (req, res) => {
                 date: attendanceDate.toISOString().split('T')[0] // Solo la fecha (YYYY-MM-DD)
             };
         });
+
 
         // Responder con los datos encontrados
         res.status(200).json({
