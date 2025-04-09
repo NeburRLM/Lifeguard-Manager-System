@@ -20,6 +20,8 @@ const FacilityView = () => {
   const [coordinates, setCoordinates] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editedFacility, setEditedFacility] = useState({});
+  const [facilitiesTypes, setFacilitiesTypes] = useState([]);
+  const [fetchError, setFetchError] = useState(null);
 
 
 
@@ -41,6 +43,23 @@ const FacilityView = () => {
 
     fetchFacility();
   }, [id]);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/facilities-types")
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFacilitiesTypes(data);
+        } else {
+          setFetchError("Error al obtener los tipos de instalación.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener los tipos de instalación:", error);
+        setFetchError("Error al obtener los tipos de instalación.");
+      });
+  }, []);
+
 
   const handleEditClick = () => {
     setEditing(true);
@@ -124,7 +143,21 @@ const FacilityView = () => {
                   <input name="location" value={editedFacility.location} onChange={handleChange} />
 
                   <label>Tipo:</label>
-                  <input name="facility_type" value={editedFacility.facility_type} onChange={handleChange} />
+                  <select
+                    name="facility_type"
+                    value={editedFacility.facility_type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Seleccionar tipo de instalación...</option>
+                    {facilitiesTypes.map((facility) => (
+                      <option key={facility.id} value={facility.type}>
+                        {facility.type}
+                      </option>
+                    ))}
+                  </select>
+                  {fetchError && <p className="error">{fetchError}</p>}
+
 
                   <label>Latitud:</label>
                   <input name="latitude" value={editedFacility.latitude} onChange={handleChange} />

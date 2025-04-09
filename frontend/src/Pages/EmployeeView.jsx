@@ -6,6 +6,7 @@ import "./EmployeeView.css";
 const EmployeeView = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -47,6 +48,24 @@ const EmployeeView = () => {
       })
       .catch((error) => console.log("Error fetching employee data:", error));
   }, [id]);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/roles-types")
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setRoles(data);
+        } else {
+          setError("Error al obtener los roles.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener los roles:", error);
+        setError("Error al obtener los roles.");
+      });
+  }, []);
+
+
 
   const fetchData = () => {
     const userId = sessionStorage.getItem("userId");
@@ -261,8 +280,18 @@ const EmployeeView = () => {
                           </div>
                           <div className="input-group">
                             <label htmlFor="role">Rol</label>
-                            <input type="text" name="role" value={formData.role} onChange={handleInputChange} />
+                            <div className="content-selectRole">
+                              <select name="role" value={formData.role} onChange={handleInputChange} required>
+                                <option value="">Seleccionar rol...</option>
+                                {roles.map((role) => (
+                                  <option key={role.id} value={role.type}>
+                                    {role.type}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
+
                           <div className="input-group">
                             <label htmlFor="birthdate">Fecha de Nacimiento</label>
                             <input type="text" name="birthdate" value={formData.birthdate} onChange={handleInputChange} />
