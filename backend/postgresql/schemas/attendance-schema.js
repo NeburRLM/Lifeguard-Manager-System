@@ -15,7 +15,7 @@ export const AttendanceSchema = new EntitySchema({
         },
         check_in: {     // Columna para la hora de entrada
             type: "time",   // Tipo de datos hora
-            nullable: false // No puede ser nula
+            nullable: true // Puede ser nulo
         },
         check_out: {    // Columna para la hora de salida
             type: "time",   // Tipo de datos hora
@@ -31,7 +31,26 @@ export const AttendanceSchema = new EntitySchema({
         },
         note: {  // Columna que hace referencia a la nota que puede dejar el trabajador en referencia a su horario de entrada/salida
             type: "text"
-        }
+        },
+                status: {
+                    type: "varchar",
+                    nullable: false,
+                    default: "present" // puede ser: 'present', 'absent', 'missing'
+                },
+                absence_reason: {
+                    type: "varchar",
+                    nullable: true // Ej: 'sick', 'personal', 'family emergency'
+                },
+                justified: {
+                    type: "boolean",
+                    nullable: true // Si sube justificante o admin valida
+                },
+                        justification_url: {
+                            type: "text",
+                            nullable: true // Link al archivo subido a S3 o servidor
+                        }
+
+
     },
     relations: {    // Definición de las relaciones de la entidad
         employee: {     // Relación con la entidad Employee

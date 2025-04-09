@@ -12,6 +12,11 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system'; // Opcional para obtener base64 si lo necesitas
+import * as DocumentPicker from 'expo-document-picker';
+
+
 
 const haversineDistance = (coords1, coords2) => {
   const toRad = (x) => (x * Math.PI) / 180;
@@ -39,7 +44,13 @@ const Fichar = () => {
   const [note, setNote] = useState('');
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [hasCheckedOut, setHasCheckedOut] = useState(false);
-
+  const [absenceModalVisible, setAbsenceModalVisible] = useState(false);
+  const [absenceNote, setAbsenceNote] = useState('');
+  const [buttonsVisible, setButtonsVisible] = useState(true);
+  const [canNotificarAusencia, setCanNotificarAusencia] = useState(false); // Control para notificar ausencia
+  const [absenceNotified, setAbsenceNotified] = useState(false);
+  const [absenceSubmitted, setAbsenceSubmitted] = useState(false);
+  const [justificationImage, setJustificationImage] = useState(null);
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -48,6 +59,14 @@ const Fichar = () => {
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
+
+  const getCurrentDateFormat = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${day}-${month}-${year}`;
+    };
 
   const normalizeString = (str) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -95,53 +114,55 @@ const Fichar = () => {
   useEffect(() => {
     let timer;
 
-    if (todaySchedule?.start_time && !hasCheckedIn) {
-      const updateCountdown = () => {
-        const now = new Date();
-        const [hours, minutes] = todaySchedule.start_time.split(':').map(Number);
-        const target = new Date();
-        target.setHours(hours);
-        target.setMinutes(minutes);
-        target.setSeconds(0);
+    if (todaySchedule?.start_time && !hasCheckedIn && !absenceSubmitted) {
+          const updateCountdown = () => {
+            const now = new Date();
+            const [hours, minutes] = todaySchedule.start_time.split(':').map(Number);
+            const target = new Date();
+            target.setHours(hours);
+            target.setMinutes(minutes);
+            target.setSeconds(0);
 
-        const diff = now - target;
+            const diff = now - target;
 
-        if (diff < 0) {
-          // Faltan X minutos para fichar
-          const remaining = Math.abs(diff);
-          const remainingHours = Math.floor(remaining / (1000 * 60 * 60));
-          const remainingMinutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-          const remainingSeconds = Math.floor((remaining % (1000 * 60)) / 1000);
+            if (diff < 0) {
+              // Faltan X minutos para fichar
+              const remaining = Math.abs(diff);
+              const remainingHours = Math.floor(remaining / (1000 * 60 * 60));
+              const remainingMinutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+              const remainingSeconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
-          setCountdown({
-            text: `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`,
-            color: '#FF9500', // naranja
-            label: 'Tiempo restante para fichar',
-          });
+              setCountdown({
+                text: `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`,
+                color: '#FF9500', // naranja
+                label: 'Tiempo restante para fichar',
+              });
 
-          setCanFichar(remaining <= 10 * 60 * 1000);
-        } else {
-          // Ya pasó la hora de fichar
-          const lateHours = Math.floor(diff / (1000 * 60 * 60));
-          const lateMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const lateSeconds = Math.floor((diff % (1000 * 60)) / 1000);
+              setCanFichar(remaining <= 10 * 60 * 1000); // Permite fichar cuando queden menos de 10 minutos
+              setCanNotificarAusencia(remaining <= 10 * 60 * 1000); // Permite notificar ausencia cuando queden menos de 10 minutos
+            } else {
+              // Ya pasó la hora de fichar
+              const lateHours = Math.floor(diff / (1000 * 60 * 60));
+              const lateMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+              const lateSeconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-          setCountdown({
-            text: `${String(lateHours).padStart(2, '0')}:${String(lateMinutes).padStart(2, '0')}:${String(lateSeconds).padStart(2, '0')}`,
-            color: '#FF3B30', // rojo
-            label: 'Llegas tarde',
-          });
+              setCountdown({
+                text: `${String(lateHours).padStart(2, '0')}:${String(lateMinutes).padStart(2, '0')}:${String(lateSeconds).padStart(2, '0')}`,
+                color: '#FF3B30', // rojo
+                label: 'Llegas tarde',
+              });
 
-          setCanFichar(true); // Aún puede fichar aunque tarde
+              setCanFichar(true); // Aún puede fichar aunque tarde
+              setCanNotificarAusencia(true); // Permite notificar ausencia si ya pasó la hora de entrada
+            }
+          };
+
+          updateCountdown();
+          timer = setInterval(updateCountdown, 1000);
         }
-      };
 
-      updateCountdown();
-      timer = setInterval(updateCountdown, 1000);
-    }
-
-    return () => clearInterval(timer);
-  }, [todaySchedule, hasCheckedIn]);
+        return () => clearInterval(timer);
+      }, [todaySchedule, hasCheckedIn]);
 
 
 
@@ -315,36 +336,143 @@ useEffect(() => {
      }
    };
 
+  const handleSubmitAbsence = async () => {
+    try {
+      if (!absenceNote.trim()) {
+        Alert.alert('Nota requerida', 'Por favor, escribe una razón para tu ausencia.');
+        return;
+      }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Bienvenido, {employeeName}</Text>
+      const userId = await AsyncStorage.getItem('userId');
+      const facilityId = todaySchedule?.facilityId || await AsyncStorage.getItem('facilityId');
+      const currentDate = getCurrentDate(); // 'YYYY-MM-DD'
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📅 Horario para hoy ({getCurrentDate()})</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#007AFF" />
-        ) : todaySchedule ? (
-          <>
-            <View style={styles.row}><Icon name="time-outline" size={20} color="#007AFF" style={styles.icon} />
-              <Text style={styles.scheduleText}>Entrada: <Text style={styles.bold}>{todaySchedule.start_time} h</Text></Text>
-            </View>
-            <View style={styles.row}><Icon name="log-out-outline" size={20} color="#FF3B30" style={styles.icon} />
-              <Text style={styles.scheduleText}>Salida: <Text style={styles.bold}>{todaySchedule.end_time} h</Text></Text>
-            </View>
-            <View style={styles.row}><Icon name="location-outline" size={20} color="#34C759" style={styles.icon} />
-              <Text style={styles.scheduleText}>Instalación: <Text style={styles.bold}>{todaySchedule.facilityName}</Text></Text>
-            </View>
-            <View style={styles.row}><Icon name="map-outline" size={20} color="#8E8E93" style={styles.icon} />
-              <Text style={styles.scheduleText}>Dirección: <Text style={styles.bold}>{todaySchedule.facilityLocation}</Text></Text>
-            </View>
-          </>
-        ) : (
-          <Text style={styles.noSchedule}>No tienes horario asignado para hoy.</Text>
-        )}
-      </View>
+      console.log("🟡 Enviando ausencia con:", {
+        userId,
+        facilityId,
+        currentDate,
+        absenceNote,
+        justificationImage,
+      });
 
-     {!hasCheckedIn && (
+      const response = await fetch('http://192.168.1.34:4000/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeId: userId,
+          facilityId: facilityId,
+          date: currentDate,
+          status: 'absent',
+          absence_reason: absenceNote,
+          justified: true,
+          justification_url: justificationImage?.uri || null,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Ausencia registrada', 'Tu ausencia ha sido notificada correctamente.');
+        setAbsenceModalVisible(false);
+        setButtonsVisible(false);
+        setHasCheckedIn(false);
+        setHasCheckedOut(false);
+        setAbsenceSubmitted(true);
+
+        const now = new Date();
+        const nextDay = new Date();
+        nextDay.setDate(now.getDate() + 1);
+        nextDay.setHours(0, 0, 0, 0);
+
+        const timeUntilMidnight = nextDay - now;
+
+        setTimeout(() => {
+          setButtonsVisible(true);
+          setHasCheckedIn(false);
+          setHasCheckedOut(false);
+        }, timeUntilMidnight);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error al registrar ausencia:', errorText);
+        Alert.alert('Error', 'No se pudo registrar la ausencia.');
+      }
+    } catch (error) {
+      console.error('❌ Error al notificar ausencia:', error);
+      Alert.alert('Error', 'Ocurrió un error al enviar tu ausencia.');
+    }
+  };
+
+
+
+const pickImage = async () => {
+  const imageResult = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: true,
+    quality: 0.5,
+  });
+
+  if (!imageResult.canceled) {
+    const asset = imageResult.assets[0];
+    console.log("📎 Imagen seleccionada:", asset);
+    setJustificationImage({
+      uri: asset.uri,
+      type: asset.type || 'image/jpeg',
+      fileName: asset.fileName || `imagen-${Date.now()}.jpg`,
+    });
+  }
+};
+
+
+  const pickDocument = async () => {
+    const docResult = await DocumentPicker.getDocumentAsync({
+      type: ['application/pdf'],
+      copyToCacheDirectory: true,
+    });
+
+    if (docResult.type === 'success') {
+      setJustificationImage({
+        uri: docResult.uri,
+        type: docResult.mimeType || 'application/pdf',
+        fileName: docResult.name || `documento-${Date.now()}.pdf`,
+      });
+    }
+  };
+
+
+
+
+
+
+
+return (
+  <View style={styles.container}>
+    <Text style={styles.header}>Bienvenido, {employeeName}</Text>
+
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>📅 Horario para hoy ({getCurrentDateFormat()})</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" />
+      ) : todaySchedule ? (
+        <>
+          <View style={styles.row}><Icon name="time-outline" size={20} color="#007AFF" style={styles.icon} />
+            <Text style={styles.scheduleText}>Entrada: <Text style={styles.bold}>{todaySchedule.start_time} h</Text></Text>
+          </View>
+          <View style={styles.row}><Icon name="log-out-outline" size={20} color="#FF3B30" style={styles.icon} />
+            <Text style={styles.scheduleText}>Salida: <Text style={styles.bold}>{todaySchedule.end_time} h</Text></Text>
+          </View>
+          <View style={styles.row}><Icon name="location-outline" size={20} color="#34C759" style={styles.icon} />
+            <Text style={styles.scheduleText}>Instalación: <Text style={styles.bold}>{todaySchedule.facilityName}</Text></Text>
+          </View>
+          <View style={styles.row}><Icon name="map-outline" size={20} color="#8E8E93" style={styles.icon} />
+            <Text style={styles.scheduleText}>Dirección: <Text style={styles.bold}>{todaySchedule.facilityLocation}</Text></Text>
+          </View>
+        </>
+      ) : (
+        <Text style={styles.noSchedule}>No tienes horario asignado para hoy.</Text>
+      )}
+    </View>
+
+   {/* Caso 1: Mostrar botones de "Fichar ahora" y "Notificar ausencia" */}
+   {!hasCheckedIn && buttonsVisible && !absenceSubmitted && (
+     <>
        <TouchableOpacity
          style={[styles.ficharButton, { backgroundColor: canFichar ? '#007AFF' : '#ccc' }]}
          onPress={handleFichar}
@@ -352,26 +480,49 @@ useEffect(() => {
        >
          <Text style={styles.ficharText}>📍 Fichar ahora</Text>
        </TouchableOpacity>
-     )}
 
-     {hasCheckedIn && !hasCheckedOut && (
+       {canNotificarAusencia && (
+         <TouchableOpacity
+           style={[styles.ficharButton, { backgroundColor: '#FF9500', marginTop: 10 }]}
+           onPress={() => setAbsenceModalVisible(true)}
+         >
+           <Text style={styles.ficharText}>🚫 Notificar ausencia</Text>
+         </TouchableOpacity>
+       )}
+     </>
+   )}
+
+   {/* Caso 2: Mostrar botón de Check-out */}
+   {hasCheckedIn && !hasCheckedOut && !absenceSubmitted && (
+     <>
        <TouchableOpacity
          style={[styles.ficharButton, { backgroundColor: '#34C759', marginTop: 10 }]}
          onPress={handleCheckOut}
        >
          <Text style={styles.ficharText}>📤 Realizar Check-out</Text>
        </TouchableOpacity>
-     )}
-
-     {hasCheckedIn && hasCheckedOut && (
        <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
-         ✅ Has completado tu jornada. ¡Hasta mañana!
+         ✅ Realiza tu Check-out
        </Text>
-     )}
+     </>
+   )}
+
+   {/* Caso 3: Mostrar mensaje de jornada completada */}
+   {hasCheckedIn && hasCheckedOut && !absenceSubmitted && (
+     <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
+       ✅ Has completado tu jornada. ¡Hasta mañana!
+     </Text>
+   )}
+
+{/* Caso 4: Mostrar mensaje de ausencia registrada */}
+{absenceSubmitted && (
+  <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
+    ✅ Tu ausencia ha sido registrada.
+  </Text>
+)}
 
 
-
-      {countdown && !hasCheckedIn && (
+      {countdown && !hasCheckedIn && !absenceSubmitted && (
         <View style={styles.row}>
           <Icon name="hourglass-outline" size={20} color={countdown.color} style={styles.icon} />
           <Text style={[styles.scheduleText, { color: countdown.color }]}>
@@ -439,6 +590,101 @@ useEffect(() => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+            animationType="slide"
+            transparent={true}
+            visible={absenceModalVisible}
+            onRequestClose={() => setAbsenceModalVisible(false)}
+          >
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+              <View style={{
+                width: '85%',
+                backgroundColor: '#fff',
+                borderRadius: 20,
+                padding: 24,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 5
+              }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
+                  Justifica tu ausencia
+                </Text>
+
+                <TextInput
+                  placeholder="Ej. Enfermedad, transporte, etc..."
+                  value={absenceNote}
+                  onChangeText={setAbsenceNote}
+                  style={{
+                    height: 100,
+                    borderColor: '#ccc',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    textAlignVertical: 'top',
+                    marginBottom: 20
+                  }}
+                  multiline
+                />
+
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert(
+                      'Seleccionar justificante',
+                      '¿Qué tipo de archivo quieres adjuntar?',
+                      [
+                        { text: '📷 Foto', onPress: pickImage },
+                        { text: '📄 Documento PDF', onPress: pickDocument },
+                        { text: 'Cancelar', style: 'cancel' },
+                      ]
+                    );
+                  }}
+                  style={{ backgroundColor: '#eee', padding: 12, borderRadius: 10, marginBottom: 10 }}
+                >
+                  <Text style={{ textAlign: 'center' }}>📎 Adjuntar justificante</Text>
+                </TouchableOpacity>
+
+
+                {justificationImage && (
+                  justificationImage.type.startsWith('image/') ? (
+                    <Image
+                      source={{ uri: justificationImage.uri }}
+                      style={{ width: '100%', height: 150, borderRadius: 10, marginBottom: 10 }}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text style={{ marginBottom: 10, textAlign: 'center' }}>
+                      📄 Archivo adjunto: {justificationImage.fileName}
+                    </Text>
+                  )
+                )}
+
+
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <TouchableOpacity
+                    style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 10, flex: 1, marginRight: 8 }}
+                    onPress={() => setAbsenceModalVisible(false)}
+                  >
+                    <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancelar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{ padding: 12, backgroundColor: '#FF3B30', borderRadius: 10, flex: 1, marginLeft: 8 }}
+                    onPress={handleSubmitAbsence}
+                  >
+                    <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Enviar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
+
+
+
     </View>
   );
 };

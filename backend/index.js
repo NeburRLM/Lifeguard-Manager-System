@@ -36,6 +36,7 @@ const __dirname = path.dirname(__filename); // Obtiene el directorio de trabajo 
 
 // Configuración para servir archivos estáticos desde la carpeta 'uploads'
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/reports', express.static(path.join(__dirname, 'reports')));
 
 app.use(express.json());    // Middleware para analizar solicitudes con cuerpo en formato JSON
 
@@ -94,6 +95,19 @@ const storage = multer.diskStorage({
 });
 // Crea el objeto 'upload' utilizando la configuración definida para Multer
 const upload = multer({ storage }); // 'storage' especifica cómo se guardarán los archivos
+
+
+
+// Configurar almacenamiento en la carpeta "reports"
+const storageReports = multer.diskStorage({
+    destination: "reports/", // Carpeta donde se guardarán los justificantes
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+// Middleware para subir un archivo llamado "justification"
+const uploadReport = multer({ storage: storageReports });
 
 
 // Ruta para subir la imagen de un empleado
@@ -1798,11 +1812,15 @@ app.get('/incidents/date-range', async (req, res) => {
 
 app.post('/attendance', async (req, res) => {
     console.log("POST /attendance -> Body recibido:", req.body);
-    const { employeeId, check_in, date, facilityId, note } = req.body;
+    const { employeeId, check_in, date, facilityId, note, status, absence_reason, justified } = req.body;
 
     // Comprobar si falta algún dato importante
-    if (!employeeId || !check_in || !date || !facilityId) {
-        return res.status(400).json({ error: "Se requiere el ID del empleado, hora de entrada, hora de salida, fecha y el ID de la instalación." });
+    if (!employeeId || !date || !facilityId) {
+        return res.status(400).json({ error: "Faltan datos requeridos: employeeId, date, facilityId." });
+    }
+
+    if (!check_in && status !== 'absent') {
+        return res.status(400).json({ error: "Si no se proporciona check_in, el estado debe ser 'absent'." });
     }
 
     try {
@@ -1824,13 +1842,36 @@ app.post('/attendance', async (req, res) => {
 
         // Crear el nuevo registro de asistencia
         const attendanceRepository = dataSource.getRepository(AttendanceSchema);
+
+        // Verifica si ya existe un registro de asistencia o ausencia para ese día
+        const existing = await attendanceRepository.findOne({
+            where: {
+                employee: { id: employeeId },
+                date: date
+            },
+            relations: ['employee']
+        });
+
+        if (existing) {
+            return res.status(409).json({ error: "Ya existe un registro de asistencia o ausencia para esta fecha." });
+        }
+
+        let justification_url = null;
+                if (req.file) {
+                    justification_url = `http://localhost:4000/reports/${req.file.filename}`;
+                }
+
         const newAttendance = attendanceRepository.create({
             employee,
-            check_in,
+            check_in: check_in || null,
             check_out: null,
             date,
             facility, // Asegúrate de asociar la instalación (facility)
-            note
+            note: note || "",
+            status: status || "present",
+            absence_reason: absence_reason || null,
+            justified: justified ?? null,
+            justification_url
         });
 
         // Guardar la nueva asistencia en la base de datos
@@ -2148,13 +2189,7 @@ app.get('/attendance/:id', async (req, res) => {
             // Si check_out es válido, separamos en horas y minutos, si no, asignamos valores por defecto
             let [checkOutHour, checkOutMinute] = checkOutTime ? checkOutTime.split(':') : [null, null];
 
-            // Si check_in no es válido, retornamos un error
-            if (!checkInHour || !checkInMinute) {
-                return res.status(400).json({
-                    status: "error",
-                    message: `Check-in no válido en la asistencia de ${attendance.date}.`
-                });
-            }
+
 
             // Para check_out, si no existe, podemos manejarlo de manera flexible:
             if (!checkOutHour || !checkOutMinute) {
@@ -2175,6 +2210,11 @@ app.get('/attendance/:id', async (req, res) => {
             const checkInFormatted = `${checkInDateTime.getHours()}:${checkInDateTime.getMinutes() < 10 ? '0' + checkInDateTime.getMinutes() : checkInDateTime.getMinutes()}:00`;
             const checkOutFormatted = `${checkOutDateTime.getHours()}:${checkOutDateTime.getMinutes() < 10 ? '0' + checkOutDateTime.getMinutes() : checkOutDateTime.getMinutes()}:00`;
 
+            const status = attendance.status;
+            const absence_reason = attendance.absence_reason;
+            const justified = attendance.justified;
+            const justification_url = attendance.justification_url;
+
             return {
                 id: attendance.id,
                 employee: {
@@ -2188,7 +2228,11 @@ app.get('/attendance/:id', async (req, res) => {
                 },
                 check_in: checkInFormatted, // Hora en formato 'HH:mm:ss'
                 check_out: checkOutFormatted, // Hora en formato 'HH:mm:ss'
-                date: attendanceDate.toISOString().split('T')[0] // Solo la fecha (YYYY-MM-DD)
+                date: attendanceDate.toISOString().split('T')[0], // Solo la fecha (YYYY-MM-DD)
+                status: status,
+                absence_reason: absence_reason,
+                justified: justified,
+                justification_url: justification_url
             };
         });
 
