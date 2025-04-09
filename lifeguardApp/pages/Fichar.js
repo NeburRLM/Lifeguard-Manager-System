@@ -198,7 +198,7 @@ useEffect(() => {
           setHasCheckedOut(false);
         }
       } else {
-        console.warn('No se pudo obtener la asistencia:', result.message);
+        //console.warn('No se pudo obtener la asistencia:', result.message);
         setHasCheckedIn(false);
         setHasCheckedOut(false);
       }
@@ -336,38 +336,40 @@ useEffect(() => {
      }
    };
 
-  const handleSubmitAbsence = async () => {
-    try {
-      if (!absenceNote.trim()) {
-        Alert.alert('Nota requerida', 'Por favor, escribe una razón para tu ausencia.');
-        return;
-      }
+const handleSubmitAbsence = async () => {
+  try {
+    if (!absenceNote.trim()) {
+      Alert.alert('Nota requerida', 'Por favor, escribe una razón para tu ausencia.');
+      return;
+    }
 
-      const userId = await AsyncStorage.getItem('userId');
-      const facilityId = todaySchedule?.facilityId || await AsyncStorage.getItem('facilityId');
-      const currentDate = getCurrentDate(); // 'YYYY-MM-DD'
+    const userId = await AsyncStorage.getItem('userId');
+    const facilityId = todaySchedule?.facilityId || await AsyncStorage.getItem('facilityId');
+    const currentDate = getCurrentDate();
 
-      console.log("🟡 Enviando ausencia con:", {
-        userId,
-        facilityId,
-        currentDate,
-        absenceNote,
-        justificationImage,
+    const formData = new FormData();
+    formData.append('employeeId', userId);
+    formData.append('facilityId', facilityId);
+    formData.append('date', currentDate);
+    formData.append('status', 'absent');
+    formData.append('absence_reason', absenceNote);
+    formData.append('justified', 'true');
+    //console.log("🧾 Enviando archivo:", justificationImage);
+
+
+    if (justificationImage) {
+      formData.append('justification', {
+        uri: justificationImage.uri,
+        type: justificationImage.type,
+        name: justificationImage.fileName || `archivo-${Date.now()}.${justificationImage.type.split('/')[1]}`,
+
       });
+    }
 
-      const response = await fetch('http://192.168.1.34:4000/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          employeeId: userId,
-          facilityId: facilityId,
-          date: currentDate,
-          status: 'absent',
-          absence_reason: absenceNote,
-          justified: true,
-          justification_url: justificationImage?.uri || null,
-        }),
-      });
+    const response = await fetch('http://192.168.1.34:4000/attendance', {
+      method: 'POST',
+      body: formData,
+    });
 
       if (response.ok) {
         Alert.alert('Ausencia registrada', 'Tu ausencia ha sido notificada correctamente.');
@@ -402,39 +404,37 @@ useEffect(() => {
 
 
 
-const pickImage = async () => {
-  const imageResult = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,
-    allowsEditing: true,
-    quality: 0.5,
-  });
-
-  if (!imageResult.canceled) {
-    const asset = imageResult.assets[0];
-    console.log("📎 Imagen seleccionada:", asset);
-    setJustificationImage({
-      uri: asset.uri,
-      type: asset.type || 'image/jpeg',
-      fileName: asset.fileName || `imagen-${Date.now()}.jpg`,
-    });
-  }
-};
 
 
-  const pickDocument = async () => {
+
+const pickDocument = async () => {
+  try {
     const docResult = await DocumentPicker.getDocumentAsync({
       type: ['application/pdf'],
       copyToCacheDirectory: true,
     });
 
-    if (docResult.type === 'success') {
+    if (!docResult.canceled) {
+      const file = docResult.assets[0]; // Acceder correctamente al archivo
+      //console.log("📄 Documento seleccionado:", file);
+
       setJustificationImage({
-        uri: docResult.uri,
-        type: docResult.mimeType || 'application/pdf',
-        fileName: docResult.name || `documento-${Date.now()}.pdf`,
+        uri: file.uri,
+        type: file.mimeType || 'application/pdf',
+        fileName: file.name || `documento-${Date.now()}.pdf`,
       });
+    } else {
+      console.log("Se canceló la selección del documento.");
     }
-  };
+  } catch (error) {
+    console.error("Error al seleccionar el documento:", error);
+  }
+};
+
+
+
+
+
 
 
 
@@ -633,9 +633,8 @@ return (
                   onPress={() => {
                     Alert.alert(
                       'Seleccionar justificante',
-                      '¿Qué tipo de archivo quieres adjuntar?',
+                      '(El documento tiene que ser en formato PDF)',
                       [
-                        { text: '📷 Foto', onPress: pickImage },
                         { text: '📄 Documento PDF', onPress: pickDocument },
                         { text: 'Cancelar', style: 'cancel' },
                       ]
@@ -643,7 +642,7 @@ return (
                   }}
                   style={{ backgroundColor: '#eee', padding: 12, borderRadius: 10, marginBottom: 10 }}
                 >
-                  <Text style={{ textAlign: 'center' }}>📎 Adjuntar justificante</Text>
+                  <Text style={{ textAlign: 'center' }}>📎 Adjuntar justificante PDF</Text>
                 </TouchableOpacity>
 
 

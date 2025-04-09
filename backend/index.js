@@ -1810,8 +1810,16 @@ app.get('/incidents/date-range', async (req, res) => {
 
 
 
-app.post('/attendance', async (req, res) => {
+app.post('/attendance', uploadReport.single('justification'), async (req, res) => {
     console.log("POST /attendance -> Body recibido:", req.body);
+    if (req.file) {
+        console.log('📎 Archivo recibido:');
+        console.log(' - Nombre original:', req.file.originalname);
+        console.log(' - Guardado como:', req.file.filename);
+        console.log(' - Ruta completa:', req.file.path);
+      } else {
+        console.log('⚠️ No se recibió archivo');
+      }
     const { employeeId, check_in, date, facilityId, note, status, absence_reason, justified } = req.body;
 
     // Comprobar si falta algún dato importante
