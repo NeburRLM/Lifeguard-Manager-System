@@ -37,6 +37,9 @@ const Fichar = () => {
   const [canFichar, setCanFichar] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [note, setNote] = useState('');
+  const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [hasCheckedOut, setHasCheckedOut] = useState(false);
+
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -92,7 +95,7 @@ const Fichar = () => {
   useEffect(() => {
     let timer;
 
-    if (todaySchedule?.start_time) {
+    if (todaySchedule?.start_time && !hasCheckedIn) {
       const updateCountdown = () => {
         const now = new Date();
         const [hours, minutes] = todaySchedule.start_time.split(':').map(Number);
@@ -101,22 +104,35 @@ const Fichar = () => {
         target.setMinutes(minutes);
         target.setSeconds(0);
 
-        const diff = target - now;
+        const diff = now - target;
 
-        if (diff > 0) {
-          const remainingHours = Math.floor(diff / (1000 * 60 * 60));
-          const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const remainingSeconds = Math.floor((diff % (1000 * 60)) / 1000);
+        if (diff < 0) {
+          // Faltan X minutos para fichar
+          const remaining = Math.abs(diff);
+          const remainingHours = Math.floor(remaining / (1000 * 60 * 60));
+          const remainingMinutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          const remainingSeconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
-          setCountdown(
-            `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
-          );
+          setCountdown({
+            text: `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`,
+            color: '#FF9500', // naranja
+            label: 'Tiempo restante para fichar',
+          });
 
-          setCanFichar(diff <= 10 * 60 * 1000);
+          setCanFichar(remaining <= 10 * 60 * 1000);
         } else {
-          setCountdown('¡Es hora de fichar!');
-          setCanFichar(true);
-          clearInterval(timer);
+          // Ya pasó la hora de fichar
+          const lateHours = Math.floor(diff / (1000 * 60 * 60));
+          const lateMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const lateSeconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+          setCountdown({
+            text: `${String(lateHours).padStart(2, '0')}:${String(lateMinutes).padStart(2, '0')}:${String(lateSeconds).padStart(2, '0')}`,
+            color: '#FF3B30', // rojo
+            label: 'Llegas tarde',
+          });
+
+          setCanFichar(true); // Aún puede fichar aunque tarde
         }
       };
 
@@ -125,7 +141,74 @@ const Fichar = () => {
     }
 
     return () => clearInterval(timer);
-  }, [todaySchedule]);
+  }, [todaySchedule, hasCheckedIn]);
+
+
+
+useEffect(() => {
+  const checkAttendanceFromBackend = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+      const day = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      const response = await fetch(`http://192.168.1.34:4000/attendance/${userId}?year=${year}&month=${month}`);
+      const result = await response.json();
+
+      if (response.ok && result.status === 'success') {
+        // Buscar si hay un registro para el día actual
+        const todayAttendance = result.data.find(att => att.date === day);
+
+        if (todayAttendance) {
+          // Si existe un registro, ya ha hecho check-in
+          setHasCheckedIn(true);
+
+          // Si check_out aún está en '00:00:00' => no ha hecho check-out
+          if (todayAttendance.check_out && todayAttendance.check_out !== '00:00:00') {
+            setHasCheckedOut(true);
+          } else {
+            setHasCheckedOut(false);
+          }
+        } else {
+          // Si no hay registro para hoy, no ha hecho check-in ni check-out
+          setHasCheckedIn(false);
+          setHasCheckedOut(false);
+        }
+      } else {
+        console.warn('No se pudo obtener la asistencia:', result.message);
+        setHasCheckedIn(false);
+        setHasCheckedOut(false);
+      }
+    } catch (error) {
+      console.error('Error al verificar la asistencia desde el backend:', error);
+      setHasCheckedIn(false);
+      setHasCheckedOut(false);
+    }
+  };
+
+  checkAttendanceFromBackend();
+}, []);
+
+
+
+
+// Se guarda de manera local
+/*
+  useEffect(() => {
+    const loadCheckStatus = async () => {
+      const today = getCurrentDate();
+      const storedCheckInDate = await AsyncStorage.getItem('checkInDate');
+      const storedCheckOutDate = await AsyncStorage.getItem('checkOutDate');
+
+      if (storedCheckInDate === today) setHasCheckedIn(true);
+      if (storedCheckOutDate === today) setHasCheckedOut(true);
+    };
+
+    loadCheckStatus();
+  }, []);
+*/
 
   const handleFichar = () => setModalVisible(true);
 
@@ -183,6 +266,8 @@ const Fichar = () => {
 
       if (response.ok) {
         Alert.alert('Éxito', 'Fichaje registrado correctamente.');
+        await AsyncStorage.setItem('checkInDate', getCurrentDate());
+        setHasCheckedIn(true);
         setModalVisible(false);
         setNote('');
       } else {
@@ -215,6 +300,10 @@ const Fichar = () => {
 
        if (response.ok) {
          Alert.alert('Check-out realizado', 'Tu salida ha sido registrada correctamente.');
+         await AsyncStorage.setItem('checkOutDate', getCurrentDate());
+         setHasCheckedOut(true);
+         Alert.alert('Hasta mañana 👋', 'Nos vemos en tu próximo turno.');
+
        } else {
          const errorText = await response.text();
          console.error('Respuesta del servidor:', errorText);
@@ -255,30 +344,43 @@ const Fichar = () => {
         )}
       </View>
 
-      <TouchableOpacity
-        style={[styles.ficharButton, { backgroundColor: canFichar ? '#007AFF' : '#ccc' }]}
-        onPress={handleFichar}
-        disabled={!canFichar}
-      >
-        <Text style={styles.ficharText}>📍 Fichar ahora</Text>
-      </TouchableOpacity>
+     {!hasCheckedIn && (
+       <TouchableOpacity
+         style={[styles.ficharButton, { backgroundColor: canFichar ? '#007AFF' : '#ccc' }]}
+         onPress={handleFichar}
+         disabled={!canFichar}
+       >
+         <Text style={styles.ficharText}>📍 Fichar ahora</Text>
+       </TouchableOpacity>
+     )}
 
-      <TouchableOpacity
-        style={[styles.ficharButton, { backgroundColor: '#34C759', marginTop: 10 }]}
-        onPress={handleCheckOut}
-      >
-        <Text style={styles.ficharText}>📤 Realizar Check-out</Text>
-      </TouchableOpacity>
+     {hasCheckedIn && !hasCheckedOut && (
+       <TouchableOpacity
+         style={[styles.ficharButton, { backgroundColor: '#34C759', marginTop: 10 }]}
+         onPress={handleCheckOut}
+       >
+         <Text style={styles.ficharText}>📤 Realizar Check-out</Text>
+       </TouchableOpacity>
+     )}
+
+     {hasCheckedIn && hasCheckedOut && (
+       <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
+         ✅ Has completado tu jornada. ¡Hasta mañana!
+       </Text>
+     )}
 
 
-      {countdown && (
+
+      {countdown && !hasCheckedIn && (
         <View style={styles.row}>
-          <Icon name="hourglass-outline" size={20} color="#FF9500" style={styles.icon} />
-          <Text style={[styles.scheduleText, { color: '#FF9500' }]}>
-            Tiempo restante: <Text style={styles.bold}>{countdown}</Text>
+          <Icon name="hourglass-outline" size={20} color={countdown.color} style={styles.icon} />
+          <Text style={[styles.scheduleText, { color: countdown.color }]}>
+            {countdown.label}: <Text style={styles.bold}>{countdown.text}</Text>
           </Text>
         </View>
       )}
+
+
 
       {/* Modal */}
       <Modal
