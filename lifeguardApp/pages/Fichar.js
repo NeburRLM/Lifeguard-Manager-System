@@ -213,6 +213,58 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  const checkIfMissedCheckIn = async () => {
+    if (todaySchedule) {
+      const now = new Date();
+      const todayDate = now.toISOString().split('T')[0];
+
+      const [startHours, startMinutes] = todaySchedule.start_time.split(':').map(Number);
+      const [endHours, endMinutes] = todaySchedule.end_time
+        ? todaySchedule.end_time.split(':').map(Number)
+        : [startHours, startMinutes];
+
+      const endTime = new Date();
+      endTime.setHours(endHours, endMinutes, 0, 0);
+
+      //const alreadyMarked = await AsyncStorage.getItem(`missingMarked-${todayDate}`);
+      await AsyncStorage.removeItem(`missingMarked-${todayDate}`);
+      if (now > endTime && !hasCheckedIn && !alreadyMarked) {
+        setButtonsVisible(false);
+
+        try {
+          const userId = await AsyncStorage.getItem('userId');
+          const attendanceData = {
+            employeeId: userId,
+            date: todayDate,
+            facilityId: todaySchedule.facilityId,
+            justified: false,
+            status: 'missing',
+          };
+
+          const response = await fetch('http://192.168.1.34:4000/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(attendanceData),
+          });
+
+          if (response.ok) {
+            await AsyncStorage.setItem(`missingMarked-${todayDate}`, 'true'); // 🔐 Evita duplicado
+            Alert.alert('Ausencia registrada', 'No has fichado a tiempo, tu asistencia está marcada como ausente.');
+          } else {
+            const errorText = await response.text();
+            console.error('Error al registrar asistencia:', errorText);
+          }
+        } catch (error) {
+          console.error('Error al verificar la asistencia:', error);
+        }
+      }
+    }
+  };
+
+  checkIfMissedCheckIn();
+}, [todaySchedule]);
+
 
 
 // Se guarda de manera local
@@ -266,13 +318,30 @@ useEffect(() => {
       }
 
       const userId = await AsyncStorage.getItem('userId');
-      const checkInTime = new Date().toISOString();
-      const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
+
+      const now = new Date();
+      const [startHour, startMinute] = todaySchedule.start_time.split(':').map(Number);
+      const scheduledCheckIn = new Date(now);
+      scheduledCheckIn.setHours(startHour, startMinute, 0, 0);
+
+      // Definir el rango permitido
+      const tenMinBefore = new Date(scheduledCheckIn.getTime() - 10 * 60000);
+      const fiveMinAfter = new Date(scheduledCheckIn.getTime() + 5 * 60000);
+
+      // Aplicar la lógica de suplantación si está dentro del rango
+       const finalCheckIn = now >= tenMinBefore && now <= fiveMinAfter ? scheduledCheckIn : now;
+
+       // Formatear a 'HH:MM:SS'
+       const formatTimeOnly = (dateObj) => dateObj.toTimeString().split(' ')[0];
+
+
+      //const checkInTime = new Date().toISOString();
+      //const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
 
       const attendanceData = {
         employeeId: userId,
-        check_in: formatTimeOnly(checkInTime),
-        date: checkInTime.split('T')[0],
+        check_in: formatTimeOnly(finalCheckIn),
+        date: finalCheckIn.toISOString().split('T')[0],
         facilityId: todaySchedule.facilityId,
         note: note,
       };

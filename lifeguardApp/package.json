@@ -37,7 +37,8 @@
     "yoga-layout": "^3.2.1",
     "expo-location": "~18.0.10",
     "expo-image-picker": "~16.0.6",
-    "expo-document-picker": "~13.0.3"
+    "expo-document-picker": "~13.0.3",
+    "expo-notifications": "~0.29.14"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

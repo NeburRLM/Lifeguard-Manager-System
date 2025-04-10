@@ -1827,8 +1827,8 @@ app.post('/attendance', uploadReport.single('justification'), async (req, res) =
         return res.status(400).json({ error: "Faltan datos requeridos: employeeId, date, facilityId." });
     }
 
-    if (!check_in && status !== 'absent') {
-        return res.status(400).json({ error: "Si no se proporciona check_in, el estado debe ser 'absent'." });
+    if (!check_in && status !== 'absent' && !check_in && status !== 'missing') {
+        return res.status(400).json({ error: "Si no se proporciona check_in, el estado debe ser 'absent o missing'." });
     }
 
     try {
