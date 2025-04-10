@@ -15,7 +15,16 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'; // Opcional para obtener base64 si lo necesitas
 import * as DocumentPicker from 'expo-document-picker';
+import * as Notifications from 'expo-notifications';
 
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 
 const haversineDistance = (coords1, coords2) => {
@@ -51,6 +60,9 @@ const Fichar = () => {
   const [absenceNotified, setAbsenceNotified] = useState(false);
   const [absenceSubmitted, setAbsenceSubmitted] = useState(false);
   const [justificationImage, setJustificationImage] = useState(null);
+  const [modalVisibleCheckout, setModalVisibleCheckout] = useState(false);
+  const [checkOutNote, setCheckOutNote] = useState('');
+
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -75,6 +87,73 @@ const Fichar = () => {
     const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
     return days[new Date().getDay()];
   };
+
+
+
+  useEffect(() => {
+    const restoreCheckStatusForNextDay = async () => {
+      const today = new Date().toISOString().split('T')[0]; // Obtener la fecha de hoy (YYYY-MM-DD)
+      const storedCheckInDate = await AsyncStorage.getItem('checkInDate');
+      const storedCheckOutDate = await AsyncStorage.getItem('checkOutDate');
+
+      // Restablecer el estado de check-in y check-out solo si el día de hoy es diferente
+      if (storedCheckInDate !== today) {
+        setHasCheckedIn(false);
+      }
+      if (storedCheckOutDate !== today) {
+        setHasCheckedOut(false);
+      }
+    };
+
+    restoreCheckStatusForNextDay();
+  }, []);
+
+
+  useEffect(() => {
+    const checkAttendanceFromBackend = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        const day = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        const response = await fetch(`http://192.168.1.34:4000/attendance/${userId}?year=${year}&month=${month}`);
+        const result = await response.json();
+
+        if (response.ok && result.status === 'success') {
+          // Buscar si hay un registro para el día actual
+          const todayAttendance = result.data.find(att => att.date === day);
+
+          if (todayAttendance) {
+            // Si existe un registro, ya ha hecho check-in
+            setHasCheckedIn(true);
+
+            // Si check_out aún está en '00:00:00' => no ha hecho check-out
+            if (todayAttendance.check_out && todayAttendance.check_out != '0:00:00') {
+              setHasCheckedOut(true);
+            } else {
+              setHasCheckedOut(false);
+            }
+          } else {
+            // Si no hay registro para hoy, no ha hecho check-in ni check-out
+            setHasCheckedIn(false);
+            setHasCheckedOut(false);
+          }
+        } else {
+          //console.warn('No se pudo obtener la asistencia:', result.message);
+          setHasCheckedIn(false);
+          setHasCheckedOut(false);
+        }
+      } catch (error) {
+        console.error('Error al verificar la asistencia desde el backend:', error);
+        setHasCheckedIn(false);
+        setHasCheckedOut(false);
+      }
+    };
+
+    checkAttendanceFromBackend();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -166,51 +245,7 @@ const Fichar = () => {
 
 
 
-useEffect(() => {
-  const checkAttendanceFromBackend = async () => {
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth() + 1;
-      const day = today.toISOString().split('T')[0]; // YYYY-MM-DD
 
-      const response = await fetch(`http://192.168.1.34:4000/attendance/${userId}?year=${year}&month=${month}`);
-      const result = await response.json();
-
-      if (response.ok && result.status === 'success') {
-        // Buscar si hay un registro para el día actual
-        const todayAttendance = result.data.find(att => att.date === day);
-
-        if (todayAttendance) {
-          // Si existe un registro, ya ha hecho check-in
-          setHasCheckedIn(true);
-
-          // Si check_out aún está en '00:00:00' => no ha hecho check-out
-          if (todayAttendance.check_out && todayAttendance.check_out !== '00:00:00') {
-            setHasCheckedOut(true);
-          } else {
-            setHasCheckedOut(false);
-          }
-        } else {
-          // Si no hay registro para hoy, no ha hecho check-in ni check-out
-          setHasCheckedIn(false);
-          setHasCheckedOut(false);
-        }
-      } else {
-        //console.warn('No se pudo obtener la asistencia:', result.message);
-        setHasCheckedIn(false);
-        setHasCheckedOut(false);
-      }
-    } catch (error) {
-      console.error('Error al verificar la asistencia desde el backend:', error);
-      setHasCheckedIn(false);
-      setHasCheckedOut(false);
-    }
-  };
-
-  checkAttendanceFromBackend();
-}, []);
 
 
 useEffect(() => {
@@ -343,7 +378,7 @@ useEffect(() => {
         check_in: formatTimeOnly(finalCheckIn),
         date: finalCheckIn.toISOString().split('T')[0],
         facilityId: todaySchedule.facilityId,
-        note: note,
+        note_in: note,
       };
 
       console.log('Datos que se enviarán al servidor:', JSON.stringify(attendanceData, null, 2));
@@ -372,38 +407,52 @@ useEffect(() => {
   };
 
 
-   const handleCheckOut = async () => {
-     try {
-       const userId = await AsyncStorage.getItem('userId');
-       const checkOutTime = new Date().toISOString();
-       const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
+const handleConfirmCheckOut = async () => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso de ubicación denegado', 'No se puede obtener tu ubicación.');
+      return;
+    }
 
-       const response = await fetch(`http://192.168.1.34:4000/attendance/checkout`, {
-         method: 'PUT',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({
-           employeeId: userId,
-           date: getCurrentDate(),
-           check_out: formatTimeOnly(checkOutTime),
-         }),
-       });
+    const location = await Location.getCurrentPositionAsync({});
+    const userId = await AsyncStorage.getItem('userId');
+    const checkOutTime = new Date().toISOString();
+    const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
 
-       if (response.ok) {
-         Alert.alert('Check-out realizado', 'Tu salida ha sido registrada correctamente.');
-         await AsyncStorage.setItem('checkOutDate', getCurrentDate());
-         setHasCheckedOut(true);
-         Alert.alert('Hasta mañana 👋', 'Nos vemos en tu próximo turno.');
+    const response = await fetch(`http://192.168.1.34:4000/attendance/checkout`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employeeId: userId,
+        date: getCurrentDate(),
+        check_out: formatTimeOnly(checkOutTime),
+        note_out: checkOutNote, // nueva propiedad con la nota
+        location: {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        },
+      }),
+    });
 
-       } else {
-         const errorText = await response.text();
-         console.error('Respuesta del servidor:', errorText);
-         Alert.alert('Error', 'No se pudo registrar tu check-out.');
-       }
-     } catch (error) {
-       console.error('Error en check-out:', error);
-       Alert.alert('Error', 'Hubo un problema al realizar el check-out.');
-     }
-   };
+    if (response.ok) {
+      Alert.alert('Check-out realizado', 'Tu salida ha sido registrada correctamente.');
+      await AsyncStorage.setItem('checkOutDate', getCurrentDate());
+      setHasCheckedOut(true);
+      setModalVisibleCheckout(false);
+      setCheckOutNote('');
+      Alert.alert('Hasta mañana 👋', 'Nos vemos en tu próximo turno.');
+    } else {
+      const errorText = await response.text();
+      console.error('Respuesta del servidor:', errorText);
+      Alert.alert('Error', 'No se pudo registrar tu check-out.');
+    }
+  } catch (error) {
+    console.error('Error en check-out:', error);
+    Alert.alert('Error', 'Hubo un problema al realizar el check-out.');
+  }
+};
+
 
 const handleSubmitAbsence = async () => {
   try {
@@ -471,6 +520,121 @@ const handleSubmitAbsence = async () => {
     }
   };
 
+
+const scheduleMissingCheckoutNotification = async (endTime) => {
+  const now = new Date();
+  const [endHour, endMin] = endTime.split(':').map(Number);
+
+  const end = new Date();
+    end.setHours(endHour, endMin, 0, 0);
+     // Para programar una noti con un trigger de endTime+5min
+    const notifTime = new Date(end.getTime() + 5 * 60 * 1000); // 5 minutos después del fin del turno
+
+    console.log("🔔 Notificación programada para:", notifTime.toISOString());
+
+  if (notifTime > now && !hasCheckedOut) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "⏰ ¡Te olvidaste de fichar!",
+        body: "Por favor, no olvides hacer el check-out.",
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+      },
+      trigger: notifTime,
+    });
+  }
+};
+
+useEffect(() => {
+  const requestNotificationPermissions = async () => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'No se podrán enviar notificaciones.');
+    }
+  };
+
+  requestNotificationPermissions();
+}, []);
+
+
+useEffect(() => {
+  const handleMissedCheckout = async () => {
+    console.log("💡 Revisando check-out automático...", { hasCheckedIn, hasCheckedOut, todaySchedule, absenceSubmitted });
+
+    if (!todaySchedule || hasCheckedOut || !hasCheckedIn || absenceSubmitted) return;
+
+    const now = new Date();
+    const [endHours, endMinutes] = todaySchedule.end_time.split(':').map(Number);
+
+    const endTime = new Date();
+    endTime.setHours(endHours, endMinutes, 0, 0);
+
+    await scheduleMissingCheckoutNotification(todaySchedule.end_time); // 💡 Aquí la llamada
+
+    const tenMinutesAfter = new Date(endTime.getTime() + 10 * 60000); // para comparar con la hora actual
+    const oneHourAfter = new Date(endTime.getTime() + 12 * 60000);
+
+    const todayDate = getCurrentDate();
+    const notificationSentKey = `notificationSent-${todayDate}`;
+    const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
+
+    const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
+    const alreadyMarked = await AsyncStorage.getItem(statusMarkedKey);
+
+    if (now > tenMinutesAfter && now < oneHourAfter && !alreadyNotified) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Recordatorio de Check-Out",
+          body: "No has fichado tu salida. Recuerda hacerlo antes de que se marque como falta.",
+        },
+        trigger: null,
+      });
+      await AsyncStorage.setItem(notificationSentKey, 'true'); // 💾 Guarda que se notificó
+    }
+
+    // Aquí podrías también marcar la ausencia si pasó más de una hora
+    if (now > oneHourAfter && !alreadyMarked) {
+      try {
+          const userId = await AsyncStorage.getItem('userId');
+          const formatTimeOnly = (dateObj) => new Date(dateObj).toISOString().split('T')[1].split('.')[0]; // HH:mm:ss
+
+          const missingCheckoutData = {
+            employeeId: userId,
+            date: todayDate,
+            facilityId: todaySchedule.facilityId,
+            check_out: formatTimeOnly(endTime), // se marca como si se hubiera salido a la hora de finalización
+            status: 'missing_check_out',
+            justified: false,
+          };
+
+          const response = await fetch('http://192.168.1.34:4000/attendance/checkout', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(missingCheckoutData),
+          });
+
+          if (response.ok) {
+            console.log('✅ Check-out perdido registrado automáticamente.');
+            await AsyncStorage.setItem(statusMarkedKey, 'true');
+            setHasCheckedOut(true);
+          } else {
+            const errorText = await response.text();
+            console.error('❌ Error al registrar el check-out perdido:', errorText);
+          }
+        } catch (error) {
+          console.error('❌ Error en lógica de check-out perdido:', error);
+        }
+
+    }
+  };
+
+  const interval = setInterval(() => {
+      handleMissedCheckout();
+    }, 60000); // cada 1 minuto
+
+    return () => clearInterval(interval);
+
+}, [todaySchedule, hasCheckedIn, hasCheckedOut, absenceSubmitted]);
 
 
 
@@ -566,7 +730,7 @@ return (
      <>
        <TouchableOpacity
          style={[styles.ficharButton, { backgroundColor: '#34C759', marginTop: 10 }]}
-         onPress={handleCheckOut}
+         onPress={() => setModalVisibleCheckout(true)}
        >
          <Text style={styles.ficharText}>📤 Realizar Check-out</Text>
        </TouchableOpacity>
@@ -749,6 +913,62 @@ return (
               </View>
             </View>
           </Modal>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisibleCheckout}
+              onRequestClose={() => setModalVisibleCheckout(false)}
+            >
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+                <View style={{
+                  width: '85%',
+                  backgroundColor: '#fff',
+                  borderRadius: 20,
+                  padding: 24,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
+                  elevation: 5
+                }}>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
+                    ¿Deseas añadir una nota al salir?
+                  </Text>
+
+                  <TextInput
+                    placeholder="Ej. Salí antes por cita médica..."
+                    value={checkOutNote}
+                    onChangeText={setCheckOutNote}
+                    style={{
+                      height: 100,
+                      borderColor: '#ccc',
+                      borderWidth: 1,
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      textAlignVertical: 'top',
+                      marginBottom: 20
+                    }}
+                    multiline
+                  />
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <TouchableOpacity
+                      style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 10, flex: 1, marginRight: 8 }}
+                      onPress={() => setModalVisibleCheckout(false)}
+                    >
+                      <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={{ padding: 12, backgroundColor: '#34C759', borderRadius: 10, flex: 1, marginLeft: 8 }}
+                      onPress={handleConfirmCheckOut}
+                    >
+                      <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Confirmar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
 
 
 

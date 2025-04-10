@@ -1,7 +1,7 @@
 //const { MigrationInterface, QueryRunner } = require("typeorm");
 
-export class CreateDatabase1744202445533 {
-    name = 'CreateDatabase1744202445533'
+export class CreateDatabase1744305764732 {
+    name = 'CreateDatabase1744305764732'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "work_schedules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "month" integer NOT NULL, "year" integer NOT NULL, "employeeId" character varying(9), CONSTRAINT "PK_f5251879700e5ca0d2e353fa34f" PRIMARY KEY ("id"))`);
@@ -17,7 +17,7 @@ export class CreateDatabase1744202445533 {
         await queryRunner.query(`CREATE TABLE "facilities_types" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "type" character varying NOT NULL, CONSTRAINT "UQ_f6a961ddde95a1f374506d2a514" UNIQUE ("type"), CONSTRAINT "PK_b42e7752c62e1dba89f1f1fee68" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."employees_role_enum" AS ENUM('Boss', 'Lifeguard', 'Coordinator')`);
         await queryRunner.query(`CREATE TABLE "employees" ("id" character varying(9) NOT NULL, "name" character varying(100) NOT NULL, "role" "public"."employees_role_enum" NOT NULL, "email" character varying(100) NOT NULL, "password" character varying(255) NOT NULL, "birthdate" date, "phone_number" character varying(15), "hourlyRate" numeric(10,2) NOT NULL, "image" character varying, "hire_date" TIMESTAMP NOT NULL DEFAULT now(), "resetToken" character varying(255), CONSTRAINT "UQ_b9535a98350d5b26e7eb0c26af4" UNIQUE ("id"), CONSTRAINT "UQ_765bc1ac8967533a04c74a9f6af" UNIQUE ("email"), CONSTRAINT "UQ_027a331b2053bb37f39fb2704fb" UNIQUE ("phone_number"), CONSTRAINT "UQ_9920edfb66899c3062b046749c2" UNIQUE ("image"), CONSTRAINT "PK_b9535a98350d5b26e7eb0c26af4" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "attendances" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" date NOT NULL, "check_in" TIME, "check_out" TIME, "employee_id" character varying NOT NULL, "facility_id" uuid NOT NULL, "note" text NOT NULL, "status" character varying NOT NULL DEFAULT 'present', "absence_reason" character varying, "justified" boolean, "justification_url" text, CONSTRAINT "PK_483ed97cd4cd43ab4a117516b69" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "attendances" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" date NOT NULL, "check_in" TIME, "check_out" TIME, "employee_id" character varying NOT NULL, "facility_id" uuid NOT NULL, "note_in" text NOT NULL, "note_out" text NOT NULL, "status" character varying NOT NULL DEFAULT 'present', "absence_reason" character varying, "justified" boolean, "justification_url" text, CONSTRAINT "PK_483ed97cd4cd43ab4a117516b69" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "idx_attendance_employee" ON "attendances" ("employee_id") `);
         await queryRunner.query(`CREATE INDEX "idx_attendance_facility" ON "attendances" ("facility_id") `);
         await queryRunner.query(`ALTER TABLE "work_schedules" ADD CONSTRAINT "FK_a87dbb92dd7ca854dffdede9710" FOREIGN KEY ("employeeId") REFERENCES "employees"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);

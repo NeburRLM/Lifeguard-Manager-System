@@ -23,7 +23,7 @@ const Login = () => {
   const handleSubmit = async () => {
     setError('');
     try {
-      const response = await fetch('http://192.168.1.34:4000/login', {
+      const response = await fetch('http://192.168.1.34:4000/login_app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

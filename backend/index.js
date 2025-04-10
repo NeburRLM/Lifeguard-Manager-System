@@ -1820,7 +1820,7 @@ app.post('/attendance', uploadReport.single('justification'), async (req, res) =
       } else {
         console.log('⚠️ No se recibió archivo');
       }
-    const { employeeId, check_in, date, facilityId, note, status, absence_reason, justified } = req.body;
+    const { employeeId, check_in, date, facilityId, note_in, status, absence_reason, justified, note_out } = req.body;
 
     // Comprobar si falta algún dato importante
     if (!employeeId || !date || !facilityId) {
@@ -1875,7 +1875,8 @@ app.post('/attendance', uploadReport.single('justification'), async (req, res) =
             check_out: null,
             date,
             facility, // Asegúrate de asociar la instalación (facility)
-            note: note || "",
+            note_in: note_in || "",
+            note_out: note_out || "",
             status: status || "present",
             absence_reason: absence_reason || null,
             justified: justified ?? null,
@@ -1896,7 +1897,7 @@ app.post('/attendance', uploadReport.single('justification'), async (req, res) =
 
 app.put('/attendance/checkout', async (req, res) => {
     console.log("PUT /attendance/checkout -> Body recibido:", req.body);
-    const { employeeId, date, check_out } = req.body;
+    const { employeeId, date, check_out, status, note_out } = req.body;
 
     // Validación básica
     if (!employeeId || !date || !check_out) {
@@ -1921,6 +1922,13 @@ app.put('/attendance/checkout', async (req, res) => {
         }
 
         attendance.check_out = check_out;
+
+        if (status) {
+            attendance.status = status;
+        }
+        if (note_out) {
+            attendance.note_out = note_out;
+        }
 
         await attendanceRepository.save(attendance);
 
@@ -2222,6 +2230,8 @@ app.get('/attendance/:id', async (req, res) => {
             const absence_reason = attendance.absence_reason;
             const justified = attendance.justified;
             const justification_url = attendance.justification_url;
+            const note_in = attendance.note_in;
+            const note_out = attendance.note_out;
 
             return {
                 id: attendance.id,
@@ -2240,7 +2250,9 @@ app.get('/attendance/:id', async (req, res) => {
                 status: status,
                 absence_reason: absence_reason,
                 justified: justified,
-                justification_url: justification_url
+                justification_url: justification_url,
+                note_in: note_in,
+                note_out: note_out
             };
         });
 
@@ -2695,6 +2707,55 @@ app.post('/login', async (req, res) => {
         if (!process.env.JWT_SECRET_KEY) {
             return res.status(500).send("Se requiere una clave secreta para generar el token.");
         }
+
+        // Crear un token de sesión o JWT con el rol
+        const token = jwt.sign({ role: "Boss" }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+
+        return res.json({ Status: "Success", Token: token });
+
+    } catch (error) {
+        console.error("Error al autenticar al empleado:", error);
+        res.status(500).send("Error al autenticar al empleado.");
+    }
+});
+
+
+
+app.post('/login_app', async (req, res) => {
+    const { id, password } = req.body;
+
+    // Validar que se haya enviado id y password
+    if (!id || !password) {
+        return res.status(400).send("Id y contraseña son requeridos.");
+    }
+
+    try {
+        const employeeRepository = dataSource.getRepository(EmployeeSchema);
+
+        // Buscar al empleado por el DNI (id)
+        const employee = await employeeRepository.findOne({ where: { id } });
+
+        if (!employee) {
+            return res.status(404).send("Empleado no encontrado.");
+        }
+
+        // Verificar que la contraseña (DNI) proporcionada coincida con la almacenada (encriptada) usando bcrypt
+        const isPasswordValid = await bcrypt.compare(password, employee.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).send("Contraseña incorrecta.");
+        }
+
+        // Verificar que el rol del empleado sea "Boss"
+        if (employee.role !== "Boss") {
+            return res.status(403).send("No tienes acceso al sistema.");
+        }
+
+        // Verificar si la clave secreta está definida
+        if (!process.env.JWT_SECRET_KEY) {
+            return res.status(500).send("Se requiere una clave secreta para generar el token.");
+        }
+
 
         // Crear un token de sesión o JWT con el rol
         const token = jwt.sign({ role: "Boss" }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });

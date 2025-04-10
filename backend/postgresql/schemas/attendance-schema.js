@@ -29,9 +29,12 @@ export const AttendanceSchema = new EntitySchema({
             type: "varchar",  // Tipo de datos varchar
             nullable: false     // No puede ser nula
         },
-        note: {  // Columna que hace referencia a la nota que puede dejar el trabajador en referencia a su horario de entrada/salida
+        note_in: {  // Columna que hace referencia a la nota que puede dejar el trabajador en referencia a su horario de entrada/salida
             type: "text"
         },
+        note_out: {  // Columna que hace referencia a la nota que puede dejar el trabajador en referencia a su horario de entrada/salida
+                    type: "text"
+                },
                 status: {
                     type: "varchar",
                     nullable: false,
