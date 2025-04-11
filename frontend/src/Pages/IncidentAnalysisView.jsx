@@ -70,7 +70,6 @@ function IncidentAnalysisView() {
         const [isModalVisible, setIsModalVisible] = useState(false);
         const [activeTab, setActiveTab] = useState("1");
         const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
-        const [pieSelectedIncidentType, setPieSelectedIncidentType] = useState("all"); // Añadido
         const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
 
@@ -412,14 +411,18 @@ const handleLineChartClick = (e) => {
 
             // Filtramos los incidentes que ocurrieron en esa hora
             const incidentsAtSelectedHour = [
-                ...filteredIncidents.filter(incident => {
-                    const incidentDate = new Date(incident.date);
-                    return incidentDate.getHours().toString() === hour;
-                }),
-                ...comparisonFilteredIncidents.filter(incident => {
-                    const incidentDate = new Date(incident.date);
-                    return incidentDate.getHours().toString() === hour;
-                })
+                ...new Map(
+                    [
+                        ...filteredIncidents.filter(incident => {
+                            const incidentDate = new Date(incident.date);
+                            return incidentDate.getHours().toString() === hour;
+                        }),
+                        ...comparisonFilteredIncidents.filter(incident => {
+                            const incidentDate = new Date(incident.date);
+                            return incidentDate.getHours().toString() === hour;
+                        })
+                    ].map(incident => [incident.id, incident]) // Usa un identificador único (id) para evitar duplicados
+                ).values()
             ];
 
             setSelectedHourIncidents(incidentsAtSelectedHour); // Almacenamos los incidentes filtrados

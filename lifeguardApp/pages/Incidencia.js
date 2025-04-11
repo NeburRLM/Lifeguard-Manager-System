@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, ScrollView,
 import MapView, { Marker } from 'react-native-maps'; // Usamos react-native-maps
 import { AppState, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getCurrentDate = () => {
@@ -14,6 +15,8 @@ const Incidencia = () => {
   const [loading, setLoading] = useState(true);
     const [employeeName, setEmployeeName] = useState('');
     const [todaySchedule, setTodaySchedule] = useState(null);
+    const [incidentTypes, setIncidentTypes] = useState([]);
+    const [selectedTypeId, setSelectedTypeId] = useState('');
 
     const [formData, setFormData] = useState({
       type: '',
@@ -37,38 +40,45 @@ const Incidencia = () => {
     };
 
   useEffect(() => {
-      const fetchData = async () => {
+    const fetchData = async () => {
+      try {
         const userId = await AsyncStorage.getItem('userId');
+
         if (userId) {
-          try {
-            const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
-            const employee = await response.json();
-            setEmployeeName(employee.name);
+          const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const employee = await response.json();
+          setEmployeeName(employee.name);
 
-            const today = new Date();
-            const currentMonth = today.getMonth() + 1;
-            const currentYear = today.getFullYear();
+          const today = new Date();
+          const currentMonth = today.getMonth() + 1;
+          const currentYear = today.getFullYear();
 
-            const currentSchedule = employee.work_schedule?.find(
-              ws => ws.month === currentMonth && ws.year === currentYear
+          const currentSchedule = employee.work_schedule?.find(
+            ws => ws.month === currentMonth && ws.year === currentYear
+          );
+
+          if (currentSchedule) {
+            const todayData = currentSchedule.schedules.find(
+              s => s.date === getCurrentDate()
             );
-
-            if (currentSchedule) {
-              const todayData = currentSchedule.schedules.find(
-                s => s.date === getCurrentDate()
-              );
-              setTodaySchedule(todayData);
-            }
-          } catch (error) {
-            console.error('Error al cargar datos del empleado:', error);
-          } finally {
-            setLoading(false);
+            setTodaySchedule(todayData);
           }
         }
-      };
 
-      fetchData();
-    }, []);
+        const resTypes = await fetch('http://192.168.1.34:4000/incident-types');
+        const typesData = await resTypes.json();
+        setIncidentTypes(typesData);
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
 
     useFocusEffect(
@@ -88,6 +98,7 @@ const Incidencia = () => {
             latitude: '',
             longitude: '',
           });
+          setSelectedTypeId('');
         };
       }, [])
     );
@@ -107,6 +118,8 @@ const Incidencia = () => {
           return;
         }
 
+   console.log(todaySchedule)
+
    const required = ['type', 'description', 'firstName', 'lastName', 'dni', 'age', 'latitude', 'longitude'];
        const missing = required.filter(field => !formData[field]);
        if (missing.length > 0) {
@@ -117,9 +130,18 @@ const Incidencia = () => {
 
     const body = {
          ...formData,
+         type: formData.type,
+         description: formData.description,
          facilityId: todaySchedule.facilityId,
          reportedById: userId,
+         firstName: formData.firstName,
+         lastName: formData.lastName,
+         dni: formData.dni,
          age: parseInt(formData.age),
+         cityOfOrigin: formData.cityOfOrigin,
+         countryOfOrigin: formData.countryOfOrigin,
+         gender: formData.gender,
+         language: formData.language,
          latitude: parseFloat(formData.latitude),
          longitude: parseFloat(formData.longitude),
        };
@@ -130,10 +152,10 @@ const Incidencia = () => {
       return;
     }
     // Aquí puedes enviar los datos del formulario
-        console.log('Formulario enviado con la ubicación:', formData);
-        Alert.alert('Formulario enviado exitosamente');
+        //console.log('Formulario enviado con la ubicación:', formData);
+        //Alert.alert('Formulario enviado exitosamente');
      try {
-          const res = await fetch('http://192.168.1.34:4000/incidencias', {
+          const res = await fetch('http://192.168.1.34:4000/incident', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -155,6 +177,7 @@ const Incidencia = () => {
               latitude: '',
               longitude: '',
             });
+            setSelectedTypeId('');
           } else {
             Alert.alert('Error al enviar la incidencia');
           }
@@ -195,105 +218,117 @@ const Incidencia = () => {
 
 
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>📋 Reportar Incidencia</Text>
-      <Text style={styles.label}>Empleado: {employeeName}</Text>
+return (
+  <ScrollView contentContainerStyle={styles.container}>
+    <Text style={styles.title}>📋 Reportar Incidencia</Text>
+    <Text style={styles.label}>Empleado: {employeeName}</Text>
 
-      {todaySchedule ? (
-              <Text style={styles.label}>Turno en: {todaySchedule.facilityName}</Text>
-            ) : (
-              <Text style={styles.noSchedule}>No tienes turno asignado hoy.</Text>
+    {todaySchedule ? (
+      <Text style={styles.label}>Turno en: {todaySchedule.facilityName}</Text>
+    ) : (
+      <Text style={styles.noSchedule}>No tienes turno asignado hoy.</Text>
+    )}
+
+    {/* Campos del formulario */}
+    <>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedTypeId}
+          onValueChange={(itemValue) => {
+            setSelectedTypeId(itemValue);
+            const selected = incidentTypes.find(t => t.id === itemValue);
+            handleChange('type', selected?.type || '');
+          }}
+          style={styles.picker}
+        >
+          <Picker.Item label="Selecciona el tipo de incid..." value="" />
+          {incidentTypes.map((item) => (
+            <Picker.Item key={item.id} label={item.type} value={item.id} />
+          ))}
+        </Picker>
+      </View>
+
+      {[
+        ['description', 'Descripción *'],
+        ['firstName', 'Nombre del afectado *'],
+        ['lastName', 'Apellidos del afectado *'],
+        ['dni', 'DNI del afectado *'],
+        ['age', 'Edad *'],
+        ['cityOfOrigin', 'Ciudad de origen'],
+        ['countryOfOrigin', 'País de origen'],
+        ['gender', 'Género (M/F/Otro)'],
+        ['language', 'Idioma'],
+      ].map(([field, label]) => (
+        <TextInput
+          key={field}
+          placeholder={label}
+          style={styles.input}
+          value={formData[field]}
+          onChangeText={text => handleChange(field, text)}
+        />
+      ))}
+    </>
+
+    {/* Botón para abrir el modal con el mapa */}
+    <TouchableOpacity style={styles.selectLocationButton} onPress={() => setModalVisible(true)}>
+      <Text style={styles.buttonText}>📍 Seleccionar Ubicación</Text>
+    </TouchableOpacity>
+
+    <TextInput
+      placeholder="Latitud *"
+      style={styles.input}
+      value={formData.latitude ? formData.latitude.toString() : ''}
+      editable={false}
+    />
+
+    <TextInput
+      placeholder="Longitud *"
+      style={styles.input}
+      value={formData.longitude ? formData.longitude.toString() : ''}
+      editable={false}
+    />
+
+    {/* Botón para enviar el formulario */}
+    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+      <Text style={styles.buttonText}>🚨 Enviar Incidencia</Text>
+    </TouchableOpacity>
+
+    {/* Modal con el mapa */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: todaySchedule.facility.latitude,
+              longitude: todaySchedule.facility.longitude,
+              latitudeDelta: 0.005,
+              longitudeDelta: 0.005,
+            }}
+            onPress={handleMapPress}
+          >
+            {formData.latitude && formData.longitude && (
+              <Marker
+                coordinate={{ latitude: formData.latitude, longitude: formData.longitude }}
+                title="Ubicación seleccionada"
+              />
             )}
+          </MapView>
 
-            {/* Campos del formulario */}
-            {[
-              ['type', 'Tipo de incidencia *'],
-              ['description', 'Descripción *'],
-              ['firstName', 'Nombre del afectado *'],
-              ['lastName', 'Apellidos del afectado *'],
-              ['dni', 'DNI del afectado *'],
-              ['age', 'Edad *'],
-              ['cityOfOrigin', 'Ciudad de origen'],
-              ['countryOfOrigin', 'País de origen'],
-              ['gender', 'Género (M/F/Otro)'],
-              ['language', 'Idioma'],
-            ].map(([field, label]) => (
-                    <TextInput
-                      key={field}
-                      placeholder={label}
-                      style={styles.input}
-                      value={formData[field]}
-                      onChangeText={text => handleChange(field, text)}
-                    />
-                  ))}
-
-
-
-
-
-            {/* Botón para abrir el modal con el mapa */}
-            <TouchableOpacity style={styles.selectLocationButton} onPress={() => setModalVisible(true)}>
-              <Text style={styles.buttonText}>📍 Seleccionar Ubicación</Text>
-            </TouchableOpacity>
-
-      <TextInput
-        placeholder="Latitud *"
-        style={styles.input}
-        value={formData.latitude ? formData.latitude.toString() : ''}
-        editable={false}
-      />
-
-      <TextInput
-        placeholder="Longitud *"
-        style={styles.input}
-        value={formData.longitude ? formData.longitude.toString() : ''}
-        editable={false}
-      />
-
-
-
-      {/* Botón para enviar el formulario */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>🚨 Enviar Incidencia</Text>
-      </TouchableOpacity>
-
-      {/* Modal con el mapa */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: 37.7749,
-                longitude: -122.4194,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              onPress={handleMapPress}
-            >
-              {formData.latitude && formData.longitude && (
-                <Marker
-                  coordinate={{ latitude: formData.latitude, longitude: formData.longitude }}
-                  title="Ubicación seleccionada"
-                />
-              )}
-            </MapView>
-
-            {/* Botón para cerrar el modal */}
-            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
-              <Text style={styles.buttonText}>Cerrar Mapa</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Botón para cerrar el modal */}
+          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
+            <Text style={styles.buttonText}>Cerrar Mapa</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </ScrollView>
-  );
+      </View>
+    </Modal>
+  </ScrollView>
+);
 };
 
 const styles = StyleSheet.create({
@@ -333,6 +368,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderColor: '#cfd8dc',
+    borderWidth: 1,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   selectLocationButton: {
     backgroundColor: '#4caf50',
