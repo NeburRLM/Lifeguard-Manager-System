@@ -93,8 +93,13 @@ const Fichar = () => {
   useEffect(() => {
     const restoreCheckStatusForNextDay = async () => {
       const today = new Date().toISOString().split('T')[0]; // Obtener la fecha de hoy (YYYY-MM-DD)
+      const notificationSentKey = `notificationSent-${todayDate}`;
+      const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
+
       const storedCheckInDate = await AsyncStorage.getItem('checkInDate');
       const storedCheckOutDate = await AsyncStorage.getItem('checkOutDate');
+      const alreadyNotified = await AsyncStorage.getItem('notificationSentKey'); // Verifica si ya se envió la notificación
+      const alreadyMarked = await AsyncStorage.getItem('statusMarkedKey'); // Verifica si ya se marcó el estado
 
       // Restablecer el estado de check-in y check-out solo si el día de hoy es diferente
       if (storedCheckInDate !== today) {
@@ -103,6 +108,17 @@ const Fichar = () => {
       if (storedCheckOutDate !== today) {
         setHasCheckedOut(false);
       }
+      // Restablecer el estado de notificación solo si el día de hoy es diferente
+          if (alreadyNotified !== today) {
+            console.log("Restableciendo notificación a false");
+            await AsyncStorage.setItem(notificationSentKey, 'false'); // Guardar como cadena "false"
+          }
+
+          // Restablecer el estado de marcado solo si el día de hoy es diferente
+          if (alreadyMarked !== today) {
+            console.log("Restableciendo marcado a false");
+            await AsyncStorage.setItem(statusMarkedKey, 'false'); // Guardar como cadena "false"
+          }
     };
 
     restoreCheckStatusForNextDay();
