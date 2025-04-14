@@ -225,7 +225,8 @@ app.get('/employee/:id', async (req, res) => {
 app.put('/employee/change-password/:id', async (req, res) => {
     const { id } = req.params; // Obtener el ID del empleado de la URL
     const { currentPassword, newPassword } = req.body; // Obtener la contraseña actual y nueva del cuerpo de la solicitud
-
+    console.log(currentPassword)
+    console.log(newPassword)
     try {
         // Buscar al empleado por su ID
         const employee = await dataSource.getRepository(EmployeeSchema)

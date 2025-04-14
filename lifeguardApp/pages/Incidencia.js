@@ -120,7 +120,7 @@ const Incidencia = () => {
 
    console.log(todaySchedule)
 
-   const required = ['type', 'description', 'firstName', 'lastName', 'dni', 'age', 'latitude', 'longitude'];
+   const required = ['type', 'description', 'firstName', 'lastName', 'dni', 'age', 'cityOfOrigin', 'countryOfOrigin', 'gender', 'language', 'latitude', 'longitude'];
        const missing = required.filter(field => !formData[field]);
        if (missing.length > 0) {
          Alert.alert('Faltan campos obligatorios:', missing.join(', '));
@@ -254,10 +254,10 @@ return (
         ['lastName', 'Apellidos del afectado *'],
         ['dni', 'DNI del afectado *'],
         ['age', 'Edad *'],
-        ['cityOfOrigin', 'Ciudad de origen'],
-        ['countryOfOrigin', 'País de origen'],
-        ['gender', 'Género (M/F/Otro)'],
-        ['language', 'Idioma'],
+        ['cityOfOrigin', 'Ciudad de origen *'],
+        ['countryOfOrigin', 'País de origen *'],
+        ['gender', 'Género (M/F/Otro) *'],
+        ['language', 'Idioma *'],
       ].map(([field, label]) => (
         <TextInput
           key={field}

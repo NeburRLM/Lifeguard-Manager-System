@@ -12,7 +12,6 @@ import CustomDrawerContent from './CustomDrawerContent';
 const Drawer = createDrawerNavigator();
 
 const DashboardScreen = () => <ScreenWrapper><Dashboard /></ScreenWrapper>;
-const ProfileScreen = () => <ScreenWrapper><Profile /></ScreenWrapper>;
 const FicharScreen = () => <ScreenWrapper><Fichar /></ScreenWrapper>;
 const CuadranteScreen = () => <ScreenWrapper><Cuadrante /></ScreenWrapper>;
 const IncidenciaScreen = () => <ScreenWrapper><Incidencia /></ScreenWrapper>;
