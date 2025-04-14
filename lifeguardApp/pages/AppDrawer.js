@@ -16,6 +16,7 @@ const FicharScreen = () => <ScreenWrapper><Fichar /></ScreenWrapper>;
 const CuadranteScreen = () => <ScreenWrapper><Cuadrante /></ScreenWrapper>;
 const IncidenciaScreen = () => <ScreenWrapper><Incidencia /></ScreenWrapper>;
 const NominaScreen = () => <ScreenWrapper><Nomina /></ScreenWrapper>;
+const ProfileScreen = () => <ScreenWrapper><Profile /></ScreenWrapper>;
 
 export default function AppDrawer() {
   return (
@@ -31,6 +32,12 @@ export default function AppDrawer() {
       <Drawer.Screen name="Fichar" component={FicharScreen} />
       <Drawer.Screen name="Incidencia" component={IncidenciaScreen} />
       <Drawer.Screen name="Nómina" component={NominaScreen} />
+      <Drawer.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+
     </Drawer.Navigator>
   );
 }
