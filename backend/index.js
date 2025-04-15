@@ -29,7 +29,7 @@ const port = 4000
 
 app.use(cookieParser())     // Configura el middleware para parsear cookies
 dotenv.config();    // Configura dotenv para cargar variables de entorno desde un archivo '.env' (token)
-
+app.use(express.urlencoded({ extended: true }));
 // Asignación de las variables __filename y __dirname necesarias para trabajar con rutas absolutas en módulos ECMAScript
 const __filename = fileURLToPath(import.meta.url);  // Convierte la URL del módulo actual a un path de archivo
 const __dirname = path.dirname(__filename); // Obtiene el directorio de trabajo desde __filename
@@ -2571,7 +2571,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-sgMail.setApiKey('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');
+sgMail.setApiKey('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');
 
 
 
@@ -2644,6 +2644,7 @@ async function sendPasswordResetEmail(email, resetToken) {
 
 app.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
+  console.log("Body recibido:", req.body);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -2668,6 +2669,280 @@ app.get('/reset-password', (req, res) => {
   const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
   res.redirect(resetUrl);
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function generateResetTokenApp(userId) {
+  const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET_KEY, { expiresIn: '30m' });
+  return resetToken;
+}
+
+app.post('/employee/forgot-passwordApp', async (req, res) => {
+  const { email } = req.body;
+  const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
+
+  if (!employee) {
+    return res.status(404).json({ message: 'No user found with this email.' });
+  }
+
+  const resetToken = generateResetTokenApp(employee.id);
+  employee.resetToken = resetToken; // Almacenar el token en la base de datos
+  await dataSource.getRepository(EmployeeSchema).save(employee);
+  await sendPasswordResetEmailApp(employee.email, resetToken);
+
+  res.json({ message: 'An email with password reset instructions has been sent.' });
+});
+
+async function sendPasswordResetEmailApp(email, resetToken) {
+  const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}`;
+
+  const msg = {
+    to: email,
+    from: 'lifeguardtfg@gmail.com',
+    subject: 'Restablecer tu contraseña',
+    text: `
+        Hola,
+
+        Hemos recibido una solicitud para restablecer tu contraseña.
+
+        Para continuar con el proceso, haz clic en el siguiente enlace:
+
+        ${resetUrl}
+
+        Si no has solicitado este cambio, puedes ignorar este mensaje.
+
+        Este enlace expirará en 30 minutos.
+
+        Saludos,
+        El equipo de Lifeguard S.L.
+      `,
+    html: `
+        <p>Hola,</p>
+        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+        <p>Para continuar con el proceso, haz clic en el siguiente enlace:</p>
+        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">Restablecer contraseña</a></p>
+        <p>Si no has solicitado este cambio, puedes ignorar este mensaje.</p>
+        <p><strong>Este enlace expirará en 30 minutos.</strong></p>
+        <br>
+        <p>Saludos,</p>
+        <p><strong>El equipo de Lifeguard S.L.</strong></p>
+      `,
+  };
+
+  try {
+    await sgMail.send(msg);
+    console.log('Correo enviado con éxito');
+  } catch (error) {
+    console.error('Error al enviar el correo:', error.response.body);
+  }
+}
+
+app.post('/reset-passwordApp', async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await dataSource.getRepository(EmployeeSchema).findOne({ where: { id: decoded.userId } });
+
+    if (!user || user.resetToken !== token) {
+      return res.status(400).send('Token inválido o expirado.');
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetToken = null;
+    await dataSource.getRepository(EmployeeSchema).save(user);
+
+    res.send('Contraseña actualizada con éxito.');
+  } catch (error) {
+    console.error("Error al verificar token:", error);
+    return res.status(400).send('Token inválido o expirado.');
+  }
+});
+
+
+
+app.get('/reset-passwordApp', (req, res) => {
+  const token = req.query.token;
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Restablecer contraseña</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f0f4f8;
+          }
+          .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+          }
+          h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+          }
+          input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+          }
+          button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            margin-top: 15px;
+            cursor: pointer;
+          }
+          .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+          }
+          .rules {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+          }
+          .success {
+            color: green;
+            text-align: center;
+            margin-top: 15px;
+          }
+          .loader {
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Restablecer tu contraseña</h2>
+          <form id="resetForm">
+            <input type="hidden" name="token" value="${token}" />
+            <input type="password" name="password" id="password" placeholder="Nueva contraseña" required />
+            <div class="error" id="passwordError"></div>
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Repite la contraseña" required />
+            <div class="error" id="confirmError"></div>
+            <button type="submit">Cambiar contraseña</button>
+          </form>
+          <div class="rules">
+            • Mínimo 6 caracteres<br/>
+            • Al menos 1 letra<br/>
+            • Al menos 1 número
+          </div>
+          <div class="success" id="successMsg"></div>
+          <div class="loader" id="loader"></div>
+        </div>
+
+        <script>
+          const form = document.getElementById('resetForm');
+          const password = document.getElementById('password');
+          const confirmPassword = document.getElementById('confirmPassword');
+          const passwordError = document.getElementById('passwordError');
+          const confirmError = document.getElementById('confirmError');
+          const successMsg = document.getElementById('successMsg');
+          const loader = document.getElementById('loader');
+
+          const validate = () => {
+            let errors = 0;
+            passwordError.textContent = '';
+            confirmError.textContent = '';
+
+            const pwd = password.value;
+            const confirm = confirmPassword.value;
+
+            if (pwd.length < 6) {
+              passwordError.textContent = 'Debe tener al menos 6 caracteres.';
+              errors++;
+            } else if (!/[a-zA-Z]/.test(pwd)) {
+              passwordError.textContent = 'Debe incluir al menos una letra.';
+              errors++;
+            } else if (!/[0-9]/.test(pwd)) {
+              passwordError.textContent = 'Debe incluir al menos un número.';
+              errors++;
+            }
+
+            if (pwd !== confirm) {
+              confirmError.textContent = 'Las contraseñas no coinciden.';
+              errors++;
+            }
+
+            return errors === 0;
+          };
+
+          password.addEventListener('input', validate);
+          confirmPassword.addEventListener('input', validate);
+
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!validate()) return;
+
+            const token = form.token.value;
+            const newPassword = password.value;
+
+            try {
+              const res = await fetch('/reset-passwordApp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password: newPassword })
+              });
+
+              const text = await res.text();
+              if (res.ok) {
+                successMsg.textContent = text;
+                form.style.display = 'none';
+                loader.style.display = 'block';
+
+                setTimeout(() => {
+                  window.location.href = 'exp://192.168.1.34:8081';
+                }, 3000);
+              } else {
+                successMsg.style.color = 'red';
+                successMsg.textContent = text;
+              }
+            } catch (err) {
+              successMsg.style.color = 'red';
+              successMsg.textContent = 'Error al enviar la solicitud.';
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `);
+});
+
+
 
 
 
