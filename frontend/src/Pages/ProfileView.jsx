@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaSave, FaTimes, FaKey } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
 import "./ProfileView.css";
 
 function ProfileView() {
@@ -10,6 +10,10 @@ function ProfileView() {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
     const [error, setError] = useState("");
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
@@ -256,19 +260,68 @@ function ProfileView() {
                  {error && <p className="error-textP">{error}</p>}
                  <div className="input-groupP">
                    <label htmlFor="currentPassword">Contraseña actual</label>
-                   <input type="password" name="currentPassword" placeholder="Contraseña actual" value={passwordData.currentPassword} onChange={handlePasswordChange} />
+                   <div className="password-input-wrapper">
+                     <input
+                       type={showCurrentPassword ? "text" : "password"}
+                       name="currentPassword"
+                       placeholder="Contraseña actual"
+                       value={passwordData.currentPassword}
+                       onChange={handlePasswordChange}
+                     />
+                     <button
+                       type="button"
+                       className="toggle-password"
+                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                     >
+                       {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                     </button>
+                   </div>
                  </div>
                  <div className="input-groupP">
                    <label htmlFor="newPassword">Nueva contraseña</label>
-                   <input type="password" name="newPassword" placeholder="Nueva contraseña" value={passwordData.newPassword} onChange={handlePasswordChange} />
+                   <div className="password-input-wrapper">
+                     <input
+                       type={showNewPassword ? "text" : "password"}
+                       name="newPassword"
+                       placeholder="Nueva contraseña"
+                       value={passwordData.newPassword}
+                       onChange={handlePasswordChange}
+                     />
+                     <button
+                       type="button"
+                       className="toggle-password"
+                       onClick={() => setShowNewPassword(!showNewPassword)}
+                     >
+                       {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                     </button>
+                   </div>
                  </div>
                  <div className="input-groupP">
                    <label htmlFor="confirmNewPassword">Confirmar nueva contraseña</label>
-                   <input type="password" name="confirmNewPassword" placeholder="Confirmar nueva contraseña" value={passwordData.confirmNewPassword} onChange={handlePasswordChange} />
+                   <div className="password-input-wrapper">
+                     <input
+                       type={showConfirmNewPassword ? "text" : "password"}
+                       name="confirmNewPassword"
+                       placeholder="Confirmar nueva contraseña"
+                       value={passwordData.confirmNewPassword}
+                       onChange={handlePasswordChange}
+                     />
+                     <button
+                       type="button"
+                       className="toggle-password"
+                       onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                     >
+                       {showConfirmNewPassword ? <FaEyeSlash /> : <FaEye />}
+                     </button>
+                   </div>
                  </div>
                  <div className="modal-buttonsP">
-                   <button className="saveProfile-btn" onClick={handleChangePassword}><FaSave /> Guardar</button>
-                   <button className="cancelProfile-btn" onClick={handleCancelPasswordModal}><FaTimes /> Cancelar</button>
+                   <button className="saveProfile-btn" onClick={handleChangePassword}>
+                     <FaSave /> Guardar
+                   </button>
+                   <button className="cancelProfile-btn" onClick={handleCancelPasswordModal}>
+                     <FaTimes /> Cancelar
+                   </button>
                  </div>
                </div>
              </div>

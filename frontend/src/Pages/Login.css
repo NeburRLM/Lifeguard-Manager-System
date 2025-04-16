@@ -96,3 +96,44 @@ body {
 .register-link:hover {
   text-decoration: underline;
 }
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding: 0.75rem;
+  padding-right: 2.5rem; /* espacio para el icono */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  height: 100%;
+}
+
+.toggle-password:hover {
+  color: #007bff;
+}
+
+.dni-input {
+  padding-right: 2.5rem; /* Igual que el input con el icono */
+  box-sizing: border-box;
+}
+

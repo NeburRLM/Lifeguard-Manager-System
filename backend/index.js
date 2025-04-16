@@ -2571,7 +2571,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-sgMail.setApiKey('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');
+sgMail.setApiKey('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');
 
 
 
@@ -3024,7 +3024,7 @@ app.post('/login', async (req, res) => {
 
     // Validar que se haya enviado id y password
     if (!id || !password) {
-        return res.status(400).send("Id y contraseña son requeridos.");
+        return res.status(400).json({ message: "Id y contraseña son requeridos." });
     }
 
     try {
@@ -3034,24 +3034,24 @@ app.post('/login', async (req, res) => {
         const employee = await employeeRepository.findOne({ where: { id } });
 
         if (!employee) {
-            return res.status(404).send("Empleado no encontrado.");
+            return res.status(404).json({ message: "Empleado no encontrado." });
         }
 
         // Verificar que la contraseña (DNI) proporcionada coincida con la almacenada (encriptada) usando bcrypt
         const isPasswordValid = await bcrypt.compare(password, employee.password);
 
         if (!isPasswordValid) {
-            return res.status(401).send("Contraseña incorrecta.");
+            return res.status(401).json({ message: "Error, la contraseña no es correcta." });
         }
 
         // Verificar que el rol del empleado sea "Boss"
         if (employee.role !== "Boss") {
-            return res.status(403).send("No tienes acceso al sistema.");
+            return res.status(403).json({ message: "No tienes acceso al sistema." });
         }
 
         // Verificar si la clave secreta está definida
         if (!process.env.JWT_SECRET_KEY) {
-            return res.status(500).send("Se requiere una clave secreta para generar el token.");
+            return res.status(500).json({ message: "Se requiere una clave secreta para generar el token." });
         }
 
         // Crear un token de sesión o JWT con el rol
@@ -3061,7 +3061,7 @@ app.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error("Error al autenticar al empleado:", error);
-        res.status(500).send("Error al autenticar al empleado.");
+        res.status(500).json({ message: "Error al autenticar al empleado." });
     }
 });
 

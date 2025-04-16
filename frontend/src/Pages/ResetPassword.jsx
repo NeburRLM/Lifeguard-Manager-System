@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
 
@@ -7,6 +8,8 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Estado para el indicador de carga
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar u ocultar la contraseña
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para mostrar u ocultar la confirmación de contraseña
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
@@ -61,24 +64,36 @@ const ResetPassword = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="reset-password-formR">
-            <input
-              type="password"
-              placeholder="Nueva contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Confirmar contraseña"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <button type="submit" className="reset-buttonR">
-              Cambiar contraseña
-            </button>
-          </form>
+                      <div className="input-groupR">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Nueva contraseña"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+                        <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                      </div>
+
+                      <div className="input-groupR">
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="Confirmar contraseña"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                        <span className="eye-icon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                      </div>
+
+                      <button type="submit" className="reset-buttonR">
+                        Cambiar contraseña
+                      </button>
+                    </form>
         )}
         {message && <p className="messageR">{message}</p>}
       </div>
