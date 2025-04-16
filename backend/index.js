@@ -2571,7 +2571,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-sgMail.setApiKey('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');
+sgMail.setApiKey('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');
 
 
 
@@ -2680,15 +2680,18 @@ function generateResetTokenApp(userId) {
 
 app.post('/employee/forgot-passwordApp', async (req, res) => {
   const { email } = req.body;
-  const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
+  const employeeRepository = dataSource.getRepository(EmployeeSchema);
+  const employee = await employeeRepository.findOne({ where: { email } });
 
   if (!employee) {
     return res.status(404).json({ message: 'No user found with this email.' });
   }
 
+  employee.resetToken = null;
+  await employeeRepository.save(employee);
   const resetToken = generateResetTokenApp(employee.id);
   employee.resetToken = resetToken; // Almacenar el token en la base de datos
-  await dataSource.getRepository(EmployeeSchema).save(employee);
+  await employeeRepository.save(employee);
   await sendPasswordResetEmailApp(employee.email, resetToken);
 
   res.json({ message: 'An email with password reset instructions has been sent.' });
@@ -2741,24 +2744,27 @@ async function sendPasswordResetEmailApp(email, resetToken) {
 app.post('/reset-passwordApp', async (req, res) => {
   const { token, password } = req.body;
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await dataSource.getRepository(EmployeeSchema).findOne({ where: { id: decoded.userId } });
-
-    if (!user || user.resetToken !== token) {
-      return res.status(400).send('Token inválido o expirado.');
-    }
-
-    user.password = await bcrypt.hash(password, 10);
-    user.resetToken = null;
-    await dataSource.getRepository(EmployeeSchema).save(user);
-
-    res.send('Contraseña actualizada con éxito.');
-  } catch (error) {
-    console.error("Error al verificar token:", error);
+    decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  } catch (err) {
     return res.status(400).send('Token inválido o expirado.');
   }
+
+  const employeeRepository = dataSource.getRepository(EmployeeSchema);
+  const user = await employeeRepository.findOne({ where: { id: decoded.userId } });
+
+  if (!user || user.resetToken !== token) {
+    return res.status(400).send('Token inválido o ya ha sido usado.');
+  }
+
+  user.password = await bcrypt.hash(password, 10);
+  user.resetToken = null; // Invalida el token tras uso
+  await employeeRepository.save(user);
+
+  res.send('Contraseña actualizada con éxito.');
 });
+
 
 
 
@@ -2768,179 +2774,243 @@ app.get('/reset-passwordApp', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Restablecer contraseña</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background: #f0f4f8;
-          }
-          .container {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
-          }
-          h2 {
-            text-align: center;
-            margin-bottom: 1.5rem;
-          }
-          input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-          }
-          button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 16px;
-            margin-top: 15px;
-            cursor: pointer;
-          }
-          .error {
-            color: red;
-            font-size: 14px;
-            margin-top: 5px;
-          }
-          .rules {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-          }
-          .success {
-            color: green;
-            text-align: center;
-            margin-top: 15px;
-          }
-          .loader {
-            margin: 20px auto;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            display: none;
-          }
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h2>Restablecer tu contraseña</h2>
-          <form id="resetForm">
-            <input type="hidden" name="token" value="${token}" />
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>Restablecer contraseña</title>
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          background: #f0f4f8;
+        }
+        .container {
+          background: #fff;
+          padding: 2rem;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          width: 100%;
+          max-width: 400px;
+        }
+        h2 {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+        .input-group {
+          position: relative;
+          margin-top: 1rem;
+        }
+        .input-group input {
+          width: 100%;
+          padding: 12px 42px 12px 12px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 16px;
+        }
+        .toggle-password {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+          align-items: center;
+        }
+        .toggle-password svg {
+          width: 20px;
+          height: 20px;
+          color: #666;
+        }
+        button[type="submit"] {
+          width: 100%;
+          padding: 12px;
+          background-color: #007bff;
+          border: none;
+          border-radius: 8px;
+          color: white;
+          font-size: 16px;
+          margin-top: 20px;
+          cursor: pointer;
+        }
+        .error {
+          color: red;
+          font-size: 14px;
+          margin-top: 5px;
+        }
+        .rules {
+          margin-top: 15px;
+          font-size: 14px;
+          color: #555;
+        }
+        .success {
+          color: green;
+          text-align: center;
+          margin-top: 15px;
+        }
+        .loader {
+          margin: 20px auto;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #007bff;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          display: none;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Restablecer tu contraseña</h2>
+        <form id="resetForm">
+          <input type="hidden" name="token" value="${token}" />
+
+          <div class="input-group">
             <input type="password" name="password" id="password" placeholder="Nueva contraseña" required />
-            <div class="error" id="passwordError"></div>
-            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Repite la contraseña" required />
-            <div class="error" id="confirmError"></div>
-            <button type="submit">Cambiar contraseña</button>
-          </form>
-          <div class="rules">
-            • Mínimo 6 caracteres<br/>
-            • Al menos 1 letra<br/>
-            • Al menos 1 número
+            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+              <svg id="eye-password" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
           </div>
-          <div class="success" id="successMsg"></div>
-          <div class="loader" id="loader"></div>
+          <div class="error" id="passwordError"></div>
+
+          <div class="input-group">
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Repite la contraseña" required />
+            <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)">
+              <svg id="eye-confirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+          <div class="error" id="confirmError"></div>
+
+          <button type="submit">Cambiar contraseña</button>
+        </form>
+
+        <div class="rules">
+          • Mínimo 6 caracteres<br/>
+          • Al menos 1 letra<br/>
+          • Al menos 1 número
         </div>
+        <div class="success" id="successMsg"></div>
+        <div class="loader" id="loader"></div>
+      </div>
 
-        <script>
-          const form = document.getElementById('resetForm');
-          const password = document.getElementById('password');
-          const confirmPassword = document.getElementById('confirmPassword');
-          const passwordError = document.getElementById('passwordError');
-          const confirmError = document.getElementById('confirmError');
-          const successMsg = document.getElementById('successMsg');
-          const loader = document.getElementById('loader');
+      <script>
+        const form = document.getElementById('resetForm');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const passwordError = document.getElementById('passwordError');
+        const confirmError = document.getElementById('confirmError');
+        const successMsg = document.getElementById('successMsg');
+        const loader = document.getElementById('loader');
 
-          const validate = () => {
-            let errors = 0;
-            passwordError.textContent = '';
-            confirmError.textContent = '';
+        function togglePassword(inputId, btn) {
+          const input = document.getElementById(inputId);
+          const svg = btn.querySelector('svg');
+          const isVisible = input.type === 'text';
+          input.type = isVisible ? 'password' : 'text';
 
-            const pwd = password.value;
-            const confirm = confirmPassword.value;
+          svg.innerHTML = isVisible
+            ? \`
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />\`
+            : \`
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.957 9.957 0 012.457-3.568M6.177 6.177A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.106 5.107M3 3l18 18" />\`;
+        }
 
-            if (pwd.length < 6) {
-              passwordError.textContent = 'Debe tener al menos 6 caracteres.';
-              errors++;
-            } else if (!/[a-zA-Z]/.test(pwd)) {
-              passwordError.textContent = 'Debe incluir al menos una letra.';
-              errors++;
-            } else if (!/[0-9]/.test(pwd)) {
-              passwordError.textContent = 'Debe incluir al menos un número.';
-              errors++;
-            }
+        const validate = () => {
+          let errors = 0;
+          passwordError.textContent = '';
+          confirmError.textContent = '';
 
-            if (pwd !== confirm) {
-              confirmError.textContent = 'Las contraseñas no coinciden.';
-              errors++;
-            }
+          const pwd = password.value;
+          const confirm = confirmPassword.value;
 
-            return errors === 0;
-          };
+          if (pwd.length < 6) {
+            passwordError.textContent = 'Debe tener al menos 6 caracteres.';
+            errors++;
+          } else if (!/[a-zA-Z]/.test(pwd)) {
+            passwordError.textContent = 'Debe incluir al menos una letra.';
+            errors++;
+          } else if (!/[0-9]/.test(pwd)) {
+            passwordError.textContent = 'Debe incluir al menos un número.';
+            errors++;
+          }
 
-          password.addEventListener('input', validate);
-          confirmPassword.addEventListener('input', validate);
+          if (pwd !== confirm) {
+            confirmError.textContent = 'Las contraseñas no coinciden.';
+            errors++;
+          }
 
-          form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+          return errors === 0;
+        };
 
-            if (!validate()) return;
+        password.addEventListener('input', validate);
+        confirmPassword.addEventListener('input', validate);
 
-            const token = form.token.value;
-            const newPassword = password.value;
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!validate()) return;
 
-            try {
-              const res = await fetch('/reset-passwordApp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, password: newPassword })
-              });
+          const token = form.token.value;
+          const newPassword = password.value;
 
-              const text = await res.text();
-              if (res.ok) {
-                successMsg.textContent = text;
-                form.style.display = 'none';
-                loader.style.display = 'block';
+          try {
+            const res = await fetch('/reset-passwordApp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token, password: newPassword })
+            });
 
-                setTimeout(() => {
-                  window.location.href = 'exp://192.168.1.34:8081';
-                }, 3000);
-              } else {
-                successMsg.style.color = 'red';
-                successMsg.textContent = text;
-              }
-            } catch (err) {
+            const text = await res.text();
+            if (res.ok) {
+              successMsg.textContent = text;
+              form.style.display = 'none';
+              loader.style.display = 'block';
+              setTimeout(() => {
+                window.location.href = 'exp://192.168.1.34:8081';
+              }, 3000);
+            } else {
               successMsg.style.color = 'red';
-              successMsg.textContent = 'Error al enviar la solicitud.';
+              successMsg.textContent = text;
             }
-          });
-        </script>
-      </body>
+          } catch (err) {
+            successMsg.style.color = 'red';
+            successMsg.textContent = 'Error al enviar la solicitud.';
+          }
+        });
+      </script>
+    </body>
     </html>
   `);
 });
+
+
 
 
 
@@ -3000,49 +3070,43 @@ app.post('/login', async (req, res) => {
 app.post('/login_app', async (req, res) => {
     const { id, password } = req.body;
 
-    // Validar que se haya enviado id y password
     if (!id || !password) {
-        return res.status(400).send("Id y contraseña son requeridos.");
+        return res.status(400).json({ message: "Id y contraseña son requeridos." });
     }
 
     try {
         const employeeRepository = dataSource.getRepository(EmployeeSchema);
-
-        // Buscar al empleado por el DNI (id)
         const employee = await employeeRepository.findOne({ where: { id } });
 
         if (!employee) {
-            return res.status(404).send("Empleado no encontrado.");
+            return res.status(404).json({ message: "Empleado no encontrado." });
         }
 
-        // Verificar que la contraseña (DNI) proporcionada coincida con la almacenada (encriptada) usando bcrypt
         const isPasswordValid = await bcrypt.compare(password, employee.password);
 
         if (!isPasswordValid) {
-            return res.status(401).send("Contraseña incorrecta.");
+            return res.status(401).json({ message: "Error, la contraseña no es correcta." });
         }
 
-        // Verificar que el rol del empleado sea "Boss"
-        if (employee.role !== "Boss") {
-            return res.status(403).send("No tienes acceso al sistema.");
-        }
-
-        // Verificar si la clave secreta está definida
         if (!process.env.JWT_SECRET_KEY) {
-            return res.status(500).send("Se requiere una clave secreta para generar el token.");
+            return res.status(500).json({ message: "Se requiere una clave secreta para generar el token." });
         }
 
-
-        // Crear un token de sesión o JWT con el rol
-        const token = jwt.sign({ role: "Boss" }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+        // Incluir el rol y el id en el token si quieres usarlo más adelante
+        const token = jwt.sign(
+            { role: employee.role, id: employee.id },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: '1h' }
+        );
 
         return res.json({ Status: "Success", Token: token });
 
     } catch (error) {
         console.error("Error al autenticar al empleado:", error);
-        res.status(500).send("Error al autenticar al empleado.");
+         res.status(500).json({ message: "Error al autenticar al empleado." });
     }
 });
+
 
 
 // Usar el middleware en rutas protegidas

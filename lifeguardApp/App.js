@@ -25,8 +25,8 @@ export default function App() {
   return (
      <NavigationContainer
        linking={linking}
-       onReady={() => console.log('Navegación lista')}
-       onStateChange={(state) => console.log('Nuevo estado de navegación:', JSON.stringify(state))}
+       //onReady={() => console.log('Navegación lista')}
+       //onStateChange={(state) => console.log('Nuevo estado de navegación:', JSON.stringify(state))}
      >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {/* Pantalla de Login */}

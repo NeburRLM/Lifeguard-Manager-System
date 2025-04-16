@@ -223,112 +223,124 @@ return (
     <Text style={styles.title}>📋 Reportar Incidencia</Text>
     <Text style={styles.label}>Empleado: {employeeName}</Text>
 
-    {todaySchedule ? (
+    {todaySchedule && (
       <Text style={styles.label}>Turno en: {todaySchedule.facilityName}</Text>
-    ) : (
-      <Text style={styles.noSchedule}>No tienes turno asignado hoy.</Text>
     )}
 
-    {/* Campos del formulario */}
-    <>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedTypeId}
-          onValueChange={(itemValue) => {
-            setSelectedTypeId(itemValue);
-            const selected = incidentTypes.find(t => t.id === itemValue);
-            handleChange('type', selected?.type || '');
-          }}
-          style={styles.picker}
-        >
-          <Picker.Item label="Selecciona el tipo de incid..." value="" />
-          {incidentTypes.map((item) => (
-            <Picker.Item key={item.id} label={item.type} value={item.id} />
-          ))}
-        </Picker>
+
+    {/* Tarjeta de información si no hay horario */}
+    {!todaySchedule && (
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>
+          📅 Horario para hoy ({getCurrentDate().split('-').reverse().join('-')})
+        </Text>
+        <Text style={styles.infoText}>
+          No tienes horario asignado para hoy, por lo tanto no puedes reportar una incidencia.
+        </Text>
       </View>
+    )}
 
-      {[
-        ['description', 'Descripción *'],
-        ['firstName', 'Nombre del afectado *'],
-        ['lastName', 'Apellidos del afectado *'],
-        ['dni', 'DNI del afectado *'],
-        ['age', 'Edad *'],
-        ['cityOfOrigin', 'Ciudad de origen *'],
-        ['countryOfOrigin', 'País de origen *'],
-        ['gender', 'Género (M/F/Otro) *'],
-        ['language', 'Idioma *'],
-      ].map(([field, label]) => (
-        <TextInput
-          key={field}
-          placeholder={label}
-          style={styles.input}
-          value={formData[field]}
-          onChangeText={text => handleChange(field, text)}
-        />
-      ))}
-    </>
-
-    {/* Botón para abrir el modal con el mapa */}
-    <TouchableOpacity style={styles.selectLocationButton} onPress={() => setModalVisible(true)}>
-      <Text style={styles.buttonText}>📍 Seleccionar Ubicación</Text>
-    </TouchableOpacity>
-
-    <TextInput
-      placeholder="Latitud *"
-      style={styles.input}
-      value={formData.latitude ? formData.latitude.toString() : ''}
-      editable={false}
-    />
-
-    <TextInput
-      placeholder="Longitud *"
-      style={styles.input}
-      value={formData.longitude ? formData.longitude.toString() : ''}
-      editable={false}
-    />
-
-    {/* Botón para enviar el formulario */}
-    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-      <Text style={styles.buttonText}>🚨 Enviar Incidencia</Text>
-    </TouchableOpacity>
-
-    {/* Modal con el mapa */}
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: todaySchedule.facility.latitude,
-              longitude: todaySchedule.facility.longitude,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
+    {/* Formulario solo si hay turno */}
+    {todaySchedule && (
+      <>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedTypeId}
+            onValueChange={(itemValue) => {
+              setSelectedTypeId(itemValue);
+              const selected = incidentTypes.find(t => t.id === itemValue);
+              handleChange('type', selected?.type || '');
             }}
-            onPress={handleMapPress}
+            style={styles.picker}
           >
-            {formData.latitude && formData.longitude && (
-              <Marker
-                coordinate={{ latitude: formData.latitude, longitude: formData.longitude }}
-                title="Ubicación seleccionada"
-              />
-            )}
-          </MapView>
-
-          {/* Botón para cerrar el modal */}
-          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
-            <Text style={styles.buttonText}>Cerrar Mapa</Text>
-          </TouchableOpacity>
+            <Picker.Item label="Selecciona el tipo de incid..." value="" />
+            {incidentTypes.map((item) => (
+              <Picker.Item key={item.id} label={item.type} value={item.id} />
+            ))}
+          </Picker>
         </View>
-      </View>
-    </Modal>
+
+        {[
+          ['description', 'Descripción *'],
+          ['firstName', 'Nombre del afectado *'],
+          ['lastName', 'Apellidos del afectado *'],
+          ['dni', 'DNI del afectado *'],
+          ['age', 'Edad *'],
+          ['cityOfOrigin', 'Ciudad de origen *'],
+          ['countryOfOrigin', 'País de origen *'],
+          ['gender', 'Género (M/F/Otro) *'],
+          ['language', 'Idioma *'],
+        ].map(([field, label]) => (
+          <TextInput
+            key={field}
+            placeholder={label}
+            style={styles.input}
+            value={formData[field]}
+            onChangeText={text => handleChange(field, text)}
+          />
+        ))}
+
+        <TouchableOpacity style={styles.selectLocationButton} onPress={() => setModalVisible(true)}>
+          <Text style={styles.buttonText}>📍 Seleccionar Ubicación</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Latitud *"
+          style={styles.input}
+          value={formData.latitude ? formData.latitude.toString() : ''}
+          editable={false}
+        />
+        <TextInput
+          placeholder="Longitud *"
+          style={styles.input}
+          value={formData.longitude ? formData.longitude.toString() : ''}
+          editable={false}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>🚨 Enviar Incidencia</Text>
+        </TouchableOpacity>
+      </>
+    )}
+
+    {/* Modal con el mapa solo si hay horario */}
+    {todaySchedule && (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: todaySchedule.facility.latitude,
+                longitude: todaySchedule.facility.longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }}
+              onPress={handleMapPress}
+            >
+              {formData.latitude && formData.longitude && (
+                <Marker
+                  coordinate={{ latitude: formData.latitude, longitude: formData.longitude }}
+                  title="Ubicación seleccionada"
+                />
+              )}
+            </MapView>
+
+            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
+              <Text style={styles.buttonText}>Cerrar Mapa</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    )}
   </ScrollView>
 );
+
 };
 
 const styles = StyleSheet.create({
@@ -353,6 +365,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
     color: '#888',
+    fontStyle: 'italic',
+  },
+  infoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#007bff',
+    marginBottom: 6,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#666',
     fontStyle: 'italic',
   },
   input: {
@@ -421,6 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+
 
 
 export default Incidencia;
