@@ -175,3 +175,57 @@ nav ul li a:hover {
   transition: transform 0.3s ease;
   border-color: #b0b0b0; /* Borde más oscuro en hover */
 }
+
+.today-title {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.today-blocks {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.today-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 15px; /* mismo redondeado que .stat-card */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* mismo sombreado */
+  text-align: center;
+  width: 250px; /* igual que .stat-card */
+  border: 2px solid #ccc; /* mismo borde */
+  color: #34495e;
+  margin: 10px; /* para que se vea igual de separado */
+  transition: transform 0.3s ease;
+}
+
+.today-card:hover {
+  transform: scale(1.05);
+  border-color: #b0b0b0;
+}
+
+
+.today-card .stat-icon {
+  font-size: 3rem; /* Igual que .stat-icon */
+  margin-bottom: 10px;
+  color: #3498db;  /* Igual color también */
+}
+
+.today-card h4 {
+  font-size: 1.4rem; /* Igual que .stat-card h4 */
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.today-card p {
+  font-size: 2rem; /* Igual que .number */
+  font-weight: 900;
+  color: #e74c3c;
+  margin-top: 10px;
+}
+
+.clickable {
+  cursor: pointer;
+}

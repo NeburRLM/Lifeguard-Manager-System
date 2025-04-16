@@ -20,6 +20,7 @@ import ManageIncidents from "../Pages/ManageIncidents"
 import IncidentView from "../Pages/IncidentView"
 import ProfileView from "../Pages/ProfileView"
 import IncidentAnalysisView from "../Pages/IncidentAnalysisView"
+import CurrentAttendance from "../Pages/CurrentAttendance"
 
 
 const router = createBrowserRouter([
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
         {
             path: "dashboard",
             element: <Dashboard />
+        },
+        {
+            path: "current_attendance",
+            element: <CurrentAttendance />
         },
         {
               path: "employees",

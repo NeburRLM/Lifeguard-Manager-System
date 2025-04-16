@@ -1,36 +1,109 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faUserTie, faBuilding } from "@fortawesome/free-solid-svg-icons";
+import { faUsers, faUserTie, faBuilding, faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import "./Dashboard.css";
 
 function Dashboard() {
-
+  const navigate = useNavigate();
   const [employeeCount, setEmployeeCount] = useState(0);
   const [bossCount, setBossCount] = useState(0);
   const [facilityCount, setFacilityCount] = useState(0);
 
+  const [attendanceSummary, setAttendanceSummary] = useState({ present: 0, absent: 0 });
+  const [incidentCount, setIncidentCount] = useState(0);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const day = today.getDate();
+  const month = today.getMonth() + 1;
+  const year = today.getFullYear();
 
   const fetchData = async () => {
-    try {
-      const [employeeRes, bossRes, facilityRes] = await Promise.all([
-        fetch("http://localhost:4000/employeeCount").then((res) => res.json()),
-        fetch("http://localhost:4000/bossCount").then((res) => res.json()),
-        fetch("http://localhost:4000/facilityCount").then((res) => res.json()),
-      ]);
+      try {
+        const [employeeRes, bossRes, facilityRes] = await Promise.all([
+          fetch("http://localhost:4000/employeeCount").then((res) => res.json()),
+          fetch("http://localhost:4000/bossCount").then((res) => res.json()),
+          fetch("http://localhost:4000/facilityCount").then((res) => res.json()),
+        ]);
 
-      setEmployeeCount(employeeRes.employee || 0);
-      setBossCount(bossRes.boss || 0);
-      setFacilityCount(facilityRes.facility || 0);
-    } catch (error) {
-      console.log("Error fetching data:", error);
-    }
-  };
+        setEmployeeCount(employeeRes.employee || 0);
+        setBossCount(bossRes.boss || 0);
+        setFacilityCount(facilityRes.facility || 0);
+      } catch (error) {
+        console.log("Error fetching data:", error);
+      }
+    };
+
+  useEffect(() => {
+    const fetchAttendanceAndIncidents = async () => {
+      try {
+        const employeesRes = await fetch("http://localhost:4000/employees").then(res => res.json());
+
+        let present = 0;
+        let absent = 0;
+
+        await Promise.all(
+          employeesRes.map(async (employee) => {
+            try {
+              const attendanceRes = await fetch(
+                `http://localhost:4000/attendance/${employee.id}?month=${month}&year=${year}`
+              );
+
+              if (!attendanceRes.ok) {
+                console.warn(`No attendance data for ${employee.id} (HTTP ${attendanceRes.status})`);
+                //absent++; // si quieres considerarlo ausente por no tener datos
+                return;
+              }
+
+              const attendanceJson = await attendanceRes.json();
+
+              const todayAttendance = attendanceJson.data?.find((a) => {
+                const sameDate = a.date === todayStr;
+                if (!sameDate) {
+                  console.log(`No coincide fecha: ${a.date} !== ${todayStr}`);
+                }
+                return sameDate;
+              });
+
+              if (todayAttendance) {
+                console.log(`Empleado ${employee.name} fichó con estado: ${todayAttendance.status}`);
+                if (todayAttendance.status === "present") {
+                  present++;
+                } else if (todayAttendance.status === "absent") {
+                  absent++;
+                }
+              } else {
+                console.log(`No se encontró fichaje para ${employee.name} en ${todayStr}`);
+                //absent++; // puedes omitir esto si prefieres no contarlo como ausencia
+              }
+            } catch (err) {
+              console.error(`Error fetching attendance for ${employee.id}`, err);
+            }
+          })
+        );
+
+        setAttendanceSummary({ present, absent });
+
+        const incidentsRes = await fetch("http://localhost:4000/incidents/today").then(res => res.json());
+        setIncidentCount(incidentsRes.length || 0);
+
+      } catch (error) {
+        console.error("Error fetching attendance or incidents:", error);
+      }
+    };
+
+
+    fetchData();
+    fetchAttendanceAndIncidents();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, [month, todayStr, year]);
+
+
+
+
+
 
 return (
     <main className="content">
@@ -54,6 +127,29 @@ return (
             <FontAwesomeIcon icon={faBuilding} className="stat-icon" />
             <h4>Facilities</h4>
             <p className="number">{facilityCount}</p>
+          </div>
+        </div>
+
+        {/* NUEVO BLOQUE */}
+        <div className="today-title">
+          <h4>Hoy: día {day}, mes {month}, año {year}</h4>
+        </div>
+        <div className="stats-container">
+          <div
+            className="stat-card clickable"
+            onClick={() => navigate("/current_attendance")}
+          >
+            <FontAwesomeIcon icon={faCheck} className="stat-icon" />
+            <h4>Fichajes</h4>
+            <p className="number">{attendanceSummary.present}/{employeeCount} ({attendanceSummary.absent} abs.)</p>
+          </div>
+          <div
+            className="stat-card clickable"
+            onClick={() => console.log("Click en Incidencias")}
+          >
+            <FontAwesomeIcon icon={faExclamationTriangle} className="stat-icon" />
+            <h4>Incidencias</h4>
+            <p className="number">{incidentCount}</p>
           </div>
         </div>
       </section>
