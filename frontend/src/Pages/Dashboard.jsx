@@ -13,11 +13,24 @@ function Dashboard() {
   const [attendanceSummary, setAttendanceSummary] = useState({ present: 0, absent: 0 });
   const [incidentCount, setIncidentCount] = useState(0);
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-  const day = today.getDate();
-  const month = today.getMonth() + 1;
-  const year = today.getFullYear();
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+const day = currentDate.getDate();
+const month = currentDate.getMonth() + 1;
+const year = currentDate.getFullYear();
+
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        const now = new Date();
+        // Solo actualizamos si cambia la fecha (día)
+        if (now.toDateString() !== currentDate.toDateString()) {
+          setCurrentDate(now);
+        }
+      }, 60 * 1000); // cada minuto
+
+      return () => clearInterval(interval);
+    }, [currentDate]);
 
   const fetchData = async () => {
       try {
@@ -37,6 +50,11 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchAttendanceAndIncidents = async () => {
+      const today = new Date();
+          const todayStr = new Date().toLocaleDateString('sv-SE');
+          const month = today.getMonth() + 1;
+          const year = today.getFullYear();
+
       try {
         const employeesRes = await fetch("http://localhost:4000/employees").then(res => res.json());
 
@@ -93,12 +111,16 @@ function Dashboard() {
       }
     };
 
-
     fetchData();
     fetchAttendanceAndIncidents();
-    const interval = setInterval(fetchData, 5000);
+
+    const interval = setInterval(() => {
+        fetchData();
+        fetchAttendanceAndIncidents();
+      }, 60 * 1000);
+
     return () => clearInterval(interval);
-  }, [month, todayStr, year]);
+  }, []);
 
 
 

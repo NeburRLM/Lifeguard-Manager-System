@@ -22,7 +22,7 @@ function CurrentAttendance() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pdfUrl, setPdfUrl] = useState("");
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const [todayStr, setTodayStr] = useState(new Date().toLocaleDateString('sv-SE'));
   const month = new Date().getMonth() + 1;
   const year = new Date().getFullYear();
 
@@ -45,35 +45,67 @@ function CurrentAttendance() {
         await Promise.all(
           employeesRes.map(async (emp) => {
             try {
-              const attendanceRes = await fetch(`http://localhost:4000/attendance/${emp.id}?month=${month}&year=${year}`);
-              if (!attendanceRes.ok) {
-                data.push({ ...emp, status: "unknown" });
-                return;
-              }
+              // 1. Verificar si tiene schedule para hoy
+              const empDetailRes = await fetch(`http://localhost:4000/employee/${emp.id}`);
+              const empDetail = await empDetailRes.json();
 
-              const attendance = await attendanceRes.json();
-              const todayRecord = attendance.data?.find(a => a.date === todayStr);
+              let hasScheduleToday = false;
+              let todaySchedule = null;
 
-              let status = "unknown";
-              if (!todayRecord) {
-                status = "rest";
-              } else {
-                status = todayRecord.status || "unknown";
-              }
-
-              data.push({
-                ...emp,
-                status,
-                entryTime: todayRecord?.check_in || null,
-                exitTime: todayRecord?.check_out || null,
-                facility: todayRecord?.facility?.name || null,
-                justification: todayRecord?.justification_url || null,
-                absenceReason: todayRecord?.absence_reason || null,
-                noteIn: todayRecord?.note_in || "",
-                noteOut: todayRecord?.note_out || "",
+              empDetail.work_schedule?.forEach(ws => {
+                ws.schedules?.forEach(schedule => {
+                  if (schedule.date === todayStr) {
+                    hasScheduleToday = true;
+                    todaySchedule = schedule;
+                  }
+                });
               });
+
+              let status = "rest"; // Por defecto, descanso si no tiene horario
+
+              if (hasScheduleToday) {
+                // 2. Tiene horario, revisar asistencia
+                const attendanceRes = await fetch(`http://localhost:4000/attendance/${emp.id}?month=${month}&year=${year}`);
+                const attendance = await attendanceRes.json();
+                const todayRecord = attendance.data?.find(a => a.date === todayStr);
+
+                if (!todayRecord) {
+                  status = "unknown"; // Tiene horario, pero no ha fichado
+                } else if (todayRecord.status === "absent") {
+                  status = "absent";
+                } else if (todayRecord.check_in) {
+                  status = "present";
+                } else {
+                  status = "unknown";
+                }
+
+                data.push({
+                  ...emp,
+                  status,
+                  entryTime: todayRecord?.check_in || null,
+                  exitTime: todayRecord?.check_out || null,
+                  facility: todayRecord?.facility?.name || todaySchedule?.facilityName || null,
+                  justification: todayRecord?.justification_url || null,
+                  absenceReason: todayRecord?.absence_reason || null,
+                  noteIn: todayRecord?.note_in || "",
+                  noteOut: todayRecord?.note_out || "",
+                });
+              } else {
+                // 3. No tiene horario → descanso
+                data.push({
+                  ...emp,
+                  status: "rest",
+                  entryTime: null,
+                  exitTime: null,
+                  facility: null,
+                  justification: null,
+                  absenceReason: null,
+                  noteIn: "",
+                  noteOut: "",
+                });
+              }
             } catch (err) {
-              console.error(`Error fetching attendance for ${emp.id}:`, err);
+              console.error(`Error fetching data for ${emp.id}:`, err);
               data.push({ ...emp, status: "unknown" });
             }
           })
@@ -88,7 +120,18 @@ function CurrentAttendance() {
     };
 
     fetchEmployeesWithAttendance();
-  }, [month, year, todayStr]);
+
+    // 🔁 Revisión cada minuto por si cambia la fecha
+    const interval = setInterval(() => {
+        fetchEmployeesWithAttendance();  // Recarga los datos de los empleados cada minuto
+      }, 60 * 1000); // cada minuto
+
+      // Llamada inicial para cargar los datos cuando se monta el componente
+      fetchEmployeesWithAttendance();
+
+      // Limpiar el intervalo cuando el componente se desmonte
+      return () => clearInterval(interval);
+  }, [todayStr, month, year]);
 
   const getStatusChip = (status) => {
     const chipProps = {
@@ -106,7 +149,7 @@ function CurrentAttendance() {
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h5" gutterBottom>
-        Asistencia del Día - {todayStr}
+        Asistencia del Día - {new Date(todayStr).toLocaleDateString('es-ES')}
       </Typography>
 
       {loading ? (

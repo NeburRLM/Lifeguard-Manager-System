@@ -585,71 +585,51 @@ useEffect(() => {
     const endTime = new Date();
     endTime.setHours(endHours, endMinutes, 0, 0);
 
-    await scheduleMissingCheckoutNotification(todaySchedule.end_time); // 💡 Aquí la llamada
-
-    const tenMinutesAfter = new Date(endTime.getTime() + 10 * 60000); // para comparar con la hora actual
-    const oneHourAfter = new Date(endTime.getTime() + 12 * 60000);
+    const oneHourAfter = new Date(endTime.getTime() + 15 * 60000); // 1 hora después
 
     const todayDate = getCurrentDate();
-    const notificationSentKey = `notificationSent-${todayDate}`;
     const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
 
-    const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
     const alreadyMarked = await AsyncStorage.getItem(statusMarkedKey);
 
-    if (now > tenMinutesAfter && now < oneHourAfter && !alreadyNotified) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Recordatorio de Check-Out",
-          body: "No has fichado tu salida. Recuerda hacerlo antes de que se marque como falta.",
-        },
-        trigger: null,
-      });
-      await AsyncStorage.setItem(notificationSentKey, 'true'); // 💾 Guarda que se notificó
-    }
-
-    // Aquí podrías también marcar la ausencia si pasó más de una hora
     if (now > oneHourAfter && !alreadyMarked) {
       try {
-          const userId = await AsyncStorage.getItem('userId');
-          const formatTimeOnly = (dateObj) => new Date(dateObj).toISOString().split('T')[1].split('.')[0]; // HH:mm:ss
+        const userId = await AsyncStorage.getItem('userId');
 
-          const missingCheckoutData = {
-            employeeId: userId,
-            date: todayDate,
-            facilityId: todaySchedule.facilityId,
-            check_out: formatTimeOnly(endTime), // se marca como si se hubiera salido a la hora de finalización
-            status: 'missing_check_out',
-            justified: false,
-          };
+        const missingCheckoutData = {
+          employeeId: userId,
+          date: todayDate,
+          facilityId: todaySchedule.facilityId,
+          check_out: endTime.toISOString().split('T')[1].split('.')[0], // HH:mm:ss
+          status: 'missing_check_out',
+          justified: false,
+        };
 
-          const response = await fetch('http://192.168.1.34:4000/attendance/checkout', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(missingCheckoutData),
-          });
+        const response = await fetch('http://192.168.1.34:4000/attendance/checkout', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(missingCheckoutData),
+        });
 
-          if (response.ok) {
-            console.log('✅ Check-out perdido registrado automáticamente.');
-            await AsyncStorage.setItem(statusMarkedKey, 'true');
-            setHasCheckedOut(true);
-          } else {
-            const errorText = await response.text();
-            console.error('❌ Error al registrar el check-out perdido:', errorText);
-          }
-        } catch (error) {
-          console.error('❌ Error en lógica de check-out perdido:', error);
+        if (response.ok) {
+          console.log('✅ Check-out perdido registrado automáticamente.');
+          await AsyncStorage.setItem(statusMarkedKey, 'true');
+          setHasCheckedOut(true);
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Error al registrar el check-out perdido:', errorText);
         }
-
+      } catch (error) {
+        console.error('❌ Error en lógica de check-out perdido:', error);
+      }
     }
   };
 
   const interval = setInterval(() => {
-      handleMissedCheckout();
-    }, 60000); // cada 1 minuto
+    handleMissedCheckout();
+  }, 60000); // cada 1 minuto
 
-    return () => clearInterval(interval);
-
+  return () => clearInterval(interval);
 }, [todaySchedule, hasCheckedIn, hasCheckedOut, absenceSubmitted]);
 
 

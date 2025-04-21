@@ -1647,6 +1647,32 @@ app.get('/incidents', async (req, res) => {
     }
 });
 
+app.get("/incidents/today", async (req, res) => {
+  // Obtener la fecha actual
+  const today = new Date();
+
+  // Obtener el comienzo del día (00:00:00) y el final del día (23:59:59.999)
+  const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // 00:00:00
+  const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // 23:59:59.999
+
+  try {
+    const incidentRepository = dataSource.getRepository(IncidentSchema);
+    const incidents = await incidentRepository.find({
+      where: {
+        date: Between(startOfDay.toISOString(), endOfDay.toISOString()) // Usamos Between para buscar el rango
+      },
+      relations: ['facility', 'reported_by']
+    });
+    res.json(incidents);
+  } catch (err) {
+    console.error("Error al obtener incidencias de hoy:", err);
+    res.status(500).json({ message: "Error interno" });
+  }
+});
+
+
+
+
 
 // DELETE para eliminar un incidente a partire de su id
 app.delete('/incidents/:id', async (req, res) => {
@@ -2188,9 +2214,9 @@ app.get('/attendance/:id', async (req, res) => {
 
         // Si no se encuentran asistencias
         if (attendances.length === 0) {
-            return res.status(404).json({
-                status: "error",
-                message: `No se encontraron asistencias para el mes ${month} de ${year}.`
+            return res.status(200).json({
+                status: "success",
+                data: [] // Retorna lista vacía en vez de 404
             });
         }
 
@@ -2571,7 +2597,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-//sgMail.setApiKey('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');
+
 
 
 
