@@ -167,7 +167,7 @@ return (
           </div>
           <div
             className="stat-card clickable"
-            onClick={() => console.log("Click en Incidencias")}
+            onClick={() => navigate("/current_incidents")}
           >
             <FontAwesomeIcon icon={faExclamationTriangle} className="stat-icon" />
             <h4>Incidencias</h4>

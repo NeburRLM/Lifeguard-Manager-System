@@ -21,6 +21,7 @@ import IncidentView from "../Pages/IncidentView"
 import ProfileView from "../Pages/ProfileView"
 import IncidentAnalysisView from "../Pages/IncidentAnalysisView"
 import CurrentAttendance from "../Pages/CurrentAttendance"
+import CurrentIncidents from "../Pages/CurrentIncidents"
 
 
 const router = createBrowserRouter([
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
         {
             path: "current_attendance",
             element: <CurrentAttendance />
+        },
+        {
+            path: "current_incidents",
+            element: <CurrentIncidents />
         },
         {
               path: "employees",

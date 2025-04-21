@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getCurrentDate = () => {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return today.toISOString().split('T')[0];
 };
 

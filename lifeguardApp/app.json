@@ -3,7 +3,9 @@
     "name": "lifeguardApp",
     "slug": "lifeguardApp",
     "scheme": "lifeguardapp",
-    "deepLinks": ["lifeguardapp://"],
+    "deepLinks": [
+      "lifeguardapp://"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,10 +27,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.rulomatfg.lifeguardApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e41cf7ed-9775-4cee-8c9a-f1ef6fea00ac"
+      }
     }
   }
 }

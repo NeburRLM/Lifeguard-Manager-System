@@ -278,8 +278,8 @@ useEffect(() => {
       const endTime = new Date();
       endTime.setHours(endHours, endMinutes, 0, 0);
 
-      //const alreadyMarked = await AsyncStorage.getItem(`missingMarked-${todayDate}`);
-      await AsyncStorage.removeItem(`missingMarked-${todayDate}`);
+      const alreadyMarked = await AsyncStorage.getItem(`missingMarked-${todayDate}`);
+      //await AsyncStorage.removeItem(`missingMarked-${todayDate}`);
       if (now > endTime && !hasCheckedIn && !alreadyMarked) {
         setButtonsVisible(false);
 
@@ -363,7 +363,7 @@ useEffect(() => {
 
       const distance = haversineDistance(location, facilityCoords);
 
-      if (distance > 10) {
+      if (distance > 50) {
         Alert.alert('Error de ubicación', 'No estás en la ubicación correcta donde deberías estar.');
         return;
       }
@@ -538,26 +538,42 @@ const handleSubmitAbsence = async () => {
 
 
 const scheduleMissingCheckoutNotification = async (endTime) => {
-  const now = new Date();
-  const [endHour, endMin] = endTime.split(':').map(Number);
+  try {
+    const now = new Date();
+    const [endHour, endMin] = endTime.split(':').map(Number);
 
-  const end = new Date();
+    if (isNaN(endHour) || isNaN(endMin)) {
+      console.error("❌ Formato de endTime inválido:", endTime);
+      return;
+    }
+
+    const end = new Date();
     end.setHours(endHour, endMin, 0, 0);
-     // Para programar una noti con un trigger de endTime+5min
+
     const notifTime = new Date(end.getTime() + 5 * 60 * 1000); // 5 minutos después del fin del turno
 
     console.log("🔔 Notificación programada para:", notifTime.toISOString());
 
-  if (notifTime > now && !hasCheckedOut) {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "⏰ ¡Te olvidaste de fichar!",
-        body: "Por favor, no olvides hacer el check-out.",
-        sound: true,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
-      },
-      trigger: notifTime,
-    });
+    const todayDate = getCurrentDate();
+    const notificationSentKey = `notificationSent-${todayDate}`;
+    const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
+
+    if (notifTime > now && !alreadyNotified) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "⏰ ¡Te olvidaste de fichar!",
+          body: "Por favor, no olvides hacer el check-out.",
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: notifTime,
+      });
+
+      await AsyncStorage.setItem(notificationSentKey, 'true');
+      console.log("✅ Notificación programada correctamente.");
+    }
+  } catch (error) {
+    console.error("❌ Error al programar la notificación:", error);
   }
 };
 
@@ -585,14 +601,14 @@ useEffect(() => {
     const endTime = new Date();
     endTime.setHours(endHours, endMinutes, 0, 0);
 
-    const oneHourAfter = new Date(endTime.getTime() + 15 * 60000); // 1 hora después
+    await scheduleMissingCheckoutNotification(todaySchedule.end_time);
 
+    const fifteenMinutesAfter = new Date(endTime.getTime() + 15 * 60000); // 15 minutos después
     const todayDate = getCurrentDate();
     const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
-
     const alreadyMarked = await AsyncStorage.getItem(statusMarkedKey);
 
-    if (now > oneHourAfter && !alreadyMarked) {
+    if (now > fifteenMinutesAfter && !alreadyMarked) {
       try {
         const userId = await AsyncStorage.getItem('userId');
 
