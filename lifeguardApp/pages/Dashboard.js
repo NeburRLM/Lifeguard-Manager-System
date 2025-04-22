@@ -5,6 +5,7 @@ import CurrentForecast from "../components/CurrentForecast";
 import styled from "styled-components/native";
 import bgImg from "../assets/4.png";
 import { useNavigation } from "@react-navigation/native"; // 👈 para navegar
+import moment from 'moment-timezone';
 
 const Dashboard = () => {
   const [weather, setWeather] = useState({});
@@ -26,7 +27,8 @@ const Dashboard = () => {
           const employee = await res.json();
           setEmployeeName(employee.name);
 
-          const today = new Date().toISOString().split("T")[0];
+          const today = moment().tz('Europe/Madrid').format('YYYY-MM-DD');
+          console.log(today)
           const allSchedules = employee.work_schedule.flatMap(ws => ws.schedules);
           const todaySchedule = allSchedules.find(sch => sch.date === today);
           const todayD = new Date();

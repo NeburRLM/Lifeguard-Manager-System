@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -16,7 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'; // Opcional para obtener base64 si lo necesitas
 import * as DocumentPicker from 'expo-document-picker';
 import * as Notifications from 'expo-notifications';
-
+import moment from 'moment-timezone';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -64,42 +65,32 @@ const Fichar = () => {
   const [checkOutNote, setCheckOutNote] = useState('');
 
 
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  const getCurrentDate = () => moment().tz('Europe/Madrid').format('YYYY-MM-DD');
 
-  const getCurrentDateFormat = () => {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      return `${day}-${month}-${year}`;
-    };
+  const getCurrentDateFormat = () => moment().tz('Europe/Madrid').format('DD-MM-YYYY');
 
   const normalizeString = (str) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   const getDayName = () => {
     const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-    return days[new Date().getDay()];
+    const dayIndex = moment().tz('Europe/Madrid').day();
+    return days[dayIndex];
   };
 
 
 
   useEffect(() => {
     const restoreCheckStatusForNextDay = async () => {
-      const today = new Date().toISOString().split('T')[0]; // Obtener la fecha de hoy (YYYY-MM-DD)
-      const notificationSentKey = `notificationSent-${todayDate}`;
-      const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
+       const today = getCurrentDate(); // Obtener la fecha de hoy (YYYY-MM-DD)
+      const notificationSentKey = `notificationSent-${today}`;
+      const statusMarkedKey = `missingCheckOutMarked-${today}`;
 
       const storedCheckInDate = await AsyncStorage.getItem('checkInDate');
       const storedCheckOutDate = await AsyncStorage.getItem('checkOutDate');
-      const alreadyNotified = await AsyncStorage.getItem('notificationSentKey'); // Verifica si ya se envió la notificación
-      const alreadyMarked = await AsyncStorage.getItem('statusMarkedKey'); // Verifica si ya se marcó el estado
+      const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
+      const alreadyMarked = await AsyncStorage.getItem(statusMarkedKey);
+ // Verifica si ya se marcó el estado
 
       // Restablecer el estado de check-in y check-out solo si el día de hoy es diferente
       if (storedCheckInDate !== today) {
@@ -128,48 +119,38 @@ const Fichar = () => {
   useEffect(() => {
     const checkAttendanceFromBackend = async () => {
       try {
-        const userId = await AsyncStorage.getItem('userId');
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth() + 1;
-        const day = today.toISOString().split('T')[0]; // YYYY-MM-DD
+       const userId = await AsyncStorage.getItem('userId');
+       const today = getCurrentDate();
+       const year = moment(today).year();
+       const month = moment(today).month() + 1;
 
         const response = await fetch(`http://192.168.1.34:4000/attendance/${userId}?year=${year}&month=${month}`);
         const result = await response.json();
 
         if (response.ok && result.status === 'success') {
           // Buscar si hay un registro para el día actual
-          const todayAttendance = result.data.find(att => att.date === day);
+          const todayAttendance = result.data.find(att => att.date === today);
 
-          if (todayAttendance) {
-            // Si existe un registro, ya ha hecho check-in
-            setHasCheckedIn(true);
+              if (todayAttendance) {
+                      setHasCheckedIn(true);
+                      setHasCheckedOut(todayAttendance.check_out && todayAttendance.check_out !== '0:00:00');
+                    } else {
+                      setHasCheckedIn(false);
+                      setHasCheckedOut(false);
+                    }
+                  } else {
+                    setHasCheckedIn(false);
+                    setHasCheckedOut(false);
+                  }
+                } catch (error) {
+                  console.error('Error al verificar la asistencia desde el backend:', error);
+                  setHasCheckedIn(false);
+                  setHasCheckedOut(false);
+                }
+              };
 
-            // Si check_out aún está en '00:00:00' => no ha hecho check-out
-            if (todayAttendance.check_out && todayAttendance.check_out != '0:00:00') {
-              setHasCheckedOut(true);
-            } else {
-              setHasCheckedOut(false);
-            }
-          } else {
-            // Si no hay registro para hoy, no ha hecho check-in ni check-out
-            setHasCheckedIn(false);
-            setHasCheckedOut(false);
-          }
-        } else {
-          //console.warn('No se pudo obtener la asistencia:', result.message);
-          setHasCheckedIn(false);
-          setHasCheckedOut(false);
-        }
-      } catch (error) {
-        console.error('Error al verificar la asistencia desde el backend:', error);
-        setHasCheckedIn(false);
-        setHasCheckedOut(false);
-      }
-    };
-
-    checkAttendanceFromBackend();
-  }, []);
+              checkAttendanceFromBackend();
+            }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -180,21 +161,21 @@ const Fichar = () => {
           const employeeData = await response.json();
           setEmployeeName(employeeData.name);
 
-          const today = new Date();
-          const currentMonth = today.getMonth() + 1;
-          const currentYear = today.getFullYear();
-          const todayName = normalizeString(getDayName());
+          const today = getCurrentDate();
+                    const currentMonth = moment(today).month() + 1;
+                    const currentYear = moment(today).year();
+                    const todayName = normalizeString(getDayName());
 
           const currentSchedule = employeeData.work_schedule?.find(
-            ws => ws.month === currentMonth && ws.year === currentYear
-          );
+                      ws => ws.month === currentMonth && ws.year === currentYear
+                    );
 
           if (currentSchedule) {
-            const todayData = currentSchedule.schedules.find(
-              s => s.date === getCurrentDate()
-            );
-            setTodaySchedule(todayData);
-          }
+                      const todayData = currentSchedule.schedules.find(
+                        s => s.date === today
+                      );
+                      setTodaySchedule(todayData);
+                    }
         } catch (error) {
           console.error("Error fetching employee data:", error);
         } finally {
@@ -211,44 +192,40 @@ const Fichar = () => {
 
     if (todaySchedule?.start_time && !hasCheckedIn && !absenceSubmitted) {
           const updateCountdown = () => {
-            const now = new Date();
-            const [hours, minutes] = todaySchedule.start_time.split(':').map(Number);
-            const target = new Date();
-            target.setHours(hours);
-            target.setMinutes(minutes);
-            target.setSeconds(0);
+            const now = moment().tz('Europe/Madrid');
+            const [hours, minutes] = todaySchedule.start_time.split(':').map(Number); // Parse start_time
+              const target = moment().tz('Europe/Madrid').set({
+                hour: hours,
+                minute: minutes,
+                second: 0,
+                millisecond: 0,
+              }); // Set target time based on start_time
 
-            const diff = now - target;
+            const diff = now.diff(target);
 
             if (diff < 0) {
               // Faltan X minutos para fichar
-              const remaining = Math.abs(diff);
-              const remainingHours = Math.floor(remaining / (1000 * 60 * 60));
-              const remainingMinutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-              const remainingSeconds = Math.floor((remaining % (1000 * 60)) / 1000);
+              const remaining = moment.duration(-diff);
 
-              setCountdown({
-                text: `${String(remainingHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`,
-                color: '#FF9500', // naranja
-                label: 'Tiempo restante para fichar',
-              });
 
-              setCanFichar(remaining <= 10 * 60 * 1000); // Permite fichar cuando queden menos de 10 minutos
-              setCanNotificarAusencia(remaining <= 10 * 60 * 1000); // Permite notificar ausencia cuando queden menos de 10 minutos
+               setCountdown({
+                          text: `${String(remaining.hours()).padStart(2, '0')}:${String(remaining.minutes()).padStart(2, '0')}:${String(remaining.seconds()).padStart(2, '0')}`,
+                          color: '#FF9500',
+                          label: 'Tiempo restante para fichar',
+                        });
+
+               setCanFichar(remaining.asMinutes() <= 10);
+                        setCanNotificarAusencia(remaining.asMinutes() <= 10);
             } else {
               // Ya pasó la hora de fichar
-              const lateHours = Math.floor(diff / (1000 * 60 * 60));
-              const lateMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-              const lateSeconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-              setCountdown({
-                text: `${String(lateHours).padStart(2, '0')}:${String(lateMinutes).padStart(2, '0')}:${String(lateSeconds).padStart(2, '0')}`,
-                color: '#FF3B30', // rojo
-                label: 'Llegas tarde',
-              });
-
-              setCanFichar(true); // Aún puede fichar aunque tarde
-              setCanNotificarAusencia(true); // Permite notificar ausencia si ya pasó la hora de entrada
+              const late = moment.duration(diff);
+                        setCountdown({
+                          text: `${String(late.hours()).padStart(2, '0')}:${String(late.minutes()).padStart(2, '0')}:${String(late.seconds()).padStart(2, '0')}`,
+                          color: '#FF3B30',
+                          label: 'Llegas tarde',
+                        });
+                        setCanFichar(true);
+                        setCanNotificarAusencia(true);
             }
           };
 
@@ -267,20 +244,19 @@ const Fichar = () => {
 useEffect(() => {
   const checkIfMissedCheckIn = async () => {
     if (todaySchedule) {
-      const now = new Date();
-      const todayDate = now.toISOString().split('T')[0];
+      const now = moment().tz('Europe/Madrid'); // Obtener la hora actual en la zona horaria de Madrid
+      const todayDate = now.format('YYYY-MM-DD'); // Formatear la fecha actual (YYYY-MM-DD)
 
-      const [startHours, startMinutes] = todaySchedule.start_time.split(':').map(Number);
-      const [endHours, endMinutes] = todaySchedule.end_time
-        ? todaySchedule.end_time.split(':').map(Number)
-        : [startHours, startMinutes];
-
-      const endTime = new Date();
-      endTime.setHours(endHours, endMinutes, 0, 0);
+      // Parsear las horas de inicio y fin desde el horario
+      const startTime = moment.tz(todaySchedule.start_time, 'HH:mm', 'Europe/Madrid');
+      const endTime = todaySchedule.end_time
+        ? moment.tz(todaySchedule.end_time, 'HH:mm', 'Europe/Madrid')
+        : startTime;
 
       const alreadyMarked = await AsyncStorage.getItem(`missingMarked-${todayDate}`);
-      //await AsyncStorage.removeItem(`missingMarked-${todayDate}`);
-      if (now > endTime && !hasCheckedIn && !alreadyMarked) {
+
+      // Verificar si ya pasó el tiempo de check-in y aún no se ha marcado asistencia
+      if (now.isAfter(endTime) && !hasCheckedIn && !alreadyMarked) {
         setButtonsVisible(false);
 
         try {
@@ -300,7 +276,7 @@ useEffect(() => {
           });
 
           if (response.ok) {
-            await AsyncStorage.setItem(`missingMarked-${todayDate}`, 'true'); // 🔐 Evita duplicado
+            await AsyncStorage.setItem(`missingMarked-${todayDate}`, 'true'); // Evitar duplicado
             Alert.alert('Ausencia registrada', 'No has fichado a tiempo, tu asistencia está marcada como ausente.');
           } else {
             const errorText = await response.text();
@@ -354,7 +330,7 @@ useEffect(() => {
         latitude: locationResult.coords.latitude,
         longitude: locationResult.coords.longitude,
       };
-      console.log("UBIIIIIIIIII-> ",location.latitude, location.longitude)
+      console.log("UBIIIIIIIIII-> ", location.latitude, location.longitude);
 
       const facilityCoords = {
         latitude: todaySchedule.facility.latitude,
@@ -370,29 +346,23 @@ useEffect(() => {
 
       const userId = await AsyncStorage.getItem('userId');
 
-      const now = new Date();
-      const [startHour, startMinute] = todaySchedule.start_time.split(':').map(Number);
-      const scheduledCheckIn = new Date(now);
-      scheduledCheckIn.setHours(startHour, startMinute, 0, 0);
+      const now = moment().tz('Europe/Madrid'); // Hora actual en Madrid
+      const scheduledCheckIn = moment.tz(todaySchedule.start_time, 'HH:mm', 'Europe/Madrid'); // Hora programada de entrada
 
       // Definir el rango permitido
-      const tenMinBefore = new Date(scheduledCheckIn.getTime() - 10 * 60000);
-      const fiveMinAfter = new Date(scheduledCheckIn.getTime() + 5 * 60000);
+      const tenMinBefore = scheduledCheckIn.clone().subtract(10, 'minutes'); // 10 minutos antes de la hora de entrada
+      const fiveMinAfter = scheduledCheckIn.clone().add(5, 'minutes'); // 5 minutos después de la hora de entrada
 
       // Aplicar la lógica de suplantación si está dentro del rango
-       const finalCheckIn = now >= tenMinBefore && now <= fiveMinAfter ? scheduledCheckIn : now;
+      const finalCheckIn = now.isBetween(tenMinBefore, fiveMinAfter) ? scheduledCheckIn : now;
 
-       // Formatear a 'HH:MM:SS'
-       const formatTimeOnly = (dateObj) => dateObj.toTimeString().split(' ')[0];
-
-
-      //const checkInTime = new Date().toISOString();
-      //const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
+      // Formatear la hora a 'HH:MM:SS'
+      const formatTimeOnly = (momentObj) => momentObj.format('HH:mm:ss');
 
       const attendanceData = {
         employeeId: userId,
-        check_in: formatTimeOnly(finalCheckIn),
-        date: finalCheckIn.toISOString().split('T')[0],
+        check_in: formatTimeOnly(finalCheckIn), // Hora del fichaje
+        date: finalCheckIn.format('YYYY-MM-DD'), // Fecha del fichaje
         facilityId: todaySchedule.facilityId,
         note_in: note,
       };
@@ -422,7 +392,6 @@ useEffect(() => {
     }
   };
 
-
 const handleConfirmCheckOut = async () => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -433,17 +402,16 @@ const handleConfirmCheckOut = async () => {
 
     const location = await Location.getCurrentPositionAsync({});
     const userId = await AsyncStorage.getItem('userId');
-    const checkOutTime = new Date().toISOString();
-    const formatTimeOnly = (isoString) => new Date(isoString).toISOString().split('T')[1].split('.')[0];
+    const now = moment().tz('Europe/Madrid'); // Obtener la hora actual en Madrid
 
     const response = await fetch(`http://192.168.1.34:4000/attendance/checkout`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         employeeId: userId,
-        date: getCurrentDate(),
-        check_out: formatTimeOnly(checkOutTime),
-        note_out: checkOutNote, // nueva propiedad con la nota
+        date: now.format('YYYY-MM-DD'), // Fecha actual en formato YYYY-MM-DD
+        check_out: now.format('HH:mm:ss'), // Hora actual en formato HH:MM:SS
+        note_out: checkOutNote, // Nueva propiedad con la nota
         location: {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -453,7 +421,7 @@ const handleConfirmCheckOut = async () => {
 
     if (response.ok) {
       Alert.alert('Check-out realizado', 'Tu salida ha sido registrada correctamente.');
-      await AsyncStorage.setItem('checkOutDate', getCurrentDate());
+      await AsyncStorage.setItem('checkOutDate', now.format('YYYY-MM-DD')); // Guardar la fecha actual
       setHasCheckedOut(true);
       setModalVisibleCheckout(false);
       setCheckOutNote('');
@@ -479,7 +447,7 @@ const handleSubmitAbsence = async () => {
 
     const userId = await AsyncStorage.getItem('userId');
     const facilityId = todaySchedule?.facilityId || await AsyncStorage.getItem('facilityId');
-    const currentDate = getCurrentDate();
+    const currentDate = moment().tz('Europe/Madrid').format('YYYY-MM-DD'); // Fecha actual en formato YYYY-MM-DD
 
     const formData = new FormData();
     formData.append('employeeId', userId);
@@ -488,15 +456,12 @@ const handleSubmitAbsence = async () => {
     formData.append('status', 'absent');
     formData.append('absence_reason', absenceNote);
     formData.append('justified', 'true');
-    //console.log("🧾 Enviando archivo:", justificationImage);
-
 
     if (justificationImage) {
       formData.append('justification', {
         uri: justificationImage.uri,
         type: justificationImage.type,
-        name: justificationImage.fileName || `archivo-${Date.now()}.${justificationImage.type.split('/')[1]}`,
-
+        name: justificationImage.fileName || `archivo-${moment().format('YYYYMMDDHHmmss')}.${justificationImage.type.split('/')[1]}`, // Nombre único basado en la fecha/hora actual
       });
     }
 
@@ -505,60 +470,73 @@ const handleSubmitAbsence = async () => {
       body: formData,
     });
 
-      if (response.ok) {
-        Alert.alert('Ausencia registrada', 'Tu ausencia ha sido notificada correctamente.');
-        setAbsenceModalVisible(false);
-        setButtonsVisible(false);
+    if (response.ok) {
+      Alert.alert('Ausencia registrada', 'Tu ausencia ha sido notificada correctamente.');
+      setAbsenceModalVisible(false);
+      setButtonsVisible(false);
+      setHasCheckedIn(false);
+      setHasCheckedOut(false);
+      setAbsenceSubmitted(true);
+
+      const now = moment().tz('Europe/Madrid'); // Hora actual
+      const nextDay = now.clone().add(1, 'day').startOf('day'); // Inicio del siguiente día a medianoche
+      const timeUntilMidnight = nextDay.diff(now); // Tiempo restante hasta la medianoche
+
+      setTimeout(() => {
+        setButtonsVisible(true);
         setHasCheckedIn(false);
         setHasCheckedOut(false);
-        setAbsenceSubmitted(true);
-
-        const now = new Date();
-        const nextDay = new Date();
-        nextDay.setDate(now.getDate() + 1);
-        nextDay.setHours(0, 0, 0, 0);
-
-        const timeUntilMidnight = nextDay - now;
-
-        setTimeout(() => {
-          setButtonsVisible(true);
-          setHasCheckedIn(false);
-          setHasCheckedOut(false);
-        }, timeUntilMidnight);
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Error al registrar ausencia:', errorText);
-        Alert.alert('Error', 'No se pudo registrar la ausencia.');
-      }
-    } catch (error) {
-      console.error('❌ Error al notificar ausencia:', error);
-      Alert.alert('Error', 'Ocurrió un error al enviar tu ausencia.');
+      }, timeUntilMidnight);
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Error al registrar ausencia:', errorText);
+      Alert.alert('Error', 'No se pudo registrar la ausencia.');
     }
-  };
+  } catch (error) {
+    console.error('❌ Error al notificar ausencia:', error);
+    Alert.alert('Error', 'Ocurrió un error al enviar tu ausencia.');
+  }
+};
 
-
-const scheduleMissingCheckoutNotification = async (endTime) => {
+const scheduleMissingCheckoutNotification = async (schedule) => {
   try {
-    const now = new Date();
-    const [endHour, endMin] = endTime.split(':').map(Number);
+    const now = moment().tz('Europe/Madrid');
+    const scheduledEndTime = moment.tz(schedule.end_time, 'HH:mm', 'Europe/Madrid').set({
+      year: now.year(),
+      month: now.month(),
+      date: now.date(),
+    });
 
-    if (isNaN(endHour) || isNaN(endMin)) {
-      console.error("❌ Formato de endTime inválido:", endTime);
+    if (!scheduledEndTime.isValid()) {
+      console.error("❌ Formato de endTime inválido:", schedule.end_time);
       return;
     }
 
-    const end = new Date();
-    end.setHours(endHour, endMin, 0, 0);
-
-    const notifTime = new Date(end.getTime() + 5 * 60 * 1000); // 5 minutos después del fin del turno
+    const notifTime = scheduledEndTime.clone().add(3, 'minutes').add(10, 'seconds');
 
     console.log("🔔 Notificación programada para:", notifTime.toISOString());
 
-    const todayDate = getCurrentDate();
-    const notificationSentKey = `notificationSent-${todayDate}`;
-    const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
+    const todayDate = now.format('YYYY-MM-DD');
+    const notificationSentKey = `notificationSent-${todayDate}-${schedule.id || 'default'}`;
 
-    if (notifTime > now && !alreadyNotified) {
+    const alreadyNotified = await AsyncStorage.getItem(notificationSentKey);
+    //await AsyncStorage.removeItem(notificationSentKey);
+    console.log("🕒 Hora actual:", now.format());
+    console.log("⏳ Hora de fin programada:", scheduledEndTime.format());
+    console.log("🔔 Notificación será a:", notifTime.format());
+
+    /*if (notifTime.isBefore(now)) {
+      console.error("❌ La hora de notificación ya ha pasado.");
+      return;
+    }*/
+
+    //console.log("🧪 trigger.date (timestamp):", notifTime.toDate().getTime());
+    //console.log("🧪 trigger.date (locale string):", notifTime.toDate().toLocaleString());
+    //console.log("🧪 trigger.date (ISO string):", notifTime.toDate().toISOString());
+
+    //await Notifications.cancelAllScheduledNotificationsAsync();
+
+    if (!alreadyNotified || alreadyNotified === 'false') {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "⏰ ¡Te olvidaste de fichar!",
@@ -566,16 +544,21 @@ const scheduleMissingCheckoutNotification = async (endTime) => {
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
         },
-        trigger: notifTime,
+        trigger: { date: notifTime.toDate() },
       });
 
       await AsyncStorage.setItem(notificationSentKey, 'true');
       console.log("✅ Notificación programada correctamente.");
+    } else {
+      console.log("ℹ️ Ya se ha programado una notificación hoy.");
     }
   } catch (error) {
     console.error("❌ Error al programar la notificación:", error);
   }
 };
+
+
+
 
 useEffect(() => {
   const requestNotificationPermissions = async () => {
@@ -588,27 +571,39 @@ useEffect(() => {
   requestNotificationPermissions();
 }, []);
 
-
 useEffect(() => {
   const handleMissedCheckout = async () => {
     console.log("💡 Revisando check-out automático...", { hasCheckedIn, hasCheckedOut, todaySchedule, absenceSubmitted });
 
     if (!todaySchedule || hasCheckedOut || !hasCheckedIn || absenceSubmitted) return;
 
-    const now = new Date();
-    const [endHours, endMinutes] = todaySchedule.end_time.split(':').map(Number);
+    const now = moment().tz('Europe/Madrid'); // Hora actual en Madrid
+   const scheduledEndTime = moment.tz(todaySchedule.end_time, 'HH:mm', 'Europe/Madrid').set({
+         year: now.year(),
+         month: now.month(),
+         date: now.date(),
+       });
 
-    const endTime = new Date();
-    endTime.setHours(endHours, endMinutes, 0, 0);
+    const notifTime = scheduledEndTime.clone().add(3, 'minutes').add(10, 'seconds');
 
-    await scheduleMissingCheckoutNotification(todaySchedule.end_time);
+    if (now.isAfter(notifTime)) {
+        console.log("🧪 trigger.date (locale string):", notifTime.toDate().toLocaleString());
+        console.log("🧪 now (locale string):", now.toDate().toLocaleString());
+        await scheduleMissingCheckoutNotification(todaySchedule);
+    }
 
-    const fifteenMinutesAfter = new Date(endTime.getTime() + 15 * 60000); // 15 minutos después
-    const todayDate = getCurrentDate();
+    const fifteenMinutesAfter = scheduledEndTime.clone().add(5, 'minutes'); // 15 minutos después del fin del turno
+    const todayDate = now.format('YYYY-MM-DD');
     const statusMarkedKey = `missingCheckOutMarked-${todayDate}`;
     const alreadyMarked = await AsyncStorage.getItem(statusMarkedKey);
 
-    if (now > fifteenMinutesAfter && !alreadyMarked) {
+    console.log("🧪 Hora actual:", now.format());
+    console.log("🧪 Hora objetivo para PUT:", fifteenMinutesAfter.format());
+    console.log("🧪 alreadyMarked:", alreadyMarked, typeof alreadyMarked);
+
+    // Registrar automáticamente el check-out perdido
+    if (now.isAfter(fifteenMinutesAfter) && (!alreadyMarked || alreadyMarked === 'false')) {
+      console.log("ENTRAAAAAAA")
       try {
         const userId = await AsyncStorage.getItem('userId');
 
@@ -616,7 +611,7 @@ useEffect(() => {
           employeeId: userId,
           date: todayDate,
           facilityId: todaySchedule.facilityId,
-          check_out: endTime.toISOString().split('T')[1].split('.')[0], // HH:mm:ss
+          check_out: scheduledEndTime.format('HH:mm:ss'), // Hora de fin en formato HH:mm:ss
           status: 'missing_check_out',
           justified: false,
         };
@@ -643,10 +638,11 @@ useEffect(() => {
 
   const interval = setInterval(() => {
     handleMissedCheckout();
-  }, 60000); // cada 1 minuto
+  }, 60000); // Revisión cada 1 minuto
 
   return () => clearInterval(interval);
 }, [todaySchedule, hasCheckedIn, hasCheckedOut, absenceSubmitted]);
+
 
 
 
@@ -775,7 +771,6 @@ return (
           </Text>
         </View>
       )}
-
 
 
       {/* Modal */}

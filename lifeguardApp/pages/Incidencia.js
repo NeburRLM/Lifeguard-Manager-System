@@ -5,11 +5,12 @@ import { AppState, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import moment from 'moment-timezone';
 
 const getCurrentDate = () => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today.toISOString().split('T')[0];
+  console.log(moment().tz('Europe/Madrid').format('YYYY-MM-DD'));
+  return moment().tz('Europe/Madrid').format('YYYY-MM-DD');
 };
 
 const Incidencia = () => {
