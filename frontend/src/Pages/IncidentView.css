@@ -94,3 +94,49 @@ body, html, #root {
     color: #007bff;
     font-weight: bold;
 }
+
+.section-title {
+    margin-top: 30px;
+    font-size: 1.4rem;
+    color: #343a40;
+    font-weight: bold;
+}
+
+.details-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.card {
+    flex: 1;
+    min-width: 300px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border-left: 6px solid #007bff;
+}
+
+.card-title {
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+    color: #007bff;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin-right: 15px;
+    border: 2px solid #007bff;
+    object-fit: cover;
+}
+
+.reporter-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+

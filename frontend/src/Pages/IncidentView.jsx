@@ -6,6 +6,16 @@ import L from "leaflet";
 import "./IncidentView.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Avatar,
+  Grid,
+  Container,
+  Divider,
+} from "@mui/material";
 
 const customIcon = new L.Icon({
   iconUrl: "/icon.svg",
@@ -28,39 +38,81 @@ function IncidentView() {
         return <div className="loading">Loading...</div>;
     }
 
-    return (
-        <div className="incident-details">
-            <h2>Incident Details</h2>
-            <MapContainer center={[incident.latitude, incident.longitude]} zoom={17} className="map">
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[incident.latitude, incident.longitude]} icon={customIcon}>
-                    <Popup>{incident.facility.name}</Popup>
-                </Marker>
+     return (
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Typography variant="h4" gutterBottom fontWeight={600}>
+            Incident Details
+          </Typography>
+
+          <Box mb={4} borderRadius={2} overflow="hidden" sx={{ boxShadow: 3 }}>
+            <MapContainer
+              center={[incident.latitude, incident.longitude]}
+              zoom={17}
+              style={{ height: 400, width: "100%" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Marker position={[incident.latitude, incident.longitude]} icon={customIcon}>
+                <Popup>{incident.facility.name}</Popup>
+              </Marker>
             </MapContainer>
-            <div className="incident-info">
-                <p><strong>Type:</strong> {incident.type}</p>
-                <p><strong>Description:</strong> {incident.description}</p>
-                <p><strong>Date:</strong> {new Date(incident.date).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}</p>
-                <p><strong>Facility:</strong> {incident.facility.name}</p>
-                <p><strong>Location:</strong> {incident.facility.location}</p>
+          </Box>
 
-                <h3>Reported By</h3>
-                <div className="reported-by">
-                    <img
-                        src={incident.reported_by.image ? incident.reported_by.image : "/default-avatar.jpg"}
-                        alt={incident.reported_by.name}
-                        className="profile-imageIncident"
+          <Card sx={{ mb: 4, p: 2 }}>
+            <CardContent>
+              <Typography variant="h6">Incident Information</Typography>
+              <Divider sx={{ my: 2 }} />
+              <Typography><strong>Type:</strong> {incident.type}</Typography>
+              <Typography><strong>Description:</strong> {incident.description}</Typography>
+              <Typography><strong>Date:</strong> {new Date(incident.date).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}</Typography>
+              <Typography><strong>Facility:</strong> {incident.facility.name}</Typography>
+              <Typography><strong>Location:</strong> {incident.facility.location}</Typography>
+            </CardContent>
+          </Card>
+
+          <Typography variant="h5" fontWeight={600} gutterBottom>
+            Victim and Reporter Details
+          </Typography>
+          <Grid container spacing={10} alignItems="stretch">
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 2, height: '100%', borderLeft: '6px solid #9e9e9e' }}>
+                <CardContent>
+                  <Typography variant="h6" color="primary" fontWeight="bold">🧍 Victim Info</Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography><strong>Name:</strong> {incident.firstName} {incident.lastName}</Typography>
+                  <Typography><strong>Dni:</strong> {incident.dni}</Typography>
+                  <Typography><strong>Age:</strong> {incident.age}</Typography>
+                  <Typography><strong>City:</strong> {incident.cityOfOrigin}</Typography>
+                  <Typography><strong>Country:</strong> {incident.countryOfOrigin}</Typography>
+                  <Typography><strong>Gender:</strong> {incident.gender}</Typography>
+                  <Typography><strong>Language:</strong> {incident.language}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 2, height: '100%', borderLeft: '6px solid #9e9e9e' }}>
+                <CardContent>
+                  <Typography variant="h6" color="primary" fontWeight="bold">📋 Reported By</Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Avatar
+                      src={incident.reported_by.image || "/default-avatar.jpg"}
+                      alt={incident.reported_by.name}
+                      sx={{ width: 64, height: 64, border: '2px solid #1976d2' }}
                     />
-                    <div className="reporter-info">
-                        <p><strong>Name:</strong> {incident.reported_by.name}</p>
-                        <p><strong>Dni:</strong> {incident.reported_by.id}</p>
-                        <p><strong>Phone:</strong> {incident.reported_by.phone_number}</p>
-                        <p><strong>Role:</strong> {incident.reported_by.role}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+                    <Box>
+                      <Typography><strong>Name:</strong> {incident.reported_by.name}</Typography>
+                      <Typography><strong>Dni:</strong> {incident.reported_by.id}</Typography>
+                      <Typography><strong>Phone:</strong> {incident.reported_by.phone_number}</Typography>
+                      <Typography><strong>Role:</strong> {incident.reported_by.role}</Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      );
+    }
 
-export default IncidentView;
+    export default IncidentView;
