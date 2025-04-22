@@ -154,7 +154,10 @@ return (
 
         {/* NUEVO BLOQUE */}
         <div className="today-title">
-          <h4>Hoy: día {day}, mes {month}, año {year}</h4>
+          <p className="today-date">
+            📅 <span className="label">
+                Hoy es:</span> <span className="value">Día {day}</span>, <span className="value">Mes {month}</span>, <span className="value">Año {year}</span>
+          </p>
         </div>
         <div className="stats-container">
           <div

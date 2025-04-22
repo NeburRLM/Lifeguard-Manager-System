@@ -4,13 +4,14 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const Login = () => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-
   const [showModal, setShowModal] = useState(false);
   const [recoveryDNI, setRecoveryDNI] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -102,6 +103,21 @@ const Login = () => {
     setModalError('');
   };
 
+  const renderPasswordInput = () => (
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          textContentType="password"
+          autoCapitalize="none"
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
+    );
 
   return (
     <ImageBackground source={require('../assets/1.jpg')} style={styles.backgroundImage}>
@@ -122,15 +138,10 @@ const Login = () => {
             />
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              textContentType="password"
-            />
-          </View>
+                    <Text style={styles.label}>Password</Text>
+                    {renderPasswordInput()}
+                  </View>
+
           <Button title="Login" onPress={handleSubmit} />
           <View style={styles.footer}>
             <TouchableOpacity onPress={() => setShowModal(true)}>
@@ -231,6 +242,20 @@ const styles = StyleSheet.create({
     color: '#007bff',
     textDecorationLine: 'underline',
   },
+  passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: wp('1%'),
+      padding: wp('2%'), // Asegura el mismo padding que el input
+      marginBottom: hp('1%'),
+      width: '100%', // Asegura el mismo ancho que el input
+    },
+    passwordInput: {
+      flex: 1, // Ocupa todo el espacio disponible dentro del contenedor
+      padding: 0, // Evita duplicación de padding (ya se aplica en passwordContainer)
+    },
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
