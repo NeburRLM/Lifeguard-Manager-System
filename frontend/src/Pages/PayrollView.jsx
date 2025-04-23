@@ -234,8 +234,8 @@ const PayrollView = () => {
         />
 
         {isModalOpen && (
-          <div className="custom-modal">
-            <div className="modal-content">
+          <div className="custom-modalP">
+            <div className="modal-contentP">
               <h3>🗓️ Detalles del Día</h3>
               {selectedDateEvents.length > 0 ? (
                 selectedDateEvents.map((ev) => {
