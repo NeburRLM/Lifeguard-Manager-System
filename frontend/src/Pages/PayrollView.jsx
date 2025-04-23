@@ -30,6 +30,10 @@ const PayrollView = () => {
   const validMonth = !isNaN(monthFromURL) && monthFromURL >= 1 && monthFromURL <= 12 ? monthFromURL : new Date().getMonth() + 1;
   const validYear = !isNaN(yearFromURL) && yearFromURL > 1900 ? yearFromURL : new Date().getFullYear();
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+
+
   useEffect(() => {
     setCurrentMonth(new Date(validYear, validMonth - 1, 1));
   }, [validMonth, validYear]);
@@ -130,6 +134,7 @@ const PayrollView = () => {
           end: moment(`${attendance.date} ${attendance.check_out}`, "YYYY-MM-DD HH:mm:ss").toDate(),
           facility: attendance.facility.id,
           type: "attendance",
+          fullData: attendance,
         }));
 
         // Actualizamos eventos al mismo tiempo con los eventos de "attendance"
@@ -144,8 +149,13 @@ const PayrollView = () => {
   useEffect(() => {
     setEvents([]); // Limpiamos los eventos antes de empezar a cargar
     fetchEmployeeData();
-    fetchAttendanceData();
-  }, [fetchEmployeeData, fetchAttendanceData]);
+  }, [fetchEmployeeData]);
+
+  useEffect(() => {
+    if (currentSchedule) {
+      fetchAttendanceData();
+    }
+  }, [currentSchedule, fetchAttendanceData]);
 
   const handleDeletePayroll = () => {
       if (!payrollId) {
@@ -170,6 +180,21 @@ const PayrollView = () => {
     };
 
 
+  const handleSelectDate = (slotInfo) => {
+    const selectedDate = moment(slotInfo.start).format("YYYY-MM-DD");
+    const dayEvents = events.filter(event =>
+      moment(event.start).format("YYYY-MM-DD") === selectedDate
+    );
+
+    setSelectedDateEvents(dayEvents);
+    setIsModalOpen(true);
+  };
+
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   if (!employee || !currentSchedule || !payroll) {
     return <div>Cargando...</div>;
   }
@@ -188,6 +213,8 @@ const PayrollView = () => {
           date={currentMonth}
           onNavigate={(date) => setCurrentMonth(date)}
           toolbar={true}
+          onSelectEvent={handleSelectDate}
+          onSelectSlot={handleSelectDate}
           selectable={true}
           eventPropGetter={(event) => {
             let backgroundColor = "#1976D2";
@@ -205,6 +232,82 @@ const PayrollView = () => {
             };
           }}
         />
+
+        {isModalOpen && (
+          <div className="custom-modal">
+            <div className="modal-content">
+              <h3>🗓️ Detalles del Día</h3>
+              {selectedDateEvents.length > 0 ? (
+                selectedDateEvents.map((ev) => {
+                  const isAttendance = ev.type === "attendance";
+                  const data = ev.fullData || {};
+                  let statusText = "";
+                  let statusColor = "#2196F3"; // Azul por defecto
+
+                  switch (data.status) {
+                    case "absent":
+                      statusText = "❌ Ausente";
+                      statusColor = "#D32F2F";
+                      break;
+                    case "missing_check_out":
+                      statusText = "⚠️ Falta check-out";
+                      statusColor = "#FFA000";
+                      break;
+                    case "missing":
+                      statusText = "❗ No asistió (sin justificar)";
+                      statusColor = "#E53935";
+                      break;
+                    default:
+                      statusText = "✔️ Presente";
+                      statusColor = "#4CAF50";
+                  }
+
+                  return (
+                    <div key={ev.id} className="event-detail-card">
+                      <p><strong>📍 Tipo:</strong> {isAttendance ? "Asistencia" : "Turno programado"}</p>
+                      <p><strong>🏢 Ubicación:</strong> {ev.title.split("\n")[1]}</p>
+                      <p><strong>🕒 Horario:</strong> {moment(ev.start).format("HH:mm")} - {moment(ev.end).format("HH:mm")}</p>
+                      <p><strong>📅 Fecha:</strong> {moment(ev.start).format("DD/MM/YYYY")}</p>
+
+                      {isAttendance && (
+                        <div className="attendance-info">
+                          <p><strong>📊 Estado:</strong> <span style={{ color: statusColor }}>{statusText}</span></p>
+
+                          {data.status === "absent" && (
+                            <>
+                              <p><strong>📄 Justificada:</strong> {data.justified ? "Sí" : "No"}</p>
+                              {data.absence_reason && <p><strong>✏️ Motivo:</strong> {data.absence_reason}</p>}
+                              {data.justification_url && (
+                                <div className="pdf-link-container">
+                                  <a href={data.justification_url} target="_blank" rel="noopener noreferrer">
+                                    📎 Ver justificante (PDF)
+                                  </a>
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          {data.note_in && <p><strong>📝 Nota de entrada:</strong> {data.note_in}</p>}
+                          {data.note_out && <p><strong>📝 Nota de salida:</strong> {data.note_out}</p>}
+                        </div>
+                      )}
+                      <hr />
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No hay eventos en esta fecha.</p>
+              )}
+              <button onClick={closeModal}>Cerrar</button>
+            </div>
+          </div>
+        )}
+
+
+
+
+
+
       </div>
 
       <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>

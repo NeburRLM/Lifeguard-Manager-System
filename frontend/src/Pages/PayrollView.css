@@ -60,3 +60,143 @@
 .deletee-btn:hover {
   background-color: #b71c1c;
 }
+
+.custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 20px;
+}
+
+.modal-content button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Tarjeta individual para evento */
+.event-card {
+  background-color: #f9f9f9;
+  border-left: 5px solid #1976D2;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.event-facility {
+  font-size: 1rem;
+  color: #444;
+  margin: 5px 0;
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.attendance {
+  background-color: #D32F2F;
+}
+
+.badge.schedule {
+  background-color: #1976D2;
+}
+
+.badge.status.present {
+  background-color: #388E3C;
+}
+
+.badge.status.absent {
+  background-color: #F57C00;
+}
+
+.badge.justify.yes {
+  background-color: #388E3C;
+}
+
+.badge.justify.no {
+  background-color: #D32F2F;
+}
+
+.justification-link a {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.note.in {
+  margin-top: 10px;
+  color: #2e7d32;
+}
+
+.note.out {
+  color: #c62828;
+}
+
+.event-detail-card {
+  text-align: left;
+  padding: 15px;
+  background-color: #fafafa;
+  border-left: 5px solid #1976D2;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.attendance-info {
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 3px solid #ccc;
+}
+
+.pdf-link-container a {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
