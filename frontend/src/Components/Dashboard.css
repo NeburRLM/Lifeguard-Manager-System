@@ -94,86 +94,10 @@ nav ul li a:hover {
 }
 
 /* Contenido */
-.content {
+.contentLayout {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Header */
-.header {
-  background-color: #222;
-  color: #fff;
-  padding: 20px;
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  width: 100%;
-}
-
-/* Main Section */
-.main-section {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-  background-color: #fff;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-  margin-top: 20px;
-  height: calc(100vh - 60px);
-  overflow-x: hidden;
-}
-
-/* Contenedor de estadísticas */
-.stats-container {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 30px;
-}
-
-/* Tarjetas de estadísticas */
-/* Tarjetas de estadísticas con borde y separación mejorada */
-.stat-card {
-  background: #f9f9f9; /* Fondo gris claro */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  border-radius: 15px;
-  width: 250px;
-  text-align: center;
-  color: #34495e;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid #ccc; /* Borde gris oscuro */
-  margin: 10px; /* Mayor separación */
-}
-
-.stat-icon {
-  font-size: 3rem;
-  color: #3498db;
-  margin-bottom: 10px;
-}
-
-.stat-card h4 {
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-/* Color de los números en naranja */
-.number {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #e74c3c; /* Naranja */
-  margin-top: 10px;
-}
-
-/* Efecto hover para resaltar aún más la diferencia */
-.stat-card:hover {
-  transform: scale(1.05);
-  transition: transform 0.3s ease;
-  border-color: #b0b0b0; /* Borde más oscuro en hover */
-}

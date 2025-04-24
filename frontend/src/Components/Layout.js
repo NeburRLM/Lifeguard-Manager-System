@@ -51,7 +51,7 @@ function Layout() {
       </aside>
 
       {/* Contenido dinámico (Outlet) */}
-      <main className="content">
+      <main className="contentLayout">
         <Outlet />
       </main>
     </div>
