@@ -33,6 +33,10 @@ const PayrollView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
 
+  const [isRecalcModalOpen, setIsRecalcModalOpen] = useState(false);
+  const [editedHours, setEditedHours] = useState("");
+  const [defaultWorkedHours, setDefaultWorkedHours] = useState("0");
+
 
   useEffect(() => {
     setCurrentMonth(new Date(validYear, validMonth - 1, 1));
@@ -64,6 +68,8 @@ const PayrollView = () => {
         const totalEarned = parseFloat(earnings.reduce((total, earning) => total + parseFloat(earning.amount || 0), 0).toFixed(2));
         const totalDeductions = parseFloat(deductions.reduce((total, deduction) => total + parseFloat(deduction.amount || 0), 0).toFixed(2));
         const netSalary = parseFloat((totalEarned - totalDeductions).toFixed(2));
+        setDefaultWorkedHours(data.total_hours || "0");
+
 
         setPayroll({
           month: `${monthName}`,
@@ -195,6 +201,53 @@ const PayrollView = () => {
     setIsModalOpen(false);
   };
 
+   const handleOpenRecalculateModal = () => {
+     setEditedHours(parseFloat(defaultWorkedHours).toFixed(2));
+     setIsRecalcModalOpen(true);
+   };
+
+
+   const handleConfirmRecalculate = async () => {
+     if (!id || isNaN(parseFloat(editedHours))) {
+       alert("Introduce un número válido.");
+       return;
+     }
+
+     try {
+       const response = await fetch(`http://localhost:4000/payroll/recalculate/${id}`, {
+         method: "PUT",
+         headers: {
+           "Content-Type": "application/json"
+         },
+         body: JSON.stringify({
+           month: validMonth,
+           year: validYear,
+           employee_id: id, // Asegúrate de enviar el ID del empleado
+           total_hours_from_user: parseFloat(editedHours) // Asegúrate de usar el nombre correcto
+         })
+       });
+
+       const data = await response.json();
+
+       if (response.ok) {
+         alert("Nómina recalculada correctamente.");
+         fetchRoleSalary(payrollId);
+         fetchEmployeeData();
+         fetchAttendanceData();
+       } else {
+         alert(data.message || "Error al recalcular nómina.");
+       }
+
+       setIsRecalcModalOpen(false);
+     } catch (error) {
+       console.error("Error:", error);
+       alert("Error al conectar con el servidor.");
+     }
+   };
+
+
+
+
   if (!employee || !currentSchedule || !payroll) {
     return <div>Cargando...</div>;
   }
@@ -303,6 +356,25 @@ const PayrollView = () => {
           </div>
         )}
 
+        {isRecalcModalOpen && (
+          <div className="custom-modalP">
+            <div className="modal-contentP">
+              <h3>🧮 Recalcular Nómina</h3>
+              <p>Introduce las horas trabajadas:</p>
+              <input
+                type="number"
+                value={editedHours}
+                step="0.01"
+                onChange={(e) => setEditedHours(e.target.value)}
+                style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <button onClick={() => setIsRecalcModalOpen(false)}>Cancelar</button>
+                <button onClick={handleConfirmRecalculate}>Confirmar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
@@ -311,10 +383,17 @@ const PayrollView = () => {
       </div>
 
       <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
+     <button
+       onClick={handleOpenRecalculateModal}
+       style={{ marginBottom: "1rem", padding: "10px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
+     >
+       Recalcular Nómina
+     </button>
+
 
       <div style={{ height: "800px", overflowY: "auto" }}>
         <PDFViewer width="100%" height="100%">
-          <PayslipPDF employee={employee} payroll={payroll} />
+          <PayslipPDF key={JSON.stringify(payroll)} employee={employee} payroll={payroll} />
         </PDFViewer>
       </div>
 

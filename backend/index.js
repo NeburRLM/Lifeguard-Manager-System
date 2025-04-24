@@ -2173,6 +2173,124 @@ app.post('/payroll/generate-monthly', async (req, res) => {
 
 
 
+app.put('/payroll/recalculate/:id', async (req, res) => {
+    const { month, year, employee_id, total_hours_from_user } = req.body;  // Recibir el ID del empleado y las horas totales
+
+        if (!month || !year || !employee_id || total_hours_from_user === undefined) {
+            return res.status(400).json({ error: "Se requiere el mes, el año, el ID del empleado y las horas totales para actualizar la nómina." });
+        }
+
+        try {
+            const payrollRepository = dataSource.getRepository(PayrollSchema);
+            const employeeRepository = dataSource.getRepository(EmployeeSchema);
+            const roleSalaryRepository = dataSource.getRepository(RoleSalarySchema);
+
+            // Buscar la nómina existente para el empleado, mes y año proporcionado
+            const existingPayroll = await payrollRepository.findOne({
+                where: {
+                    employee: { id: employee_id },
+                    month: month,
+                    year: year
+                }
+            });
+
+            if (!existingPayroll) {
+                return res.status(404).json({ error: `No se encontró una nómina para el empleado con ID ${employee_id} en ${month}/${year}.` });
+            }
+
+            const employee = await employeeRepository.findOne({ where: { id: employee_id } });
+
+            if (!employee) {
+                return res.status(404).json({ error: `Empleado con ID ${employee_id} no encontrado.` });
+            }
+
+            const roleSalary = await roleSalaryRepository.findOne({ where: { role: employee.role } });
+
+            if (!roleSalary) {
+                console.log(`No se encontró salario para el rol ${employee.role}`);
+                return res.status(404).json({ error: `No se encontró salario para el rol ${employee.role}.` });
+            }
+
+            // Parsear earnings y deductions como arrays
+            let earnings = JSON.parse(roleSalary.earnings);
+            const deductions = JSON.parse(roleSalary.deductions);
+
+            let totalHours = total_hours_from_user;  // Usamos las horas proporcionadas por el usuario
+
+            if (isNaN(totalHours)) {
+                console.warn(`Atención: total_hours_from_user no es un número válido para el empleado ${employee.id}`);
+                totalHours = 0;
+            }
+
+            const hourlyRate = employee.hourlyRate || calculateAmount(employee.role);
+
+            if (isNaN(hourlyRate)) {
+                console.warn(`Atención: hourlyRate no es un número válido para el empleado ${employee.id}`);
+                hourlyRate = 0;
+            }
+
+            const amount_hours = totalHours * hourlyRate;
+
+            if (isNaN(amount_hours)) {
+                console.warn(`Atención: amount_hours no es un número válido para el empleado ${employee.id}`);
+                amount_hours = 0;
+            }
+
+            const adjustedBaseSalary = (parseFloat(roleSalary.base_salary) / 160) * totalHours;
+            const baseSalary = parseFloat(roleSalary.base_salary);  // Asegurarse de que baseSalary está definido
+
+            // Modificar earnings para reflejar el salario base ajustado y otros conceptos
+            earnings = earnings.map((earning) => {
+                let adjustedAmount = parseFloat(earning.amount);
+                if (earning.name === "Salario Base") {
+                    adjustedAmount = adjustedBaseSalary;
+                } else if (earning.name === "Plus Transporte") {
+                    if (totalHours > 160) {
+                        adjustedAmount = (parseFloat(earning.amount) / 160 ) * 160;
+                    } else {
+                        adjustedAmount = (parseFloat(earning.amount) / 160 ) * totalHours;
+                    }
+                } else if (["Paga Extra X", "Paga Extra Navidad"].includes(earning.name)) {
+                    adjustedAmount = (parseFloat(earning.amount) * adjustedBaseSalary) / baseSalary;
+                }
+                return {
+                    name: earning.name,
+                    amount: adjustedAmount.toFixed(2)
+                };
+            });
+
+            const totalEarnings = earnings.reduce((acc, earning) => acc + parseFloat(earning.amount), 0);
+
+            // Calcular deducciones basadas en el total devengado
+            const adjustedDeductions = deductions.map((deduction) => {
+                const adjustedAmount = (parseFloat(deduction.percentage) / 100) * totalEarnings;
+                return {
+                    name: deduction.name,
+                    percentage: deduction.percentage,
+                    amount: adjustedAmount.toFixed(2)
+                };
+            });
+
+            const totalDeductions = adjustedDeductions.reduce((acc, deduction) => acc + parseFloat(deduction.amount), 0);
+
+            // Actualizar la nómina existente con los nuevos valores
+            existingPayroll.total_hours = totalHours.toFixed(2);
+            existingPayroll.base_salary = adjustedBaseSalary.toFixed(2);
+            existingPayroll.amount_hours = amount_hours.toFixed(2);
+            existingPayroll.earnings = JSON.stringify(earnings);
+            existingPayroll.deductions = JSON.stringify(adjustedDeductions);
+            existingPayroll.total_amount = (totalEarnings - totalDeductions).toFixed(2);
+
+            await payrollRepository.save(existingPayroll);  // Guardar los cambios
+
+            res.status(200).json({ message: "Nómina actualizada correctamente.", payroll: existingPayroll });
+
+        } catch (error) {
+            console.error("Error al actualizar nómina:", error);
+            res.status(500).json({ error: "Error interno del servidor." });
+        }
+    });
+
 
 app.get('/attendance/:id', async (req, res) => {
     const { id } = req.params; // Obtener el ID del empleado desde la URL
@@ -2597,7 +2715,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-sgMail.setApiKey('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');
+
 
 
 
