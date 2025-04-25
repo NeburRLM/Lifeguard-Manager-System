@@ -36,6 +36,20 @@ function CurrentAttendance() {
     setPdfUrl("");
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const normalizeString = (str) =>
+    str ? str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredEmployees = employees.filter((employee) =>
+    normalizeString(employee.name).includes(normalizeString(searchTerm)) ||
+    normalizeString(employee.id).includes(normalizeString(searchTerm))
+  );
+
+
   useEffect(() => {
     const fetchEmployeesWithAttendance = async () => {
       try {
@@ -45,7 +59,6 @@ function CurrentAttendance() {
         await Promise.all(
           employeesRes.map(async (emp) => {
             try {
-              // 1. Verificar si tiene schedule para hoy
               const empDetailRes = await fetch(`http://localhost:4000/employee/${emp.id}`);
               const empDetail = await empDetailRes.json();
 
@@ -61,16 +74,15 @@ function CurrentAttendance() {
                 });
               });
 
-              let status = "rest"; // Por defecto, descanso si no tiene horario
+              let status = "rest";
 
               if (hasScheduleToday) {
-                // 2. Tiene horario, revisar asistencia
                 const attendanceRes = await fetch(`http://localhost:4000/attendance/${emp.id}?month=${month}&year=${year}`);
                 const attendance = await attendanceRes.json();
                 const todayRecord = attendance.data?.find(a => a.date === todayStr);
 
                 if (!todayRecord) {
-                  status = "unknown"; // Tiene horario, pero no ha fichado
+                  status = "unknown";
                 } else if (todayRecord.status === "absent") {
                   status = "absent";
                 } else if (todayRecord.check_in) {
@@ -91,7 +103,6 @@ function CurrentAttendance() {
                   noteOut: todayRecord?.note_out || "",
                 });
               } else {
-                // 3. No tiene horario → descanso
                 data.push({
                   ...emp,
                   status: "rest",
@@ -111,6 +122,27 @@ function CurrentAttendance() {
           })
         );
 
+        // Orden por estado y hora de entrada descendente para "present"
+        data.sort((a, b) => {
+          const statusOrder = {
+            unknown: 0,
+            absent: 1,
+            present: 2,
+            rest: 3
+          };
+
+          const aOrder = statusOrder[a.status];
+          const bOrder = statusOrder[b.status];
+
+          if (aOrder !== bOrder) return aOrder - bOrder;
+
+          if (a.status === "present" && b.status === "present") {
+            return new Date(b.entryTime) - new Date(a.entryTime);
+          }
+
+          return 0;
+        });
+
         setEmployees(data);
         setLoading(false);
       } catch (err) {
@@ -120,17 +152,8 @@ function CurrentAttendance() {
     };
 
     fetchEmployeesWithAttendance();
-
-    // 🔁 Revisión cada minuto por si cambia la fecha
-    const interval = setInterval(() => {
-        fetchEmployeesWithAttendance();  // Recarga los datos de los empleados cada minuto
-      }, 60 * 1000); // cada minuto
-
-      // Llamada inicial para cargar los datos cuando se monta el componente
-      fetchEmployeesWithAttendance();
-
-      // Limpiar el intervalo cuando el componente se desmonte
-      return () => clearInterval(interval);
+    const interval = setInterval(fetchEmployeesWithAttendance, 60 * 1000);
+    return () => clearInterval(interval);
   }, [todayStr, month, year]);
 
   const getStatusChip = (status) => {
@@ -140,14 +163,12 @@ function CurrentAttendance() {
       unknown: { label: "Sin registro", color: "default" },
       rest: { label: "Descanso", color: "info" },
     };
-
     const props = chipProps[status] || chipProps.unknown;
-
     return <Chip label={props.label} color={props.color} />;
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 4, maxHeight: '90vh', overflowY: 'auto' }}>
       <Typography variant="h5" gutterBottom>
         Asistencia del Día - {new Date(todayStr).toLocaleDateString('es-ES')}
       </Typography>
@@ -156,6 +177,22 @@ function CurrentAttendance() {
         <Typography>Cargando información...</Typography>
       ) : (
         <>
+          <Box sx={{ mb: 2 }}>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o DNI"
+              value={searchTerm}
+              onChange={handleSearch}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                fontSize: "16px"
+              }}
+            />
+          </Box>
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -166,62 +203,90 @@ function CurrentAttendance() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees.map((emp) => (
-                  <TableRow key={emp.id}>
-                    <TableCell>{emp.name}</TableCell>
-                    <TableCell>{getStatusChip(emp.status)}</TableCell>
-                    <TableCell>
-                      {emp.status === "rest" ? (
-                        <Typography variant="body2" color="text.secondary">
-                        No tiene turno asignado hoy.
-                        </Typography>
-                      ) : emp.status === "present" ? (
-                        <>
-                          <Typography variant="body2"><strong>Entrada:</strong> {emp.entryTime || "N/A"}</Typography>
-                          <Typography variant="body2"><strong>Salida:</strong> {emp.exitTime || "N/A"}</Typography>
-                          <Typography variant="body2"><strong>Ubicación:</strong> {emp.facility || "N/A"}</Typography>
-                          {emp.noteIn && (
-                                <Typography variant="body2" color="text.secondary">
-                                  <strong>Nota entrada:</strong> {emp.noteIn}
-                                </Typography>
-                              )}
-                              {emp.noteOut && (
-                                <Typography variant="body2" color="text.secondary">
-                                  <strong>Nota salida:</strong> {emp.noteOut}
-                                </Typography>
-                              )}
+                {["unknown", "absent", "present", "rest"].map((group) => {
+                  const groupEmployees = filteredEmployees.filter((e) => e.status === group);
+                  if (groupEmployees.length === 0) return null;
 
-                        </>
-                      ) : emp.status === "absent" ? (
-                        <>
-                              {emp.absenceReason && (
-                                <Typography variant="body2" color="text.secondary">
-                                  <strong>Motivo:</strong> {emp.absenceReason}
-                                </Typography>
-                              )}
-                        {emp.justification ? (
-                          <Button variant="outlined" size="small" onClick={() => openModal(emp.justification)}>
-                            Ver Justificante
-                          </Button>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            Sin justificante
+                  const groupLabel = {
+                    unknown: "🔸 Sin registro (No han fichado)",
+                    absent: "🔴 Ausentes",
+                    present: "🟢 Presentes (ordenado por llegada)",
+                    rest: "🟦 Descanso"
+                  }[group];
+
+                  return (
+                    <React.Fragment key={group}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          sx={{
+                            borderTop: "4px solid black",
+                            backgroundColor: "#f5f5f5",
+                          }}
+                        >
+                          <Typography variant="subtitle1" sx={{ fontWeight: "bold", py: 1 }}>
+                            {groupLabel}
                           </Typography>
-                        )}
-                        </>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No hay información
-                        </Typography>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </TableCell>
+                      </TableRow>
+
+                      {groupEmployees.map((emp) => (
+                        <TableRow key={emp.id}>
+                          <TableCell>{emp.name}</TableCell>
+                          <TableCell>{getStatusChip(emp.status)}</TableCell>
+                          <TableCell>
+                            {emp.status === "rest" ? (
+                              <Typography variant="body2" color="text.secondary">
+                                No tiene turno asignado hoy.
+                              </Typography>
+                            ) : emp.status === "present" ? (
+                              <>
+                                <Typography variant="body2"><strong>Entrada:</strong> {emp.entryTime || "N/A"}</Typography>
+                                <Typography variant="body2"><strong>Salida:</strong> {emp.exitTime || "N/A"}</Typography>
+                                <Typography variant="body2"><strong>Ubicación:</strong> {emp.facility || "N/A"}</Typography>
+                                {emp.noteIn && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    <strong>Nota entrada:</strong> {emp.noteIn}
+                                  </Typography>
+                                )}
+                                {emp.noteOut && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    <strong>Nota salida:</strong> {emp.noteOut}
+                                  </Typography>
+                                )}
+                              </>
+                            ) : emp.status === "absent" ? (
+                              <>
+                                {emp.absenceReason && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    <strong>Motivo:</strong> {emp.absenceReason}
+                                  </Typography>
+                                )}
+                                {emp.justification ? (
+                                  <Button variant="outlined" size="small" onClick={() => openModal(emp.justification)}>
+                                    Ver Justificante
+                                  </Button>
+                                ) : (
+                                  <Typography variant="body2" color="text.secondary">
+                                    Sin justificante
+                                  </Typography>
+                                )}
+                              </>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                No hay información
+                              </Typography>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* Modal para justificante */}
           <Modal
             open={modalVisible}
             onClose={closeModal}

@@ -168,7 +168,7 @@ input[type='file'] {
   z-index: 1000;
 }
 
-.modal-contentP {
+.modal-contentProfile {
   background: white;
   padding: 30px;
   border-radius: 10px;
@@ -179,7 +179,7 @@ input[type='file'] {
   text-align: center;
 }
 
-.modal-contentP h3 {
+.modal-contentProfile h3 {
   margin-bottom: 20px;
 }
 

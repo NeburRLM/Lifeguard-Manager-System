@@ -39,6 +39,7 @@ function IncidentView() {
     }
 
      return (
+        <Box sx={{ height: '100vh', overflowY: 'auto' }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Typography variant="h4" gutterBottom fontWeight={600}>
             Incident Details
@@ -74,7 +75,7 @@ function IncidentView() {
           </Typography>
           <Grid container spacing={10} alignItems="stretch">
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 2, height: '100%', borderLeft: '6px solid #9e9e9e' }}>
+              <Card sx={{ p: 2, borderLeft: '6px solid #9e9e9e' }}>
                 <CardContent>
                   <Typography variant="h6" color="primary" fontWeight="bold">🧍 Victim Info</Typography>
                   <Divider sx={{ my: 2 }} />
@@ -90,7 +91,7 @@ function IncidentView() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 2, height: '100%', borderLeft: '6px solid #9e9e9e' }}>
+              <Card sx={{ p: 2, height: '90%', borderLeft: '6px solid #9e9e9e' }}>
                 <CardContent>
                   <Typography variant="h6" color="primary" fontWeight="bold">📋 Reported By</Typography>
                   <Divider sx={{ my: 2 }} />
@@ -112,6 +113,7 @@ function IncidentView() {
             </Grid>
           </Grid>
         </Container>
+        </Box>
       );
     }
 

@@ -255,7 +255,7 @@ function ProfileView() {
 
      {showPasswordModal && (
              <div className="password-modalP">
-               <div className="modal-contentP">
+               <div className="modal-contentProfile">
                  <h3>Cambiar Contraseña</h3>
                  {error && <p className="error-textP">{error}</p>}
                  <div className="input-groupP">
