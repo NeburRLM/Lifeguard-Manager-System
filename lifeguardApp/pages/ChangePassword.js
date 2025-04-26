@@ -8,6 +8,8 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+
 
 export default function ChangePassword({ navigation, route }) {
   const [passwordData, setPasswordData] = useState({
@@ -22,6 +24,7 @@ export default function ChangePassword({ navigation, route }) {
     confirm: false,
   });
 
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [validationErrors, setValidationErrors] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
@@ -63,7 +66,7 @@ export default function ChangePassword({ navigation, route }) {
   const checkCurrentPassword = async () => {
     setCheckingCurrentPassword(true);
     try {
-      const response = await fetch(`http://192.168.1.34:4000/employee/change-password/${userId}`, {
+      const response = await fetch(`${API_URL}/employee/change-password/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +105,7 @@ export default function ChangePassword({ navigation, route }) {
     }
 
     try {
-      const response = await fetch(`http://192.168.1.34:4000/employee/change-password/${userId}`, {
+      const response = await fetch(`${API_URL}/employee/change-password/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

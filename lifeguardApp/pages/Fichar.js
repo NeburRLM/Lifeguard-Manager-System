@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system'; // Opcional para obtener base64 
 import * as DocumentPicker from 'expo-document-picker';
 import * as Notifications from 'expo-notifications';
 import moment from 'moment-timezone';
+import Constants from 'expo-constants';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -45,6 +46,7 @@ const haversineDistance = (coords1, coords2) => {
 };
 
 const Fichar = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [employeeName, setEmployeeName] = useState('');
   const [todaySchedule, setTodaySchedule] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -124,7 +126,7 @@ const Fichar = () => {
        const year = moment(today).year();
        const month = moment(today).month() + 1;
 
-        const response = await fetch(`http://192.168.1.34:4000/attendance/${userId}?year=${year}&month=${month}`);
+        const response = await fetch(`${API_URL}/attendance/${userId}?year=${year}&month=${month}`);
         const result = await response.json();
 
         if (response.ok && result.status === 'success') {
@@ -157,7 +159,7 @@ const Fichar = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
         try {
-          const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const response = await fetch(`${API_URL}/employee/${userId}`);
           const employeeData = await response.json();
           setEmployeeName(employeeData.name);
 
@@ -269,7 +271,7 @@ useEffect(() => {
             status: 'missing',
           };
 
-          const response = await fetch('http://192.168.1.34:4000/attendance', {
+          const response = await fetch(`${API_URL}/attendance`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(attendanceData),
@@ -369,7 +371,7 @@ useEffect(() => {
 
       console.log('Datos que se enviarán al servidor:', JSON.stringify(attendanceData, null, 2));
 
-      const response = await fetch('http://192.168.1.34:4000/attendance', {
+      const response = await fetch(`${API_URL}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(attendanceData),
@@ -404,7 +406,7 @@ const handleConfirmCheckOut = async () => {
     const userId = await AsyncStorage.getItem('userId');
     const now = moment().tz('Europe/Madrid'); // Obtener la hora actual en Madrid
 
-    const response = await fetch(`http://192.168.1.34:4000/attendance/checkout`, {
+    const response = await fetch(`${API_URL}/attendance/checkout`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -465,7 +467,7 @@ const handleSubmitAbsence = async () => {
       });
     }
 
-    const response = await fetch('http://192.168.1.34:4000/attendance', {
+    const response = await fetch(`${API_URL}/attendance`, {
       method: 'POST',
       body: formData,
     });
@@ -616,7 +618,7 @@ useEffect(() => {
           justified: false,
         };
 
-        const response = await fetch('http://192.168.1.34:4000/attendance/checkout', {
+        const response = await fetch(`${API_URL}/attendance/checkout`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(missingCheckoutData),

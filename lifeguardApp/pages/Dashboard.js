@@ -6,8 +6,10 @@ import styled from "styled-components/native";
 import bgImg from "../assets/4.png";
 import { useNavigation } from "@react-navigation/native"; // 👈 para navegar
 import moment from 'moment-timezone';
+import Constants from 'expo-constants';
 
 const Dashboard = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [weather, setWeather] = useState({});
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
@@ -23,7 +25,7 @@ const Dashboard = () => {
       const userId = await AsyncStorage.getItem("userId");
       if (userId) {
         try {
-          const res = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const res = await fetch(`${API_URL}/employee/${userId}`);
           const employee = await res.json();
           setEmployeeName(employee.name);
 

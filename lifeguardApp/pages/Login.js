@@ -6,8 +6,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Constants from 'expo-constants';
+
 
 const Login = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,8 +34,10 @@ const Login = () => {
 
   const handleSubmit = async () => {
     setError('');
+    console.log('API_URL:', API_URL);
+
     try {
-      const response = await fetch('http://192.168.1.34:4000/login_app', {
+      const response = await fetch(`${API_URL}/login_app`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +69,7 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch(`http://192.168.1.34:4000/employee/${recoveryDNI}`);
+      const response = await fetch(`${API_URL}/employee/${recoveryDNI}`);
       const data = await response.json();
 
       if (!response.ok || !data.email) {
@@ -72,7 +77,7 @@ const Login = () => {
         return;
       }
 
-      const forgotResponse = await fetch('http://192.168.1.34:4000/employee/forgot-passwordApp', {
+      const forgotResponse = await fetch(`${API_URL}/employee/forgot-passwordApp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

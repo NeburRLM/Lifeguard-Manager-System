@@ -12,9 +12,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-
+import Constants from 'expo-constants';
 
 const Profile = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const navigation = useNavigation();
   const [token, setToken] = useState(null);
   const [employee, setEmployee] = useState(null);
@@ -32,7 +33,7 @@ const Profile = () => {
       setToken(userToken); // << Guardamos el token
       if (userId) {
         try {
-          const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const response = await fetch(`${API_URL}/employee/${userId}`);
           const employeeData = await response.json();
           setEmployee(employeeData);
         } catch (error) {
@@ -57,7 +58,7 @@ const Profile = () => {
   const handleSaveChanges = async () => {
     const userId = await AsyncStorage.getItem('userId');
     try {
-      await fetch(`http://192.168.1.34:4000/employee/${userId}`, {
+      await fetch(`${API_URL}/employee/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

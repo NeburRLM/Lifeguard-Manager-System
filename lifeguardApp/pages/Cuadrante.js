@@ -3,8 +3,11 @@ import { View, Text, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styled from 'styled-components/native';
+import Constants from 'expo-constants';
+
 
 const Cuadrante = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [employeeName, setEmployeeName] = useState('');
   const [workSchedule, setWorkSchedule] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
@@ -40,7 +43,7 @@ const Cuadrante = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
         try {
-          const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const response = await fetch(`${API_URL}/employee/${userId}`);
           const employeeData = await response.json();
           setEmployeeName(employeeData.name);
           setWorkSchedule(employeeData.work_schedule);

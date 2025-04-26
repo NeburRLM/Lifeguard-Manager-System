@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment-timezone';
+import Constants from 'expo-constants';
 
 const getCurrentDate = () => {
   const today = new Date();
@@ -14,7 +15,8 @@ const getCurrentDate = () => {
 };
 
 const Incidencia = () => {
-  const [loading, setLoading] = useState(true);
+    const API_URL = Constants.expoConfig.extra.API_URL;
+    const [loading, setLoading] = useState(true);
     const [employeeName, setEmployeeName] = useState('');
     const [todaySchedule, setTodaySchedule] = useState(null);
     const [incidentTypes, setIncidentTypes] = useState([]);
@@ -47,7 +49,7 @@ const Incidencia = () => {
         const userId = await AsyncStorage.getItem('userId');
 
         if (userId) {
-          const response = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const response = await fetch(`${API_URL}/employee/${userId}`);
           const employee = await response.json();
           setEmployeeName(employee.name);
 
@@ -67,7 +69,7 @@ const Incidencia = () => {
           }
         }
 
-        const resTypes = await fetch('http://192.168.1.34:4000/incident-types');
+        const resTypes = await fetch(`${API_URL}/incident-types`);
         const typesData = await resTypes.json();
         setIncidentTypes(typesData);
 
@@ -157,7 +159,7 @@ const Incidencia = () => {
         //console.log('Formulario enviado con la ubicación:', formData);
         //Alert.alert('Formulario enviado exitosamente');
      try {
-          const res = await fetch('http://192.168.1.34:4000/incident', {
+          const res = await fetch(`${API_URL}/incident`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),

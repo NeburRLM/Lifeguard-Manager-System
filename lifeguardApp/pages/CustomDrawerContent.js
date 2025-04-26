@@ -4,8 +4,11 @@ import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawe
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Constants from 'expo-constants';
+
 
 const CustomDrawerContent = (props) => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
 
@@ -14,7 +17,7 @@ const CustomDrawerContent = (props) => {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
         try {
-          const res = await fetch(`http://192.168.1.34:4000/employee/${userId}`);
+          const res = await fetch(`${API_URL}/employee/${userId}`);
           const data = await res.json();
           setUser(data);
         } catch (err) {

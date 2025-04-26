@@ -2842,7 +2842,7 @@ app.post('/employee/forgot-passwordApp', async (req, res) => {
 });
 
 async function sendPasswordResetEmailApp(email, resetToken) {
-  const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}`;
+  const resetUrl = `https://e22f-79-155-206-154.ngrok-free.app/reset-passwordApp?token=${resetToken}`;
 
   const msg = {
     to: email,

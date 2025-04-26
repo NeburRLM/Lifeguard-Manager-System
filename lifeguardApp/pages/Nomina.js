@@ -8,8 +8,10 @@ import { printToFileAsync } from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 import moment from "moment";
 import "moment/locale/es";
+import Constants from 'expo-constants';
 
 const Nomina = () => {
+  const API_URL = Constants.expoConfig.extra.API_URL;
   const [employeeName, setEmployeeName] = useState('');
   const [employeeData, setEmployeeData] = useState(null);
   const [payrolls, setPayrolls] = useState([]);
@@ -28,12 +30,12 @@ const Nomina = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
         try {
-          const response = await fetch(`http://10.0.2.2:4000/employee/${userId}`);
+          const response = await fetch(`${API_URL}/employee/${userId}`);
           const employeeData = await response.json();
           setEmployeeName(employeeData.name);
           setEmployeeData(employeeData);
 
-          const payrollResponse = await fetch(`http://10.0.2.2:4000/payroll/${userId}`);
+          const payrollResponse = await fetch(`${API_URL}/payroll/${userId}`);
           const payrollData = await payrollResponse.json();
           const sorted = payrollData.sort(
             (a, b) => new Date(b.year, b.month - 1) - new Date(a.year, a.month - 1)
