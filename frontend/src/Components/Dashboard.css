@@ -100,3 +100,30 @@ nav ul li a:hover {
   flex-direction: column;
   overflow: hidden;
 }
+
+.language-selectorLayout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto; /* Empuja el selector hacia abajo */
+  margin-bottom: 20px; /* Espaciado opcional con el borde inferior del sidebar */
+}
+
+.language-selectorLayout select {
+  background-color: #2c2c2c;
+  color: white;
+  border: 1px solid #555;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  max-width: 120px;
+  width: auto;
+}
+
+.flag-iconLayout {
+  width: 24px;
+  height: auto;
+  border-radius: 3px;
+}
+

@@ -1,0 +1,205 @@
+{
+  "login": {
+    "error-dni-required": "El DNI és obligatori.",
+    "error-password-required": "La contrasenya és obligatòria.",
+    "error-employee": "Empleat no trobat",
+    "error-password": "Error, la contrasenya no és correcta",
+    "error-access": "No té accés al sistema",
+    "error": "Error amb el servidor",
+    "welcome": "Benvingut de nou",
+    "subtitle": "Inicia sessió al teu compte",
+    "dni": "DNI",
+    "password": "Contrasenya",
+    "login": "Iniciar sessió",
+    "forgot": "Has oblidat la contrasenya?"
+  },
+  "layout": {
+    "Dashboard": "Inici",
+    "Manage Employees": "Gestió Empleats",
+    "Manage Facilities": "Gestió Instal·lacions",
+    "Manage Payrolls": "Gestió Nòmines",
+    "Manage Incidents": "Gestió Incidències",
+    "Profile": "Perfil",
+    "Sign Out": "Tancar Sessió",
+    "Admin Dashboard": "Panell d'Admin"
+  },
+  "dashboard": {
+    "title": "Sistema de Gestió d'Empleats",
+    "employees": "Empleats",
+    "bosses": "Caps",
+    "facilities": "Instal·lacions",
+    "today": "Avui és",
+    "day": "Dia",
+    "month": "Mes",
+    "year": "Any",
+    "attendance": "Fitxatges",
+    "abs": "abs.",
+    "incidents": "Incidències"
+  },
+  "currentAttendance": {
+    "title": "Assistència del Dia",
+    "loading": "Carregant informació...",
+    "searchPlaceholder": "Cercar per nom o DNI",
+    "table": {
+      "name": "Nom",
+      "status": "Estat",
+      "details": "Detalls",
+      "groups": {
+        "unknown": "🔸 Sense registre (No han fitxat)",
+        "absent": "🔴 Absents",
+        "present": "🟢 Presents (ordenats per arribada)",
+        "rest": "🟦 Descans"
+      }
+    },
+    "statuses": {
+      "present": "Present",
+      "absent": "Absent",
+      "unknown": "Sense registre",
+      "rest": "Descans"
+    },
+    "details": {
+      "noShift": "No té torn assignat avui.",
+      "checkIn": "Entrada",
+      "checkOut": "Sortida",
+      "facility": "Ubicació",
+      "noteIn": "Nota entrada",
+      "noteOut": "Nota sortida",
+      "absenceReason": "Motiu",
+      "viewJustification": "Veure Justificant",
+      "noJustification": "Sense justificant",
+      "noInfo": "No hi ha informació"
+    }
+  },
+  "currentIncidents": {
+    "title": "Incidències del Dia",
+    "listTitle": "Llistat d'Incidències d'Avui",
+    "loading": "Carregant incidències...",
+    "noIncidents": "No hi ha incidències registrades per avui.",
+    "table": {
+      "type": "Tipus",
+      "time": "Hora",
+      "facility": "Instal·lació",
+      "employee": "Treballador"
+    }
+  },
+  "manage-employees": {
+    "no-employees": "No s'han trobat empleats",
+    "confirm-delete": "Estàs segur que vols eliminar aquest empleat?",
+    "error-delete": "Error en eliminar l'empleat",
+    "title": "Gestionar Empleats",
+    "list": "Llista d'Empleats",
+    "button-add": "➕ Afegir Empleat",
+    "search-text": "Cerca per nom, correu electrònic o DNI",
+    "order-text": "Ordenar Alfabèticament",
+    "table": {
+      "name": "Nom",
+      "dni": "DNI",
+      "email": "Correu Electrònic",
+      "role": "Rol",
+      "actions": {
+        "title-actions": "Accions",
+        "view": "Veure",
+        "delete": "Eliminar"
+      }
+    }
+  },
+  "employee-view": {
+    "months": {
+      "1": "Gener",
+      "2": "Febrer",
+      "3": "Març",
+      "4": "Abril",
+      "5": "Maig",
+      "6": "Juny",
+      "7": "Juliol",
+      "8": "Agost",
+      "9": "Setembre",
+      "10": "Octubre",
+      "11": "Novembre",
+      "12": "Desembre"
+    },
+    "error-roles": "Error en obtenir els rols.",
+    "error-require": "Tots els camps són obligatoris.",
+    "error-workSchedule-1": "No es pot crear un quadrant per a un mes/any passat.",
+    "error-workSchedule-2": "Empleat no trobat.",
+    "error-workSchedule-3": "Ja existeix un quadrant mensual per a aquest empleat en aquest mes i any.",
+    "error-workSchedule-4": "Error en crear el quadrant mensual.",
+    "error-workSchedule-5": "Hi ha hagut un error en intentar crear el quadrant.",
+    "loading": "Carregant...",
+    "title": "Detalls de l'Empleat",
+    "delete-image": "Eliminar Imatge",
+    "dni": "DNI",
+    "name": "Nom",
+    "email": "Correu",
+    "role": "Rol",
+    "select-role": "Selecciona un rol...",
+    "birthdate": "Data de naixement",
+    "number": "Número de telèfon",
+    "hire-date": "Data de contractació",
+    "save": "Desar",
+    "cancel": "Cancel·lar",
+    "edit": "Editar",
+    "work-schedule": "Quadrant de treball per a",
+    "new-work": "Nou Quadrant",
+    "order-by": "Ordenar per",
+    "asc": "Mes i Any Ascendent",
+    "desc": "Mes i Any Descendent",
+    "create-work": "Crear Nou Quadrant",
+    "select-month": "Selecciona un mes",
+    "select-year": "Selecciona un any",
+    "no-work": "No hi ha quadrants disponibles.",
+    "select-file": "Seleccionar fitxer",
+    "month": "Mes",
+    "year": "Any"
+  },
+
+  "schedule-view": {
+    "title": "Quadrant {{month}} - {{employeeName}}",
+    "title-pdf": "QUADRANT DE TREBALL - {{month}}",
+    "employee-title": "Empleat:",
+    "rest": "LLIURE",
+    "name": "quadrant_treball.pdf",
+    "confirm-delete": "Estàs segur de que desitges esborrar aquest quadrant?",
+    "delete-success": "Quadrant de treball eliminat amb èxit",
+    "error-delete": "Hi ha hagut un error en eliminar el quadrant.",
+    "error-found": "No es va trobar el quadrant de feina.",
+    "modal": {
+      "edit-event": "Editar esdeveniment",
+      "create-event": "Crear nou esdeveniment",
+      "start-time": "Hora d'inici:",
+      "end-time": "Hora de fi:",
+      "location": "Ubicació:",
+      "select-facility": "Seleccioni una ubicació",
+      "cancel": "Cancelar",
+      "save": "Desar",
+      "delete": "Esborrar"
+    },
+    "download-pdf": "Descarregar Quadrant en PDF",
+    "delete-schedule": "Esborrar Quadrant",
+    "loading": "Carregant..."
+  },
+  "months": {
+    "january": "Gener",
+    "february": "Febrer",
+    "march": "Març",
+    "april": "Abril",
+    "may": "Maig",
+    "june": "Juny",
+    "july": "Juliol",
+    "august": "Agost",
+    "september": "Setembre",
+    "october": "Octubre",
+    "november": "Novembre",
+    "december": "Desembre"
+  },
+  "days": {
+    "monday": "Dilluns",
+    "tuesday": "Dimarts",
+    "wednesday": "Dimecres",
+    "thursday": "Dijous",
+    "friday": "Divendres",
+    "saturday": "Dissabte",
+    "sunday": "Diumenge"
+  }
+
+}

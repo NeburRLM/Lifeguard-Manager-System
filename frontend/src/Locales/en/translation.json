@@ -1,0 +1,207 @@
+{
+  "login": {
+    "error-dni-required": "DNI is required.",
+    "error-password-required": "Password is required.",
+    "error-employee": "Employee not found",
+    "error-password": "Error, the password is not correct",
+    "error-access": "Does not have access to the system.",
+    "error": "Server error.",
+    "welcome": "Welcome Back",
+    "subtitle": "Please login to your account",
+    "dni": "DNI",
+    "password": "Password",
+    "login": "Login",
+    "forgot": "Forgot Password?"
+  },
+  "layout": {
+    "Dashboard": "Dashboard",
+    "Manage Employees": "Manage Employees",
+    "Manage Facilities": "Manage Facilities",
+    "Manage Payrolls": "Manage Payrolls",
+    "Manage Incidents": "Manage Incidents",
+    "Profile": "Profile",
+    "Sign Out": "Sign Out",
+    "Admin Dashboard": "Admin Dashboard"
+  },
+  "dashboard": {
+    "title": "Employee Management System",
+    "employees": "Employees",
+    "bosses": "Bosses",
+    "facilities": "Facilities",
+    "today": "Today is",
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "attendance": "Attendance",
+    "abs": "abs.",
+    "incidents": "Incidents"
+  },
+  "currentAttendance": {
+    "title": "Day Attendance",
+    "loading": "Loading information...",
+    "searchPlaceholder": "Search by name or ID",
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "details": "Details",
+      "groups": {
+        "unknown": "🔸 Not registered (Did not clock in)",
+        "absent": "🔴 Absent",
+        "present": "🟢 Present (sorted by arrival)",
+        "rest": "🟦 Rest"
+      }
+    },
+    "statuses": {
+      "present": "Present",
+      "absent": "Absent",
+      "unknown": "Not registered",
+      "rest": "Rest"
+    },
+    "details": {
+      "noShift": "No shift assigned today.",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "facility": "Location",
+      "noteIn": "Entry note",
+      "noteOut": "Exit note",
+      "absenceReason": "Reason",
+      "viewJustification": "View Justification",
+      "noJustification": "No justification",
+      "noInfo": "No information"
+    }
+  },
+  "currentIncidents": {
+    "title": "Incidents of the Day",
+    "listTitle": "List of Today's Incidents",
+    "loading": "Loading incidents...",
+    "noIncidents": "No incidents recorded for today.",
+    "table": {
+      "type": "Typo",
+      "time": "Time",
+      "facility": "Facility",
+      "employee": "Employee"
+    }
+  },
+  "manage-employees": {
+    "no-employees": "No employees found",
+    "confirm-delete": "Are you sure you want to delete this employee?",
+    "error-delete": "Error deleting employee",
+    "title": "Manage Employees",
+    "list": "Employee List",
+    "button-add": "➕ Add Employee",
+    "search-text": "Search by name, email, or ID",
+    "order-text": "Order Alphabetically",
+    "table": {
+      "name": "Name",
+      "dni": "ID",
+      "email": "Email",
+      "role": "Role",
+      "actions": {
+        "title-actions": "Actions",
+        "view": "View",
+        "delete": "Delete"
+      }
+    }
+  },
+  "employee-view": {
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "error-roles": "Error fetching roles.",
+    "error-require": "All fields are required.",
+    "error-workSchedule-1": "Cannot create a schedule for a past month/year.",
+    "error-workSchedule-2": "Employee not found.",
+    "error-workSchedule-3": "A monthly schedule already exists for this employee in that month and year.",
+    "error-workSchedule-4": "Error creating the monthly schedule.",
+    "error-workSchedule-5": "There was an error trying to create the schedule.",
+    "loading": "Loading...",
+    "title": "Employee Details",
+    "delete-image": "Delete Image",
+    "dni": "ID",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "select-role": "Select role...",
+    "birthdate": "Birthdate",
+    "number": "Phone number",
+    "hire-date": "Hire date",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "work-schedule": "Work Schedule for",
+    "new-work": "New Schedule",
+    "order-by": "Order by",
+    "asc": "Month and Year Ascending",
+    "desc": "Month and Year Descending",
+    "create-work": "Create New Schedule",
+    "select-month": "Select a month",
+    "select-year": "Select a year",
+    "no-work": "No work schedules available.",
+    "select-file": "Select file",
+    "month": "Month",
+    "year": "Year"
+  },
+
+  "schedule-view": {
+    "title": "Work schedule {{month}} - {{employeeName}}",
+    "title-pdf": "WORK SCHEDULE - {{month}}",
+    "employee-title": "Employee:",
+    "rest": "REST",
+    "name": "work_schedule.pdf",
+    "confirm-delete": "Are you sure you want to delete this quadrant?",
+    "delete-success": "Work quadrant successfully deleted",
+    "error-delete": "There was an error deleting the quadrant.",
+    "error-found": "The work quadrant was not found.",
+    "modal": {
+      "edit-event": "Edit Event",
+      "create-event": "Create New Event",
+      "start-time": "Start Time:",
+      "end-time": "End Time:",
+      "location": "Facility:",
+      "select-facility": "Select a facility",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "download-pdf": "Download Schedule as PDF",
+    "delete-schedule": "Delete Schedule",
+    "loading": "Loading..."
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  }
+
+
+
+}

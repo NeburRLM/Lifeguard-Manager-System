@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort, FaTimes } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [roles, setRoles] = useState([]);
@@ -18,18 +20,18 @@ const EmployeeView = () => {
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [error, setError] = useState(""); // Estado para errores
   const months = [
-    { name: "Enero", value: 1 },
-    { name: "Febrero", value: 2 },
-    { name: "Marzo", value: 3 },
-    { name: "Abril", value: 4 },
-    { name: "Mayo", value: 5 },
-    { name: "Junio", value: 6 },
-    { name: "Julio", value: 7 },
-    { name: "Agosto", value: 8 },
-    { name: "Septiembre", value: 9 },
-    { name: "Octubre", value: 10 },
-    { name: "Noviembre", value: 11 },
-    { name: "Diciembre", value: 12 },
+    { name: t("employee-view.months.1"), value: 1 },
+    { name: t("employee-view.months.2"), value: 2 },
+    { name: t("employee-view.months.3"), value: 3 },
+    { name: t("employee-view.months.4"), value: 4 },
+    { name: t("employee-view.months.5"), value: 5 },
+    { name: t("employee-view.months.6"), value: 6 },
+    { name: t("employee-view.months.7"), value: 7 },
+    { name: t("employee-view.months.8"), value: 8 },
+    { name: t("employee-view.months.9"), value: 9 },
+    { name: t("employee-view.months.10"), value: 10 },
+    { name: t("employee-view.months.11"), value: 11 },
+    { name: t("employee-view.months.12"), value: 12 },
   ];
 
   const handleMonthChange = (event) => {
@@ -56,14 +58,14 @@ const EmployeeView = () => {
         if (Array.isArray(data)) {
           setRoles(data);
         } else {
-          setError("Error al obtener los roles.");
+          setError(t("employee-view.error-roles"));
         }
       })
       .catch((error) => {
         console.error("Error al obtener los roles:", error);
-        setError("Error al obtener los roles.");
+        setError(t("employee-view.error-roles"));
       });
-  }, []);
+  }, [t]);
 
 
 
@@ -145,7 +147,7 @@ const EmployeeView = () => {
       const { name, email, role, birthdate, phone_number, hourlyRate } = formData;
 
       if (!name || !email || !role || !birthdate || !phone_number || hourlyRate === "") {
-        alert("Todos los campos son obligatorios.");
+        alert(t("employee-view.error-require"));
         return; // Detiene la ejecución si hay un campo vacío
       }
       const response = await fetch(`http://localhost:4000/employee/${id}`, {
@@ -209,10 +211,21 @@ const EmployeeView = () => {
       } else {
         const error = await response.text();
         //setErrorMessage(error); // Mostrar el error recibido del backend
-        setError(error);
+        if(error === "No se puede crear un cuadrante para un mes/año pasado."){
+            setError(t("employee-view.error-workSchedule-1"));
+        }
+        else if (error === "Empleado no encontrado."){
+            setError(t("employee-view.error-workSchedule-2"));
+        }
+        else if (error === "Ya existe un cuadrante mensual para este empleado en ese mes y año."){
+            setError(t("employee-view.error-workSchedule-3"));
+        }
+        else{
+            setError(t("employee-view.error-workSchedule-4"));
+        }
       }
     } catch (error) {
-      setError("Hubo un error al intentar crear el cuadrante.");
+      setError(t("employee-view.error-workSchedule-5"));
     }
   };
   useEffect(() => {
@@ -233,13 +246,13 @@ const EmployeeView = () => {
     setShowSortOptions(false); // Cerrar el desplegable después de seleccionar una opción
   };
 
-  if (!employee) return <div className="loading">Loading...</div>;
+  if (!employee) return <div className="loading">employee-view.loading</div>;
 
   return (
 
      <div>
         <header className="header">
-          <h4>Employee Details</h4>
+          <h4>{t("employee-view.title")}</h4>
         </header>
 
         <div className="employee-details-container">
@@ -247,7 +260,10 @@ const EmployeeView = () => {
                     <div className="employee-image-section">
                       {isEditing ? (
                         <>
-                          <input type="file" accept="image/*" onChange={handleFileChange} className="file-input" />
+                          <label className="custom-file-upload">
+                            <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: "none" }} />
+                            {t("employee-view.select-file")}
+                          </label>
                           <img
                             src={formData.previewImage || formData.image || "/default-avatar.jpg"}
                             alt="Employee"
@@ -255,7 +271,7 @@ const EmployeeView = () => {
                           />
                           {formData.image && (
                             <button className="delete-image-btn" onClick={handleDeleteImage}>
-                              Eliminar Imagen
+                              {t("employee-view.delete-image")}
                             </button>
                           )}
                         </>
@@ -271,18 +287,18 @@ const EmployeeView = () => {
                       {isEditing ? (
                         <>
                           <div className="input-group">
-                            <label htmlFor="name">Nombre</label>
+                            <label htmlFor="name">{t("employee-view.name")}</label>
                             <input type="text" name="name" value={formData.name} onChange={handleInputChange} />
                           </div>
                           <div className="input-group">
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="email">{t("employee-view.email")}</label>
                             <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
                           </div>
                           <div className="input-group">
-                            <label htmlFor="role">Rol</label>
+                            <label htmlFor="role">{t("employee-view.role")}</label>
                             <div className="content-selectRole">
                               <select name="role" value={formData.role} onChange={handleInputChange} required>
-                                <option value="">Seleccionar rol...</option>
+                                <option value="">{t("employee-view.select-role")}</option>
                                 {roles.map((role) => (
                                   <option key={role.id} value={role.type}>
                                     {role.type}
@@ -293,24 +309,24 @@ const EmployeeView = () => {
                           </div>
 
                           <div className="input-group">
-                            <label htmlFor="birthdate">Fecha de Nacimiento</label>
+                            <label htmlFor="birthdate">{t("employee-view.birthdate")}</label>
                             <input type="text" name="birthdate" value={formData.birthdate} onChange={handleInputChange} />
                           </div>
                           <div className="input-group">
-                            <label htmlFor="phone_number">Teléfono</label>
+                            <label htmlFor="phone_number">{t("employee-view.number")}</label>
                             <input type="text" name="phone_number" value={formData.phone_number} onChange={handleInputChange} />
                           </div>
 
                         </>
                       ) : (
                         <>
-                          <p><strong>DNI:</strong> {employee.id}</p>
-                          <p><strong>Email:</strong> {employee.email}</p>
+                          <p><strong>{t("employee-view.dni")}:</strong> {employee.id}</p>
+                          <p><strong>{t("employee-view.email")}:</strong> {employee.email}</p>
 
-                          <p><strong>Role:</strong> {employee.role}</p>
-                          <p><strong>Phone:</strong> {employee.phone_number}</p>
-                          <p><strong>Birthdate:</strong> {employee.birthdate}</p>
-                          <p><strong>Hire date:</strong> {new Date(employee.hire_date).toLocaleDateString("es-ES")}</p>
+                          <p><strong>{t("employee-view.role")}:</strong> {employee.role}</p>
+                          <p><strong>{t("employee-view.number")}:</strong> {employee.phone_number}</p>
+                          <p><strong>{t("employee-view.birthdate")}:</strong> {employee.birthdate}</p>
+                          <p><strong>{t("employee-view.hire-date")}:</strong> {new Date(employee.hire_date).toLocaleDateString("es-ES")}</p>
                         </>
                       )}
                     </div>
@@ -319,29 +335,29 @@ const EmployeeView = () => {
                   <div className="action-buttons">
                     {isEditing ? (
                       <>
-                        <button className="save-btn green-btn" onClick={handleSave}><FaSave /> Guardar</button>
-                        <button className="cancel-btn" onClick={handleCancelEdit}><FaTimes />Cancelar</button>
+                        <button className="save-btn green-btn" onClick={handleSave}><FaSave /> {t("employee-view.save")}</button>
+                        <button className="cancel-btn" onClick={handleCancelEdit}><FaTimes />{t("employee-view.cancel")}</button>
                       </>
                     ) : (
-                      <button className="edit-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
+                      <button className="edit-btn" onClick={() => setIsEditing(true)}><FaEdit /> {t("employee-view.edit")}</button>
                     )}
                   </div>
                 </div>
 
         <div className="schedule-container">
-          <h3>Work Schedule for {employee.name}</h3>
+          <h3>{t("employee-view.work-schedule")} {employee.name}</h3>
           <div className="schedule-actions">
             <button className="create-schedule-btn" onClick={() => setShowScheduleModal(true)}>
-              <FaPlus className="plus-icon" /> Nuevo Cuadrante
+              <FaPlus className="plus-icon" /> {t("employee-view.new-work")}
             </button>
             <div className="sort-container">
                 <button className="sort-btn" onClick={() => setShowSortOptions(!showSortOptions)}>
-                  <FaSort /> Ordenar por
+                  <FaSort /> {t("employee-view.order-by")}
                 </button>
                 {showSortOptions && (
                   <div className="sort-options">
-                    <button className="sort-option" onClick={() => sortSchedules("asc")}>Mes y Año Ascendente</button>
-                    <button className="sort-option" onClick={() => sortSchedules("desc")}>Mes y Año Descendente</button>
+                    <button className="sort-option" onClick={() => sortSchedules("asc")}>{t("employee-view.asc")}</button>
+                    <button className="sort-option" onClick={() => sortSchedules("desc")}>{t("employee-view.desc")}</button>
                   </div>
                 )}
               </div>
@@ -358,7 +374,7 @@ const EmployeeView = () => {
                 </li>
               ))
             ) : (
-              <p>No work schedules available.</p>
+              <p>{t("employee-view.no-work")}</p>
             )}
           </ul>
         </div>
@@ -367,12 +383,12 @@ const EmployeeView = () => {
       {showScheduleModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3 className="modal-title">Crear Nuevo Cuadrante</h3>
+            <h3 className="modal-title">{t("employee-view.create-work")}</h3>
 
             <div className="input-group">
-              <label>Mes</label>
+              <label>{t("employee-view.month")}</label>
               <select value={newSchedule.month} onChange={handleMonthChange}>
-                <option value="">Seleccione un mes</option>
+                <option value="">{t("employee-view.select-month")}</option>
                 {months.map((m) => (
                   <option key={m.value} value={m.value}>
                     {m.name}
@@ -382,9 +398,9 @@ const EmployeeView = () => {
             </div>
 
             <div className="input-group">
-              <label>Año</label>
+              <label>{t("employee-view.year")}</label>
               <select name="year" value={newSchedule.year} onChange={handleScheduleInputChange}>
-                <option value="">Seleccione un año</option>
+                <option value="">{t("employee-view.select-year")}</option>
                 {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i).map((year) => (
                   <option key={year} value={year}>{year}</option>
                 ))}
@@ -393,10 +409,10 @@ const EmployeeView = () => {
             {error && <div className="error-message">{error}</div>}
             <div className="modal-buttons">
               <button className="save-btn green-btn" onClick={handleCreateSchedule}>
-                <FaSave /> Guardar
+                <FaSave /> {t("employee-view.save")}
               </button>
               <button className="cancel-btn" onClick={() => setShowScheduleModal(false)}>
-                <FaTimes /> Cancelar
+                <FaTimes /> {t("employee-view.cancel")}
               </button>
             </div>
 

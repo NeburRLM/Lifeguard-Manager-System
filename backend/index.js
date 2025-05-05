@@ -24,6 +24,7 @@ import cookieParser from 'cookie-parser';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url'
+import { DateTime } from 'luxon';
 const app = express()
 const port = 4000
 
@@ -1648,18 +1649,21 @@ app.get('/incidents', async (req, res) => {
 });
 
 app.get("/incidents/today", async (req, res) => {
-  // Obtener la fecha actual
-  const today = new Date();
+  // Obtener la fecha actual en zona horaria de Madrid
+  const nowInMadrid = DateTime.now().setZone('Europe/Madrid');
+  //console.log("nowInMadrid:", nowInMadrid.toISO());
 
-  // Obtener el comienzo del día (00:00:00) y el final del día (23:59:59.999)
-  const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // 00:00:00
-  const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // 23:59:59.999
+  const startOfDay = nowInMadrid.startOf('day');
+  const endOfDay = nowInMadrid.endOf('day');
+
+  //console.log("startOfDay Madrid:", startOfDay.toISO());
+  //console.log("endOfDay Madrid:", endOfDay.toISO());
 
   try {
     const incidentRepository = dataSource.getRepository(IncidentSchema);
     const incidents = await incidentRepository.find({
       where: {
-        date: Between(startOfDay.toISOString(), endOfDay.toISOString()) // Usamos Between para buscar el rango
+        date: Between(startOfDay.toJSDate(), endOfDay.toJSDate()) // convertimos a Date nativo para TypeORM
       },
       relations: ['facility', 'reported_by']
     });
@@ -2842,7 +2846,7 @@ app.post('/employee/forgot-passwordApp', async (req, res) => {
 });
 
 async function sendPasswordResetEmailApp(email, resetToken) {
-  const resetUrl = `https://e22f-79-155-206-154.ngrok-free.app/reset-passwordApp?token=${resetToken}`;
+  const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}`;
 
   const msg = {
     to: email,

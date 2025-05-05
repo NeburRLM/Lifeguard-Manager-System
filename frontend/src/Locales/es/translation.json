@@ -1,0 +1,206 @@
+{
+  "login": {
+    "error-dni-required": "El DNI es obligatorio.",
+    "error-password-required": "La contraseña es obligatoria.",
+    "error-employee": "Empleado no encontrado",
+    "error-password": "Error, la contraseña no es correcta.",
+    "error-access": "No tienes acceso al sistema.",
+    "error": "Error con el servidor.",
+    "welcome": "Bienvenido de nuevo",
+    "subtitle": "Por favor inicia sesión en tu cuenta",
+    "dni": "DNI",
+    "password": "Contraseña",
+    "login": "Iniciar sesión",
+    "forgot": "¿Olvidaste tu contraseña?"
+  },
+  "layout": {
+    "Dashboard": "Inicio",
+    "Manage Employees": "Gestión Empleados",
+    "Manage Facilities": "Gestión Instalaciones",
+    "Manage Payrolls": "Gestión Nóminas",
+    "Manage Incidents": "Gestión Incidencias",
+    "Profile": "Perfil",
+    "Sign Out": "Cerrar Sesión",
+    "Admin Dashboard": "Panel de Admin"
+  },
+  "dashboard": {
+    "title": "Sistema de Gestión de Empleados",
+    "employees": "Empleados",
+    "bosses": "Jefes",
+    "facilities": "Instalaciones",
+    "today": "Hoy es",
+    "day": "Día",
+    "month": "Mes",
+    "year": "Año",
+    "attendance": "Fichajes",
+    "abs": "aus.",
+    "incidents": "Incidencias"
+  },
+  "currentAttendance": {
+    "title": "Asistencia del Día",
+    "loading": "Cargando información...",
+    "searchPlaceholder": "Buscar por nombre o DNI",
+    "table": {
+      "name": "Nombre",
+      "status": "Estado",
+      "details": "Detalles",
+      "groups": {
+        "unknown": "🔸 Sin registro (No han fichado)",
+        "absent": "🔴 Ausentes",
+        "present": "🟢 Presentes (ordenado por llegada)",
+        "rest": "🟦 Descanso"
+      }
+    },
+    "statuses": {
+      "present": "Presente",
+      "absent": "Ausente",
+      "unknown": "Sin registro",
+      "rest": "Descanso"
+    },
+    "details": {
+      "noShift": "No tiene turno asignado hoy.",
+      "checkIn": "Entrada",
+      "checkOut": "Salida",
+      "facility": "Ubicación",
+      "noteIn": "Nota entrada",
+      "noteOut": "Nota salida",
+      "absenceReason": "Motivo",
+      "viewJustification": "Ver Justificante",
+      "noJustification": "Sin justificante",
+      "noInfo": "No hay información"
+    }
+  },
+  "currentIncidents": {
+    "title": "Incidencias del Día",
+    "listTitle": "Listado de Incidencias de Hoy",
+    "loading": "Cargando incidencias...",
+    "noIncidents": "No hay incidencias registradas para hoy.",
+    "table": {
+      "type": "Tipo",
+      "time": "Hora",
+      "facility": "Instalación",
+      "employee": "Empleado"
+    }
+  },
+  "manage-employees": {
+    "no-employees": "No se encontraron empleados",
+    "confirm-delete": "¿Estás seguro de que deseas eliminar este empleado?",
+    "error-delete": "Error al eliminar el empleado",
+    "title": "Gestionar Empleados",
+    "list": "Lista de Empleados",
+    "button-add": "➕ Añadir Empleado",
+    "search-text": "Buscar por nombre, correo electrónico o DNI",
+    "order-text": "Ordenar Alfabéticamente",
+    "table": {
+      "name": "Nombre",
+      "dni": "DNI",
+      "email": "Correo Electrónico",
+      "role": "Rol",
+      "actions": {
+        "title-actions": "Acciones",
+        "view": "Ver",
+        "delete": "Eliminar"
+      }
+    }
+  },
+  "employee-view": {
+    "months": {
+      "1": "Enero",
+      "2": "Febrero",
+      "3": "Marzo",
+      "4": "Abril",
+      "5": "Mayo",
+      "6": "Junio",
+      "7": "Julio",
+      "8": "Agosto",
+      "9": "Septiembre",
+      "10": "Octubre",
+      "11": "Noviembre",
+      "12": "Diciembre"
+    },
+    "error-roles": "Error al obtener los roles.",
+    "error-require": "Todos los campos son obligatorios.",
+    "error-workSchedule-1": "No se puede crear un cuadrante para un mes/año pasado.",
+    "error-workSchedule-2": "Empleado no encontrado.",
+    "error-workSchedule-3": "Ya existe un cuadrante mensual para este empleado en ese mes y año.",
+    "error-workSchedule-4": "Error, al crear el cuadrante mensual.",
+    "error-workSchedule-5": "Hubo un error al intentar crear el cuadrante.",
+    "loading": "Cargando...",
+    "title": "Detalles del Empleado",
+    "delete-image": "Eliminar Imagen",
+    "dni": "DNI",
+    "name": "Nombre",
+    "email": "Email",
+    "role": "Rol",
+    "select-role": "Seleccionar rol...",
+    "birthdate": "Fecha de nacimiento",
+    "number": "Número de teléfono",
+    "hire-date": "Fecha de contratación",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "work-schedule": "Cuadrante de trabajo para",
+    "new-work": "Nuevo Cuadrante",
+    "order-by": "Ordenar por",
+    "asc": "Mes y Año Ascendente",
+    "desc": "Mes y Año Descendente",
+    "create-work": "Crear Nuevo Cuadrante",
+    "select-month": "Seleccione un mes",
+    "select-year": "Seleccione un año",
+    "no-work": "No hay cuadrantes disponibles.",
+    "select-file": "Seleccionar archivo",
+    "month": "Mes",
+    "year": "Año"
+  },
+
+  "schedule-view": {
+    "title": "Cuadrante {{month}} - {{employeeName}}",
+    "title-pdf": "CUADRANTE DE TRABAJO - {{month}}",
+    "employee-title": "Empleado:",
+    "rest": "LIBRE",
+    "name": "cuadrante_trabajo.pdf",
+    "confirm-delete": "¿Estás seguro de que deseas eliminar este cuadrante?",
+    "delete-success": "Cuadrante de trabajo eliminado exitosamente",
+    "error-delete": "Hubo un error al eliminar el cuadrante.",
+    "error-found": "No se encontró el cuadrante de trabajo.",
+    "modal": {
+      "edit-event": "Editar Evento",
+      "create-event": "Crear Nuevo Evento",
+      "start-time": "Hora de inicio:",
+      "end-time": "Hora de fin:",
+      "location": "Ubicación:",
+      "select-facility": "Seleccione una ubicación",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "delete": "Eliminar"
+    },
+    "download-pdf": "Descargar Cuadrante en PDF",
+    "delete-schedule": "Eliminar Cuadrante",
+    "loading": "Cargando..."
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
+  "days": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  }
+
+
+}

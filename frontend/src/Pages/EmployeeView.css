@@ -2,14 +2,12 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f0f2f5;
-  margin: 0;
-  padding: 0;
-}
-
-/* Contenedor principal */
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
+   height: auto;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* Encabezado */
@@ -526,4 +524,15 @@ body {
 .content-selectRole select:disabled {
   background-color: #f9f9f9;
   cursor: not-allowed;
+}
+.custom-file-upload {
+  display: inline-block;
+  padding: 3px 7px;
+  background-color: #3498db;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.custom-file-upload:hover {
+  background-color:#2980b9;
 }

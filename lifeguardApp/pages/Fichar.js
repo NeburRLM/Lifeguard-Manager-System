@@ -282,7 +282,7 @@ useEffect(() => {
             Alert.alert('Ausencia registrada', 'No has fichado a tiempo, tu asistencia está marcada como ausente.');
           } else {
             const errorText = await response.text();
-            console.error('Error al registrar asistencia:', errorText);
+            //console.error('Error al registrar asistencia:', errorText);
           }
         } catch (error) {
           console.error('Error al verificar la asistencia:', error);

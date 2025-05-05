@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import moment from "moment";
-import "moment/locale/es";
+import "moment/locale/es"; // Importamos los idiomas adicionales
+import "moment/locale/ca"; // Catalán
+import "moment/locale/en-gb"; // Inglés británico
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { jsPDF } from "jspdf";  // Importamos jsPDF
+import { useTranslation } from "react-i18next";
 import "./ScheduleView.css";
 
 // Configurar Moment para que la semana empiece en lunes
 moment.updateLocale("es", { week: { dow: 1 } });
 
-const localizer = momentLocalizer(moment);
 
 const ScheduleView = () => {
   const { id, scheduleId } = useParams();
@@ -19,9 +21,26 @@ const ScheduleView = () => {
   const [facilities, setFacilities] = useState([]);
   const [currentView, setCurrentView] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [localizer, setLocalizer] = useState(momentLocalizer(moment));
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({ start: "", end: "", facility: "", date: "" });
+  const { t, i18n } = useTranslation();
+
+  // Función para actualizar el idioma de Moment.js y react-big-calendar
+  const updateLocale = useCallback(() => {
+      const newLanguage = i18n.language;
+
+      // Actualizar el idioma de Moment.js
+      moment.locale(newLanguage); // Cambia el idioma de Moment.js dinámicamente
+
+      // Actualizar el localizador de react-big-calendar
+      setLocalizer(momentLocalizer(moment));
+    }, [i18n.language]);
+
+    useEffect(() => {
+      updateLocale();
+    }, [updateLocale]);
 
   // Definimos la función fetchEmployeeData con useCallback para evitar la advertencia
   const fetchEmployeeData = useCallback(() => {
@@ -207,18 +226,26 @@ const ScheduleView = () => {
     // **Título principal**
     doc.setFontSize(16); // Tamaño reducido
     doc.setTextColor(40, 40, 40);
-    doc.text(`CUADRANTE DE TRABAJO - ${moment(currentMonth).format("MMMM YYYY").toUpperCase()}`, startX, startY);
+    doc.text(`${t("schedule-view.title-pdf", { month: moment(currentMonth).format("MMMM YYYY").toUpperCase(), employeeName: employee.name })}`, startX, startY);
 
     // **Nombre del empleado con menor tamaño**
     startY += 8;
     doc.setFontSize(12);
-    doc.text(`Empleado: ${employee.name}`, startX, startY);
+    doc.text(`${t("schedule-view.employee-title")} ${employee.name}`, startX, startY);
 
     startY += 8; // Menos espacio para que todo encaje
 
     const daysInMonth = moment(currentMonth).daysInMonth();
     const firstDay = (moment(currentMonth).startOf("month").day() + 6) % 7; // Cambiado para empezar el lunes
-    const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const daysOfWeek = [
+          t("days.monday"),
+          t("days.tuesday"),
+          t("days.wednesday"),
+          t("days.thursday"),
+          t("days.friday"),
+          t("days.saturday"),
+          t("days.sunday")
+        ];
 
     // **Encabezados de la tabla con fuente más pequeña**
     doc.setFont("helvetica", "bold");
@@ -268,7 +295,7 @@ const ScheduleView = () => {
             });
           } else {
             doc.setTextColor(200, 0, 0);
-            doc.text("LIBRE", startX + cellWidth * col + 2, textY);
+            doc.text(t("schedule-view.rest"), startX + cellWidth * col + 2, textY);
             doc.setTextColor(0, 0, 0);
           }
 
@@ -278,7 +305,7 @@ const ScheduleView = () => {
       row++;
     }
 
-    doc.save("cuadrante_trabajo.pdf");
+    doc.save(t("schedule-view.name"));
   };
 
 const handleDeleteSchedule = async () => {
@@ -291,6 +318,8 @@ const handleDeleteSchedule = async () => {
     alert("No se encontró el cuadrante de trabajo.");
     return;
   }
+  const confirmDelete = window.confirm(t("schedule-view.confirm-delete"));
+      if (!confirmDelete) return;
 
   try {
     // Eliminar todos los schedules asociados al work schedule
@@ -314,13 +343,13 @@ const handleDeleteSchedule = async () => {
     }
 
     // Si todo es exitoso, actualizamos el estado y cerramos el modal
-    alert("Cuadrante de trabajo eliminado exitosamente");
+    alert(t("schedule-view.delete-success"));
 
     // Redirigir a la página anterior (esto puede ser dinámico según el employeeId)
     window.location.href = `/employeeview/${id}`; // Redirige a la página del empleado
   } catch (error) {
     console.error("Error eliminando el cuadrante:", error);
-    alert("Hubo un error al eliminar el cuadrante.");
+    alert(t("schedule-view.delete-success"));
   }
 };
 
@@ -335,7 +364,9 @@ const handleDeleteSchedule = async () => {
 
   return (
     <div className="schedule-view-container">
-      <h2>Cuadrante {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
+      <h2>
+        {t("schedule-view.title", { month: t(`${moment(currentMonth).format("MMMM YYYY").toLowerCase()}`), employeeName: employee.name })}
+      </h2>
 
       <div className="calendar-container">
         <Calendar
@@ -359,30 +390,30 @@ const handleDeleteSchedule = async () => {
       </div>
 
       <button onClick={handleDownloadPDF} className="download-pdf-btn">
-        Descargar Cuadrante en PDF
+        {t("schedule-view.download-pdf")}
       </button>
        <button onClick={handleDeleteSchedule} className="delete-schedule-btn">
-         Eliminar Cuadrante
+         {t("schedule-view.delete-schedule")}
        </button>
 
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-container">
             <div className="modal-header">
-              <h3>{selectedEvent ? "Editar Evento" : "Crear Nuevo Evento"}</h3>
+              <h3>{selectedEvent ? t("schedule-view.modal.edit-event") : t("schedule-view.modal.create-event")}</h3>
               <button className="close-modal" onClick={() => setShowModal(false)}>X</button>
             </div>
             <div className="modal-body">
               <form>
-                <label>Hora de inicio:</label>
+                <label>{t("schedule-view.modal.start-time")}</label>
                 <input type="time" name="start" value={formData.start} onChange={handleChange} />
 
-                <label>Hora de fin:</label>
+                <label>{t("schedule-view.modal.end-time")}</label>
                 <input type="time" name="end" value={formData.end} onChange={handleChange} />
 
-                <label>Ubicación:</label>
+                <label>{t("schedule-view.modal.location")}</label>
                 <select name="facility" value={formData.facility} onChange={handleChange}>
-                  <option value="">Seleccione una ubicación</option>
+                  <option value="">{t("schedule-view.modal.select-facility")}</option>
                   {facilities.map((facility) => (
                     <option key={facility.id} value={facility.id}>
                       {facility.name}
@@ -392,10 +423,10 @@ const handleDeleteSchedule = async () => {
               </form>
             </div>
             <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="save-btn" onClick={handleSave}>Guardar</button>
+              <button className="cancel-btn" onClick={() => setShowModal(false)}>{t("schedule-view.modal.cancel")}</button>
+              <button className="save-btn" onClick={handleSave}>{t("schedule-view.modal.save")}</button>
               {selectedEvent && (
-                <button className="delet-btn" onClick={handleDelete}>Eliminar</button>
+                <button className="delet-btn" onClick={handleDelete}>{t("schedule-view.modal.delete")}</button>
               )}
             </div>
           </div>

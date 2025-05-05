@@ -2,11 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ManageIncidents.css"; // Reutilizamos los estilos existentes
+import { useTranslation } from "react-i18next";
 
 function CurrentIncidents() {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetch(`http://localhost:4000/incidents/today`)
@@ -24,24 +26,24 @@ function CurrentIncidents() {
   return (
     <main className="content">
       <header className="header">
-        <h4>Incidencias del Día - {new Date().toLocaleDateString("es-ES")}</h4>
+        <h4>{t("currentIncidents.title")} - {new Date().toLocaleDateString("es-ES")}</h4>
       </header>
 
       <div className="incident-container">
-        <h2>Listado de Incidencias de Hoy</h2>
+        <h2>{t("currentIncidents.listTitle")}</h2>
 
         {loading ? (
-          <p>Cargando incidencias...</p>
+          <p>{t("currentIncidents.loading")}</p>
         ) : incidents.length === 0 ? (
-          <p>No hay incidencias registradas para hoy.</p>
+          <p>{t("currentIncidents.noIncidents")}</p>
         ) : (
           <table className="incident-table">
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Hora</th>
-                <th>Facility</th>
-                <th>Empleado</th>
+                <th>{t("currentIncidents.table.type")}</th>
+                <th>{t("currentIncidents.table.time")}</th>
+                <th>{t("currentIncidents.table.facility")}</th>
+                <th>{t("currentIncidents.table.employee")}</th>
               </tr>
             </thead>
             <tbody>

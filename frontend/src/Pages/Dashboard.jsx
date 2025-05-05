@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserTie, faBuilding, faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { useTranslation } from 'react-i18next';
 import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [employeeCount, setEmployeeCount] = useState(0);
   const [bossCount, setBossCount] = useState(0);
   const [facilityCount, setFacilityCount] = useState(0);
@@ -130,24 +132,24 @@ const year = currentDate.getFullYear();
 return (
     <main className="content">
       <header className="header">
-        <h4>Employee Management System</h4>
+        <h4>{t("dashboard.title")}</h4>
       </header>
 
       <section className="main-section">
         <div className="stats-container">
           <div className="stat-card">
             <FontAwesomeIcon icon={faUsers} className="stat-icon" />
-            <h4>Employees</h4>
+            <h4>{t("dashboard.employees")}</h4>
             <p className="number">{employeeCount}</p>
           </div>
           <div className="stat-card">
             <FontAwesomeIcon icon={faUserTie} className="stat-icon" />
-            <h4>Bosses</h4>
+            <h4>{t("dashboard.bosses")}</h4>
             <p className="number">{bossCount}</p>
           </div>
           <div className="stat-card">
             <FontAwesomeIcon icon={faBuilding} className="stat-icon" />
-            <h4>Facilities</h4>
+            <h4>{t("dashboard.facilities")}</h4>
             <p className="number">{facilityCount}</p>
           </div>
         </div>
@@ -155,8 +157,10 @@ return (
         {/* NUEVO BLOQUE */}
         <div className="today-title">
           <p className="today-date">
-            📅 <span className="label">
-                Hoy es:</span> <span className="value">Día {day}</span>, <span className="value">Mes {month}</span>, <span className="value">Año {year}</span>
+            📅 <span className="label">{t("dashboard.today")}:</span>{" "}
+                        <span className="value">{t("dashboard.day")} {day}</span>,{" "}
+                        <span className="value">{t("dashboard.month")} {month}</span>,{" "}
+                        <span className="value">{t("dashboard.year")} {year}</span>
           </p>
         </div>
         <div className="stats-container">
@@ -165,7 +169,7 @@ return (
             onClick={() => navigate("/current_attendance")}
           >
             <FontAwesomeIcon icon={faCheck} className="stat-icon" />
-            <h4>Fichajes</h4>
+            <h4>{t("dashboard.attendance")}</h4>
             <p className="number">{attendanceSummary.present}/{employeeCount} ({attendanceSummary.absent} abs.)</p>
           </div>
           <div
@@ -173,7 +177,7 @@ return (
             onClick={() => navigate("/current_incidents")}
           >
             <FontAwesomeIcon icon={faExclamationTriangle} className="stat-icon" />
-            <h4>Incidencias</h4>
+            <h4>{t("dashboard.incidents")}</h4>
             <p className="number">{incidentCount}</p>
           </div>
         </div>

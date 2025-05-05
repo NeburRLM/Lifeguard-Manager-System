@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./ManageEmployees.css";
+import { useTranslation } from "react-i18next";
 
 function ManageEmployees() {
 
@@ -8,6 +9,7 @@ function ManageEmployees() {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const { t } = useTranslation();
 
 
   useEffect(() => {
@@ -18,11 +20,11 @@ function ManageEmployees() {
           setEmployees(data);
           setFilteredEmployees(data);
         } else {
-          alert("No employees found");
+          alert(t("manage-employees.no-employees"));
         }
       })
       .catch((error) => console.log("Error fetching employees:", error));
-  }, []);
+  }, [t]);
 
 
  const handleSearch = (e) => {
@@ -64,7 +66,7 @@ function ManageEmployees() {
       alert("No token found, please log in again.");
       return;
     }
-    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este empleado?");
+    const confirmDelete = window.confirm(t("manage-employees.confirm-delete"));
     if (!confirmDelete) return;
     // Configuración de la solicitud con el token en los encabezados
     fetch(`http://localhost:4000/employee/${id}`, {
@@ -74,7 +76,7 @@ function ManageEmployees() {
       .then((response) => {
         // Verificamos si la respuesta es exitosa
         if (!response.ok) {
-          return Promise.reject("Error deleting employee");
+          return Promise.reject(t("manage-employees.error-delete"));
         }
         return response.text();  // Cambiar .json() por .text()
       })
@@ -92,7 +94,7 @@ function ManageEmployees() {
       })
       .catch((error) => {
         console.log("Error deleting employee:", error);
-        alert("Error deleting employee");
+        alert(t("manage-employees.error-delete"));
       });
   };
 
@@ -100,39 +102,39 @@ function ManageEmployees() {
   return (
       <main className="content">
             <header className="header">
-              <h4>Manage Employees</h4>
+              <h4>{t("manage-employees.title")}</h4>
             </header>
 
             <div className="employee-container">
-              <h2>Employee List</h2>
+              <h2>{t("manage-employees.list")}</h2>
 
               <div className="add-btn-container">
                 <Link to="/createEmployee" className="add-btn">
-                  ➕ Add Employee
+                  {t("manage-employees.button-add")}
                 </Link>
               </div>
 
               <div className="controlsEmployees">
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, email o DNI"
+                  placeholder={t("manage-employees.search-text")}
                   value={searchTerm}
                   onChange={handleSearch}
                   className="search-inputEmployees"
                 />
                 <button onClick={handleSort} className="sort-btnEmployees">
-                  Ordenar Alfabéticamente {sortOrder === "asc" ? "↑" : "↓"}
+                  {t("manage-employees.order-text")} {sortOrder === "asc" ? "↑" : "↓"}
                 </button>
               </div>
 
               <table className="employee-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Dni</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
+                    <th>{t("manage-employees.table.name")}</th>
+                    <th>{t("manage-employees.table.dni")}</th>
+                    <th>{t("manage-employees.table.email")}</th>
+                    <th>{t("manage-employees.table.role")}</th>
+                    <th>{t("manage-employees.table.actions.title-actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,10 +147,10 @@ function ManageEmployees() {
                       <td>
                         <div className="action-buttons">
                           <Link to={`/employeeview/${employee.id}`} className="view-btn">
-                            👁 View
+                            👁 {t("manage-employees.table.actions.view")}
                           </Link>
                           <button onClick={() => handleDelete(employee.id)} className="delete-btn">
-                            🗑 Delete
+                            🗑 {t("manage-employees.table.actions.delete")}
                           </button>
                         </div>
                       </td>
