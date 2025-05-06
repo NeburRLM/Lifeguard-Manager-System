@@ -87,9 +87,9 @@ function ManageEmployees() {
           const updatedEmployees = employees.filter((employee) => employee.id !== id);
           setEmployees(updatedEmployees);
           setFilteredEmployees(updatedEmployees);
-          alert("Empleado eliminado correctamente");  // Ventanita emergene de éxito
+          alert(t("manage-employees.delete-ok"));  // Ventanita emergene de éxito
         } else {
-          alert("Error deleting employee");
+          alert(t("manage-employees.error-delete"));
         }
       })
       .catch((error) => {

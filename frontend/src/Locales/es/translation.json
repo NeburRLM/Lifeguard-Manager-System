@@ -86,6 +86,7 @@
     "no-employees": "No se encontraron empleados",
     "confirm-delete": "¿Estás seguro de que deseas eliminar este empleado?",
     "error-delete": "Error al eliminar el empleado",
+    "delete-ok": "Empleado eliminado correctamente",
     "title": "Gestionar Empleados",
     "list": "Lista de Empleados",
     "button-add": "➕ Añadir Empleado",
@@ -153,6 +154,28 @@
     "year": "Año"
   },
 
+  "add-employee": {
+    "title": "Añadir Nuevo Empleado",
+    "role-error": "Error al obtener los roles.",
+    "error-dni": "El DNI debe contener 8 números seguidos de una letra.",
+    "add-ok": "¡Empleado añadido correctamente!",
+    "dni-exist": "El DNI que ingresaste ya está registrado.",
+    "email-exist": "El correo electrónico ya está registrado.",
+    "error-add": "Hubo un error al añadir el empleado.",
+    "id": "DNI",
+    "name": "Nombre",
+    "role": "Rol",
+    "select-role": "Selecciona un rol...",
+    "select-role-error": "Por favor, seleccione un rol.",
+    "email": "Correo electrónico",
+    "birthdate": "Fecha de nacimiento",
+    "number": "Número de teléfono",
+    "add-employee": "Añadir empleado",
+    "cancel": "Cancelar",
+    "error-required": "Este campo es obligatorio."
+  },
+
+
   "schedule-view": {
     "title": "Cuadrante {{month}} - {{employeeName}}",
     "title-pdf": "CUADRANTE DE TRABAJO - {{month}}",
@@ -200,7 +223,67 @@
     "friday": "Viernes",
     "saturday": "Sábado",
     "sunday": "Domingo"
-  }
+  },
 
+  "manage-facilities": {
+    "no-facilities": "No se encontraron instalaciones",
+    "confirm-delete": "¿Estás seguro de que deseas eliminar esta instalación?",
+    "error-delete": "Error al eliminar la instalación",
+    "delete-ok": "Instalación eliminada correctamente",
+    "title": "Gestionar Instalaciones",
+    "list": "Lista de Instalaciones",
+    "button-add": "➕ Añadir Instalación",
+    "search-text": "Buscar por nombre",
+    "table": {
+      "name": "Nombre",
+      "type": "Tipos instalación",
+      "actions": {
+        "title-actions": "Acciones",
+        "view": "Ver",
+        "delete": "Eliminar"
+      }
+    }
+  },
+  "facility-view": {
+    "error-types": "Error al obtener los tipos de instalaciones.",
+    "error-require": "Todos los campos son obligatorios.",
+    "error-update": "Hubo un error al intentar actualizar la instalación.",
+    "error-server": "Error al conectar con el servidor.",
+    "loading": "Cargando...",
+    "loading-map": "Cargando mapa...",
+    "editing": "Editando instalación",
+    "edit": "Editar",
+    "name": "Nombre:",
+    "location": "Ubicación:",
+    "type": "Tipo:",
+    "select-type": "Selecciona el tipo de instalación...",
+    "latitude": "Latitud:",
+    "longitude": "Longitud:",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+
+  "add-facility": {
+    "title": "Agregar nueva instalación",
+    "facility-error": "Error al obtener las instalaciones.",
+    "error-all-required": "Todos los campos son obligatorios.",
+    "error-required": "Este campo es obligatorio.",
+    "error-latitude": "La latitud debe ser un número.",
+    "error-longitude": "La longitud debe ser un número.",
+    "error-latitude2": "La latitud debe estar entre -90 y 90.",
+    "error-longitude2": "La longitud debe estar entre -180 y 180.",
+    "add-ok": "¡Instalación añadida con éxito!",
+    "facility-exist": "Ya existe una instalación con este nombre y ubicación.",
+    "facility-exist2": "Ya existe una instalación con esta longitud y latitud.",
+    "error-add": "Hubo un error al añadir la instalación.",
+    "name": "Nombre",
+    "location": "Ubicación",
+    "type": "Tipo de instalación",
+    "select-type": "Selecciona el tipo de instalación...",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "add-facility": "Añadir instalación",
+    "cancel": "Cancelar"
+  }
 
 }

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./ManageFacilities.css"; // Archivo CSS para estilos
 
 function ManageFacilities() {
   const [facilities, setFacilities] = useState([]);
   const [filteredFacilities, setFilteredFacilities] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const { t } = useTranslation();
 
   // Cargar las instalaciones al montar el componente
   useEffect(() => {
@@ -17,11 +18,11 @@ function ManageFacilities() {
           setFacilities(data);
           setFilteredFacilities(data);
         } else {
-          alert("No facilities found");
+          alert(t("manage-facilities.no-facilities"));
         }
       })
       .catch((error) => console.log("Error fetching facilities:", error));
-  }, []);
+  }, [t]);
 
 
 const handleSearch = (e) => {
@@ -50,7 +51,7 @@ const handleDelete = (id) => {
       alert("No token found, please log in again.");
       return;
     }
-    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar esta instalación?");
+    const confirmDelete = window.confirm(t("manage-facilities.confirm-delete"));
     if (!confirmDelete) return;
     // Configuración de la solicitud con el token en los encabezados
     fetch(`http://localhost:4000/facility/${id}`, {
@@ -74,14 +75,14 @@ const handleDelete = (id) => {
           const updatedFacilities = facilities.filter((facility) => facility.id !== id);
           setFacilities(updatedFacilities);
           setFilteredFacilities(updatedFacilities);
-          alert("Instalacion eliminada correctamente");  // Ventanita emergente de éxito
+          alert(t("manage-facilities.delete-ok"));  // Ventanita emergente de éxito
         } else {
-          alert("Error deleting facility");
+          alert(t("manage-facilities.error-delete"));
         }
       })
       .catch((error) => {
         console.log("Error deleting facility:", error);
-        alert("Error deleting facility");
+        alert(t("manage-facilities.error-delete"));
       });
   };
 
@@ -91,22 +92,22 @@ const handleDelete = (id) => {
   return (
     <main className="content">
       <header className="header">
-        <h4>Manage Facilities</h4>
+        <h4>{t("manage-facilities.title")}</h4>
       </header>
 
       <div className="facility-container">
-        <h2>Facility List</h2>
+        <h2>{t("manage-facilities.list")}</h2>
 
         <div className="add-btn-container">
           <Link to="/createFacility" className="add-btn">
-            ➕ Add Facility
+            {t("manage-facilities.button-add")}
           </Link>
         </div>
 
         <div className="controlsFacilities">
           <input
             type="text"
-            placeholder="Buscar por nombre"
+            placeholder={t("manage-facilities.search-text")}
             value={searchTerm}
             onChange={handleSearch}
             className="search-inputFacilities"
@@ -116,9 +117,9 @@ const handleDelete = (id) => {
         <table className="facility-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Facility Type</th>
-              <th>Actions</th>
+              <th>{t("manage-facilities.table.name")}</th>
+              <th>{t("manage-facilities.table.type")}</th>
+              <th>{t("manage-facilities.table.actions.title-actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -129,13 +130,13 @@ const handleDelete = (id) => {
                 <td>
                   <div className="action-buttons">
                     <Link to={`/facilityview/${facility.id}`} className="view-btn">
-                      👁 View
+                      👁 {t("manage-facilities.table.actions.view")}
                     </Link>
                     <button
                       onClick={() => handleDelete(facility.id)}
                       className="delete-btn"
                     >
-                      🗑 Delete
+                      🗑 {t("manage-facilities.table.actions.delete")}
                     </button>
                   </div>
                 </td>

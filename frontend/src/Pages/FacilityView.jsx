@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import "./FacilityView.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -22,7 +23,7 @@ const FacilityView = () => {
   const [editedFacility, setEditedFacility] = useState({});
   const [facilitiesTypes, setFacilitiesTypes] = useState([]);
   const [fetchError, setFetchError] = useState(null);
-
+  const { t } = useTranslation();
 
 
   useEffect(() => {
@@ -51,14 +52,14 @@ const FacilityView = () => {
         if (Array.isArray(data)) {
           setFacilitiesTypes(data);
         } else {
-          setFetchError("Error al obtener los tipos de instalación.");
+          setFetchError(t("facility-view.error-types"));
         }
       })
       .catch((error) => {
         console.error("Error al obtener los tipos de instalación:", error);
-        setFetchError("Error al obtener los tipos de instalación.");
+        setFetchError(t("facility-view.error-types"));
       });
-  }, []);
+  }, [t]);
 
 
   const handleEditClick = () => {
@@ -79,7 +80,7 @@ const FacilityView = () => {
     const { name, location, facility_type, latitude, longitude } = editedFacility;
 
     if (!name || !location || !facility_type || latitude === "" || longitude === "") {
-      alert("Todos los campos son obligatorios.");
+      alert(t("facility-view.error-require"));
       return; // Detiene la ejecución si hay un campo vacío
     }
 
@@ -94,16 +95,16 @@ const FacilityView = () => {
         setFacility(editedFacility);
         setEditing(false);
       } else {
-        alert("Hubo un error al actualizar la instalación.");
+        alert(t("facility-view.error-update"));
       }
     } catch (error) {
       console.error("Error updating facility data:", error);
-      alert("Error al conectar con el servidor.");
+      alert("facility-view.error-server");
     }
   };
 
 
-  if (!facility) return <div className="loading">Loading...</div>;
+  if (!facility) return <div className="loading">{t("facility-view.loading")}</div>;
 
   return (
 
@@ -118,17 +119,17 @@ const FacilityView = () => {
                 </Marker>
               </MapContainer>
             ) : (
-              <p>Cargando mapa...</p>
+              <p>{t("facility-view.loading-map")}.</p>
             )}
           </aside>
           <main className="facility-details">
             <div className="details-content">
               <div className="details-text">
-                <h2>{editing ? "Editando instalación" : facility.name}</h2>
+                <h2>{editing ? t("facility-view.editing") : facility.name}</h2>
               </div>
               {!editing && (
                 <button className="edit-btn" onClick={handleEditClick}>
-                  <FaEdit /> Editar
+                  <FaEdit /> {t("facility-view.edit")}
                 </button>
               )}
             </div>
@@ -136,20 +137,20 @@ const FacilityView = () => {
             {editing ? (
               <div className="edit-container">
                 <div className="edit-fields">
-                  <label>Nombre:</label>
+                  <label>{t("facility-view.name")}</label>
                   <input name="name" value={editedFacility.name} onChange={handleChange} />
 
-                  <label>Ubicación:</label>
+                  <label>{t("facility-view.location")}</label>
                   <input name="location" value={editedFacility.location} onChange={handleChange} />
 
-                  <label>Tipo:</label>
+                  <label>{t("facility-view.type")}</label>
                   <select
                     name="facility_type"
                     value={editedFacility.facility_type}
                     onChange={handleChange}
                     required
                   >
-                    <option value="">Seleccionar tipo de instalación...</option>
+                    <option value="">{t("facility-view.type")}</option>
                     {facilitiesTypes.map((facility) => (
                       <option key={facility.id} value={facility.type}>
                         {facility.type}
@@ -160,24 +161,24 @@ const FacilityView = () => {
 
 
                   <label>Latitud:</label>
-                  <input name="latitude" value={editedFacility.latitude} onChange={handleChange} />
+                  <input name={t("facility-view.latitude")} value={editedFacility.latitude} onChange={handleChange} />
 
                   <label>Longitud:</label>
-                  <input name="longitude" value={editedFacility.longitude} onChange={handleChange} />
+                  <input name={t("facility-view.longitude")} value={editedFacility.longitude} onChange={handleChange} />
                 </div>
                 <div className="edit-buttons">
-                  <button className="save-btn" onClick={handleSaveClick}><FaSave /> Guardar</button>
-                  <button className="cancel-btn" onClick={handleCancelClick}><FaTimes /> Cancelar</button>
+                  <button className="save-btn" onClick={handleSaveClick}><FaSave /> {t("facility-view.save")}</button>
+                  <button className="cancel-btn" onClick={handleCancelClick}><FaTimes /> {t("facility-view.cancel")}</button>
                 </div>
               </div>
             ) : (
               <div>
-                <p><strong>Ubicación:</strong> {facility.location}</p>
-                <p><strong>Tipo:</strong> {facility.facility_type}</p>
+                <p><strong>{t("facility-view.location")}</strong> {facility.location}</p>
+                <p><strong>{t("facility-view.type")}</strong> {facility.facility_type}</p>
                 {coordinates && (
                   <>
-                    <p><strong>Latitud:</strong> {coordinates[0]}</p>
-                    <p><strong>Longitud:</strong> {coordinates[1]}</p>
+                    <p><strong>{t("facility-view.latitude")}</strong> {coordinates[0]}</p>
+                    <p><strong>{t("facility-view.longitude")}</strong> {coordinates[1]}</p>
                   </>
                 )}
               </div>

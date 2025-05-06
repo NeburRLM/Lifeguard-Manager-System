@@ -86,6 +86,7 @@
     "no-employees": "No employees found",
     "confirm-delete": "Are you sure you want to delete this employee?",
     "error-delete": "Error deleting employee",
+    "delete-ok": "Successfully deleted employee",
     "title": "Manage Employees",
     "list": "Employee List",
     "button-add": "➕ Add Employee",
@@ -153,6 +154,27 @@
     "year": "Year"
   },
 
+  "add-employee": {
+    "title": "Add New Employee",
+    "role-error": "Error getting roles.",
+    "error-dni": "The DNI must contain 8 numbers followed by a letter.",
+    "add-ok": "Employee added successfully!",
+    "dni-exist": "The ID you entered is already registered.",
+    "email-exist": "The email is already registered.",
+    "error-add": "There was an error adding the employee.",
+    "id": "ID",
+    "name": "Name",
+    "role": "Role",
+    "select-role": "Select role...",
+    "select-role-error": "Please select a role.",
+    "email": "Email",
+    "birthdate": "Birthdate",
+    "number": "Phone Number",
+    "add-employee": "Add Employee",
+    "cancel": "Cancel",
+    "error-required": "This field is required."
+  },
+
   "schedule-view": {
     "title": "Work schedule {{month}} - {{employeeName}}",
     "title-pdf": "WORK SCHEDULE - {{month}}",
@@ -200,8 +222,69 @@
     "friday": "Friday",
     "saturday": "Saturday",
     "sunday": "Sunday"
+  },
+
+  "manage-facilities": {
+    "no-facilities": "No facilities found",
+    "confirm-delete": "Are you sure you want to delete this facility?",
+    "error-delete": "Error deleting facility",
+    "delete-ok": "Successfully deleted facility",
+    "title": "Manage Facilities",
+    "list": "Facility List",
+    "button-add": "➕ Add Facility",
+    "search-text": "Search by name",
+    "table": {
+      "name": "Name",
+      "type": "Facility type",
+      "actions": {
+        "title-actions": "Actions",
+        "view": "View",
+        "delete": "Delete"
+      }
+    }
+  },
+
+  "facility-view": {
+    "error-types": "Error fetching facility types.",
+    "error-require": "All fields are required.",
+    "error-update": "There was an error trying to update the facility.",
+    "error-server": "Error connecting to the server.",
+    "loading": "Loading...",
+    "loading-map": "Loading map...",
+    "editing": "Editing facility",
+    "edit": "Edit",
+    "name": "Name:",
+    "location": "Location:",
+    "type": "Type:",
+    "select-type": "Select facility type...",
+    "latitude": "Latitude:",
+    "longitude": "Longitude:",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+
+  "add-facility": {
+    "title": "Add New Facility",
+    "facility-error": "Error getting facilities.",
+    "error-all-required": "All the fields are required.",
+    "error-required": "This field is required.",
+    "error-latitude": "Latitude must be a number.",
+    "error-longitude": "Longitude must be a number.",
+    "error-latitude2": "The latitude must be between -90 and 90.",
+    "error-longitude2": "Longitude The latitude must be between -180 and 180.",
+    "add-ok": "Facility added successfully!",
+    "facility-exist": "A facility with this name and location already exists.",
+    "facility-exist2": "An installation with this longitude and latitude already exists.",
+    "error-add": "There was an error adding the facility.",
+    "name": "Name",
+    "location": "Location",
+    "type": "Facility Type",
+    "select-type": "Select facility type...",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "add-facility": "Add Facility",
+    "cancel": "Cancel"
   }
 
-
-
 }
+

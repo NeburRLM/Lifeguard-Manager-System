@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./AddEmployee.css"; // Aquí puedes agregar el CSS si lo necesitas
 
 const AddEmployee = () => {
@@ -15,11 +16,13 @@ const AddEmployee = () => {
 
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState(""); // Estado para manejar los errores
+  const { t } = useTranslation();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     setError(""); // Limpiar el error cuando el usuario cambia algún campo
+    e.target.setCustomValidity("");
   };
 
  useEffect(() => {
@@ -29,23 +32,56 @@ const AddEmployee = () => {
          if (Array.isArray(data)) {
            setRoles(data); // Actualizar el estado con los roles obtenidos
          } else {
-           setError("Error al obtener los roles.");
+           setError(t("add-employee.role-error"));
          }
        })
        .catch((error) => {
          console.error("Error al obtener los roles:", error);
-         setError("Error al obtener los roles.");
+         setError(t("add-employee.role-error"));
        });
-   }, []);
+   }, [t]);
 
+
+    const validateField = (input) => {
+      if (input.name === "id") {
+        const dniPattern = /^[0-9]{8}[A-Za-z]{1}$/; // 8 números seguidos de 1 letra
+        if (!dniPattern.test(input.value)) {
+          input.setCustomValidity(t("add-employee.error-dni"));
+        } else {
+          input.setCustomValidity(""); // Validación exitosa
+        }
+      } else if (input.name === "role" && input.value === "") {
+        input.setCustomValidity(t("add-employee.select-role-error"));
+      } else if (!input.validity.valid) {
+        input.setCustomValidity(t("add-employee.error-required")); // Mensaje genérico si falta el campo
+      } else {
+        input.setCustomValidity(""); // Validación exitosa
+      }
+    };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+        const form = e.target;
+        const inputs = form.querySelectorAll("input, select");
+        let formIsValid = true;
+
+        inputs.forEach((input) => {
+          validateField(input);
+          if (!input.checkValidity()) {
+            formIsValid = false;
+          }
+        });
+
+        if (!formIsValid) {
+          form.reportValidity(); // Muestra los mensajes de error personalizados
+          return;
+        }
+
     // Validación del formato del DNI
     const dniPattern = /^[0-9]{8}[A-Za-z]{1}$/; // 8 números seguidos de 1 letra
     if (!dniPattern.test(formData.id)) {
-      setError("El DNI debe contener 8 números seguidos de una letra.");
+      setError(t("add-employee.error-dni"));
       return; // Si no es válido, no enviamos la solicitud
     }
 
@@ -77,25 +113,25 @@ const AddEmployee = () => {
         console.log("Respuesta del servidor:", data); // Verifica qué contiene data en la consola
         if (data.status === "Success") {
           // Si todo ha ido bien, mostramos un mensaje de éxito
-          alert("¡Empleado agregado con éxito!");
+          alert(t("add-employee.add-ok"));
           // Redirigimos al usuario a la página de empleados
           navigate("/employees");
         } else {
           // Si hay algún error específico en la respuesta, lo mostramos
           console.log("Error específico:", data.message); // Verifica el mensaje de error recibido
           if (data.message.includes("DNI")) {
-            setError("El DNI que ingresaste ya está registrado.");
+            setError(t("add-employee.dni-exist"));
           } else if (data.message.includes("correo")) {
-            setError("El correo electrónico ya está registrado.");
+            setError(t("add-employee.email-exist"));
           } else {
-            setError(data.message || "Hubo un error al agregar el empleado.");
+            setError(data.message || t("add-employee.error-add"));
           }
         }
       })
       .catch((error) => {
         console.log("Error al agregar empleado:", error);
         // Aquí también manejamos el caso de error de la solicitud
-        setError("Hubo un error al agregar el empleado.");
+        setError(t("add-employee.error-add"));
       });
   };
 
@@ -117,15 +153,16 @@ const AddEmployee = () => {
 
   return (
     <div className="add-employee-container">
-      <h2>Add New Employee</h2>
+      <h2>{t("add-employee.title")}</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>ID</label>
+          <label>{t("add-employee.id")}</label>
           <input
             type="text"
             name="id"
             value={formData.id}
             onChange={handleInputChange}
+            onInvalid={(e) => validateField(e.target)}
             required
           />
           {error && error.includes("DNI") && (
@@ -133,12 +170,13 @@ const AddEmployee = () => {
           )}
         </div>
         <div className="form-group">
-          <label>Name</label>
+          <label>{t("add-employee.name")}</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
+            onInvalid={(e) => validateField(e.target)}
             required
           />
           {error && error.includes("Todos los campos") && (
@@ -146,10 +184,16 @@ const AddEmployee = () => {
           )}
         </div>
         <div className="form-group">
-          <label>Role</label>
+          <label>{t("add-employee.role")}</label>
           <div className="content-selectAdd">
-            <select name="role" value={formData.role} onChange={handleInputChange} required>
-              <option value="">Seleccionar rol...</option>
+            <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                onInvalid={(e) => validateField(e.target)}
+                required
+            >
+              <option value="">{t("add-employee.select-role")}</option>
               {roles.map((role) => (
                 <option key={role.id} value={role.type}>
                   {role.type}
@@ -163,12 +207,13 @@ const AddEmployee = () => {
           )}
         </div>
         <div className="form-group">
-          <label>Email</label>
+          <label>{t("add-employee.email")}</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
+            onInvalid={(e) => validateField(e.target)}
             required
           />
           {error && error.includes("correo") && (
@@ -176,29 +221,31 @@ const AddEmployee = () => {
           )}
         </div>
         <div className="form-group">
-          <label>Birthdate</label>
+          <label>{t("add-employee.birthdate")}</label>
           <input
             type="date"
             name="birthdate"
             value={formData.birthdate}
             onChange={handleInputChange}
+            onInvalid={(e) => validateField(e.target)}
             required
           />
         </div>
         <div className="form-group">
-          <label>Phone Number</label>
+          <label>{t("add-employee.number")}</label>
           <input
             type="text"
             name="phone_number"
             value={formData.phone_number}
             onChange={handleInputChange}
+            onInvalid={(e) => validateField(e.target)}
             required
           />
         </div>
         <div className="button-group">
-          <button type="submit" className="submit-button">Add Employee</button>
+          <button type="submit" className="submit-button">{t("add-employee.add-employee")}</button>
           <button type="button" className="cancel-button" onClick={handleCancel}>
-            Cancel
+            {t("add-employee.cancel")}
           </button>
         </div>
       </form>

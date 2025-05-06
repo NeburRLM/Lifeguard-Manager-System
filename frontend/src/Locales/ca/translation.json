@@ -86,6 +86,7 @@
     "no-employees": "No s'han trobat empleats",
     "confirm-delete": "Estàs segur que vols eliminar aquest empleat?",
     "error-delete": "Error en eliminar l'empleat",
+    "delete-ok": "Empleat eliminat correctament",
     "title": "Gestionar Empleats",
     "list": "Llista d'Empleats",
     "button-add": "➕ Afegir Empleat",
@@ -153,6 +154,27 @@
     "year": "Any"
   },
 
+  "add-employee": {
+    "title": "Afegir Nou Empleat",
+    "role-error": "Error en obtenir els rols.",
+    "error-dni": "El DNI ha de contenir 8 números seguits d'una lletra.",
+    "add-ok": "Empleat afegit correctament!",
+    "dni-exist": "El DNI que has introduït ja està registrat.",
+    "email-exist": "El correu electrònic ja està registrat.",
+    "error-add": "Hi ha hagut un error en afegir l'empleat.",
+    "id": "DNI",
+    "name": "Nom",
+    "role": "Rol",
+    "select-role": "Selecciona un rol...",
+    "select-role-error": "Si us plau, seleccioni un rol.",
+    "email": "Correu electrònic",
+    "birthdate": "Data de naixement",
+    "number": "Número de telèfon",
+    "add-employee": "Afegeix empleat",
+    "cancel": "Cancel·la",
+    "error-required": "Aquest camp és obligatori."
+  },
+
   "schedule-view": {
     "title": "Quadrant {{month}} - {{employeeName}}",
     "title-pdf": "QUADRANT DE TREBALL - {{month}}",
@@ -200,6 +222,68 @@
     "friday": "Divendres",
     "saturday": "Dissabte",
     "sunday": "Diumenge"
+  },
+
+  "manage-facilities": {
+    "no-facilities": "No s'han trobat instal·lacions",
+    "confirm-delete": "Estàs segur que vols eliminar aquesta instal·lació?",
+    "error-delete": "Error en eliminar la instal·lació",
+    "delete-ok": "Instal·lació eliminada correctament",
+    "title": "Gestionar Instal·lacions",
+    "list": "Llista de Instal·lacions",
+    "button-add": "➕ Afegir Instal·lació",
+    "search-text": "Cerca per nom",
+    "table": {
+      "name": "Nom",
+      "type": "Tipus instal·lació",
+      "actions": {
+        "title-actions": "Accions",
+        "view": "Veure",
+        "delete": "Eliminar"
+      }
+    }
+  },
+
+  "facility-view": {
+    "error-types": "Error en obtenir els tipus d'instal·lació.",
+    "error-require": "Tots els camps són obligatoris.",
+    "error-update": "Hi ha hagut un error en intentar actualitzar la instal·lació.",
+    "error-server": "Error en connectar amb el servidor.",
+    "loading": "Carregant...",
+    "loading-map": "Carregant mapa...",
+    "editing": "Editant instal·lació",
+    "edit": "Edita",
+    "name": "Nom:",
+    "location": "Ubicació:",
+    "type": "Tipus:",
+    "select-type": "Selecciona el tipus d'instal·lació...",
+    "latitude": "Latitud:",
+    "longitude": "Longitud:",
+    "save": "Desa",
+    "cancel": "Cancel·la"
+  },
+
+  "add-facility": {
+    "title": "Afegir nova instal·lació",
+    "facility-error": "Error en obtenir les instal·lacions.",
+    "error-all-required": "Tots els camps són obligatoris.",
+    "error-required": "Aquest camp és obligatori.",
+    "error-latitude": "La latitud ha de ser un número.",
+    "error-longitude": "La longitud ha de ser un número.",
+    "error-latitude2": "La latitud ha d'estar entre -90 i 90.",
+    "error-longitude2": "La longitud ha d'estar entre -180 i 180.",
+    "add-ok": "Instal·lació afegida amb èxit!",
+    "facility-exist": "Ja existeix una instal·lació amb aquest nom i ubicació.",
+    "facility-exist2": "Ja existeix una instal·lació amb aquesta longitud i latitud.",
+    "error-add": "Hi ha hagut un error en afegir la instal·lació.",
+    "name": "Nom",
+    "location": "Ubicació",
+    "type": "Tipus d'instal·lació",
+    "select-type": "Selecciona el tipus d'instal·lació...",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "add-facility": "Afegir instal·lació",
+    "cancel": "Cancel·lar"
   }
 
 }
