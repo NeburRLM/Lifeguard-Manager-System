@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import "./ManagePayrolls.css";
 
 function ManagePayrolls() {
@@ -11,7 +12,7 @@ function ManagePayrolls() {
   const [year, setYear] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [roleSalaries, setRoleSalaries] = useState([]);
-
+ const { t } = useTranslation();
 
   useEffect(() => {
     fetch("http://localhost:4000/employees")
@@ -21,11 +22,11 @@ function ManagePayrolls() {
           setEmployees(data);
           setFilteredEmployees(data);
         } else {
-          alert("No employees found");
+          alert(t("manage-payrolls.error-employees"));
         }
       })
       .catch((error) => console.log("Error fetching employees:", error));
-  }, []);
+  }, [t]);
 
 
   const handleSearch = (e) => {
@@ -89,7 +90,7 @@ function ManagePayrolls() {
 
   const generatePayrolls = async () => {
     if (!month || !year) {
-      alert("Selecciona un mes y un año.");
+      alert(t("manage-payrolls.select-month-year"));
       return;
     }
  try {
@@ -103,21 +104,21 @@ function ManagePayrolls() {
 
     const data = await response.json();
     if (response.ok) {
-          let message = "Nóminas generadas correctamente.";
+          let message =  t("manage-payrolls.success");
 
           // Manejar el código 207 que indica errores parciales
           if (response.status === 207) {
-            message = "Algunas nóminas no se generaron:\n" + data.errors.join("\n");
+            message = t("manage-payrolls.partial-error", { errors: data.errors.join("\n") });
           }
 
           alert(message);
           setShowModal(false);
         } else {
-          alert(data.error || "Error al generar nóminas.");
+          alert(data.error || t("manage-payrolls.error-generate"));
         }
       } catch (error) {
         console.error("Error al generar nóminas:", error);
-        alert("Error al conectar con el servidor.");
+        alert(t("manage-payrolls.server-error"));
       }
   };
 
@@ -137,7 +138,7 @@ function ManagePayrolls() {
 
       if (!response.ok) {
         const data = await response.json();
-        alert(data.message || "Error updating role salary");
+        alert(data.message || t("manage-payrolls.error-update"));
         return;
       }
     }
@@ -151,35 +152,35 @@ function ManagePayrolls() {
   return (
     <main className="content">
         <header className="header">
-          <h4>Manage Payrolls</h4>
+          <h4>{t("manage-payrolls.manage-payrolls")}</h4>
         </header>
 
         <div className="payroll-container">
-          <h2>Employee List</h2>
+          <h2>{t("manage-payrolls.employee-list")}</h2>
 
           <div className="select-container">
             <button onClick={() => { fetchRoleSalaries(); setShowModal(true); }} className="generate-payroll-btn">
-              Generar Nóminas
+              {t("manage-payrolls.generate-payrolls")}
             </button>
           </div>
 
           <div className="controls">
             <input
               type="text"
-              placeholder="Buscar por nombre o DNI"
+              placeholder={t("manage-payrolls.search")}
               value={searchTerm}
               onChange={handleSearch}
               className="search-input"
             />
             <button onClick={handleSort} className="sort-btn">
-              Ordenar Alfabéticamente {sortOrder === "asc" ? "↑" : "↓"}
+              {t("manage-payrolls.sort")} {sortOrder === "asc" ? "↑" : "↓"}
             </button>
           </div>
 
           <table className="payroll-table">
             <thead>
               <tr>
-                <th>Employee Name</th>
+                <th>{t("manage-payrolls.employee-name")}</th>
               </tr>
             </thead>
             <tbody>
@@ -199,34 +200,27 @@ function ManagePayrolls() {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Generar Nómina</h3>
+            <h3>{t("manage-payrolls.generate-modal-title")}</h3>
             <select value={month} onChange={(e) => setMonth(e.target.value)}>
-              <option value="">Selecciona un mes</option>
-              <option value="1">Enero</option>
-              <option value="2">Febrero</option>
-              <option value="3">Marzo</option>
-              <option value="4">Abril</option>
-              <option value="5">Mayo</option>
-              <option value="6">Junio</option>
-              <option value="7">Julio</option>
-              <option value="8">Agosto</option>
-              <option value="9">Septiembre</option>
-              <option value="10">Octubre</option>
-              <option value="11">Noviembre</option>
-              <option value="12">Diciembre</option>
-            </select>
+                          <option value="">{t("manage-payrolls.select-month")}</option>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {t(`months.${i + 1}`)}
+                            </option>
+                          ))}
+                        </select>
             <input
               type="number"
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="year-input"
-              placeholder="Año"
+              placeholder={t("manage-payrolls.select-year")}
             />
             {roleSalaries.map((roleSalary) => (
               <div key={roleSalary.role} className="role-salary">
                 <h4>{roleSalary.role}</h4>
                 <div className="role-salary-section">
-                  <label>Base Salary:</label>
+                  <label>{t("manage-payrolls.base-salary")}</label>
                   <input
                     type="number"
                     value={roleSalary.base_salary}
@@ -234,7 +228,7 @@ function ManagePayrolls() {
                   />
                 </div>
                 <div className="role-salary-section">
-                  <h5>Earnings:</h5>
+                  <h5>{t("manage-payrolls.earnings")}</h5>
                   {roleSalary.earnings.map((earning, index) => (
                                       earning.name !== "Salario Base" && (
                                         <div key={index} className="role-salary-item">
@@ -249,7 +243,7 @@ function ManagePayrolls() {
                                     ))}
                 </div>
                 <div className="role-salary-section">
-                  <h5>Deductions:</h5>
+                  <h5>{t("manage-payrolls.deductions")}</h5>
                   {roleSalary.deductions.map((deduction, index) => (
                     <div key={index} className="role-salary-item">
                       <label>{deduction.name} ({deduction.percentage}%):</label>
@@ -264,8 +258,8 @@ function ManagePayrolls() {
               </div>
             ))}
             <div className="modal-bts">
-              <button onClick={handleGeneratePayrolls} className="generate-btn">Generar</button>
-              <button onClick={() => setShowModal(false)} className="cl-btn">Cancelar</button>
+              <button onClick={handleGeneratePayrolls} className="generate-btn">{t("manage-payrolls.generate")}</button>
+              <button onClick={() => setShowModal(false)} className="cl-btn">{t("manage-payrolls.cancel")}</button>
             </div>
           </div>
         </div>

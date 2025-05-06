@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaSort } from "react-icons/fa";
+import { useTranslation } from 'react-i18next';
 import "./PayrollsView.css";
 
 function PayrollsView() {
@@ -11,7 +12,7 @@ function PayrollsView() {
   const [searchMonth, setSearchMonth] = useState("");
   const [searchYear, setSearchYear] = useState("");
   const [filteredPayrolls, setFilteredPayrolls] = useState([]);
-
+  const { t } = useTranslation();
 
   // Cargar los datos del empleado y sus nóminas
   useEffect(() => {
@@ -97,29 +98,29 @@ function PayrollsView() {
               <form className="search-form">
                 <input
                   type="number"
-                  placeholder="Month"
+                  placeholder={t("payrolls-view.month")}
                   value={searchMonth}
                   onChange={(e) => setSearchMonth(e.target.value)}
                   className="search-input"
                 />
                 <input
                   type="number"
-                  placeholder="Year"
+                  placeholder={t("payrolls-view.year")}
                   value={searchYear}
                   onChange={(e) => setSearchYear(e.target.value)}
                   className="search-input"
                 />
               </form>
               <button onClick={handleSort} className="sort-btn">
-                Sort by Month/Year {sortOrder === "asc" ? "↑" : "↓"} <FaSort />
+                {t("payrolls-view.sort")} {sortOrder === "asc" ? "↑" : "↓"} <FaSort />
               </button>
             </div>
 
             <table className="payroll-table">
               <thead>
                 <tr>
-                  <th>Month</th>
-                  <th>Year</th>
+                  <th>{t("payrolls-view.month")}</th>
+                  <th>{t("payrolls-view.year")}</th>
                 </tr>
               </thead>
               <tbody>

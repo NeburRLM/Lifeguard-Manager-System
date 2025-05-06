@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useTranslation } from "react-i18next";
 import "./ManageIncidents.css";
 
 function ManageIncidents() {
@@ -12,7 +13,7 @@ function ManageIncidents() {
     const [incidentTypes, setIncidentTypes] = useState([]);
     const [selectedFacility, setSelectedFacility] = useState("all");
     const [selectedIncidentType, setSelectedIncidentType] = useState("all");
-
+    const { t } = useTranslation();
     const [selectedYear, setSelectedYear] = useState("all");
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedDay, setSelectedDay] = useState("all");
@@ -25,21 +26,21 @@ function ManageIncidents() {
               setIncidents(data);
               setFilteredIncidents(data);
             } else {
-              alert("No incidents found");
+               alert(t("manage-incidents.no-incidents"));
             }
           })
-          .catch((error) => console.log("Error fetching incidents:", error));
+          .catch((error) => console.log(t("manage-incidents.error-fetch-incidents"), error));
 
         fetch("http://localhost:4000/facility")
           .then((response) => response.json())
           .then((data) => setFacilities(data))
-          .catch((error) => console.log("Error fetching facilities:", error));
+          .catch((error) => console.log(t("manage-incidents.error-fetch-facilities"), error));
 
         fetch("http://localhost:4000/incident-types")
           .then((response) => response.json())
           .then((data) => setIncidentTypes(data))
-          .catch((error) => console.log("Error fetching incident types:", error));
-    }, []);
+          .catch((error) => console.log(t("manage-incidents.error-fetch-incident-types"), error));
+    }, [t]);
 
     const filterIncidents = useCallback(() => {
         let filtered = incidents;
@@ -98,7 +99,7 @@ function ManageIncidents() {
 
 const handleGeneratePdf = () => {
     if (filteredIncidents.length === 0) {
-        alert("No incidents found for the selected filters.");
+        alert(t("manage-incidents.no-incidents-pdf"));
         return;
     }
 
@@ -112,9 +113,9 @@ const handleGeneratePdf = () => {
 
     // Título y fecha de generación
     doc.setFontSize(16);
-    doc.text("Incident Report", 14, marginTop);
+    doc.text(t("manage-incidents.incident-report"), 14, marginTop);
     doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}`, 14, marginTop + 6);
+    doc.text(`${t("manage-incidents.generated-on")} ${new Date().toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}`, 14, marginTop + 6);
 
     let yPosition = marginTop + 15; // Posición inicial
 
@@ -146,7 +147,7 @@ const handleGeneratePdf = () => {
         doc.setFontSize(14); // Tamaño de fuente más grande
         doc.setFont("helvetica", "normal"); // Fuente normal
         doc.setTextColor(0, 0, 0);
-        doc.text(`Incident #${index + 1}`, 14, yPosition + 2);
+        doc.text(`${t("manage-incidents.incident")} #${index + 1}`, 14, yPosition + 2);
 
         // Subrayado manual
         doc.setDrawColor(0, 0, 0);
@@ -156,17 +157,17 @@ const handleGeneratePdf = () => {
         yPosition += 10;
 
         const incidentDetails = [
-            ["Type", incident.type],
-            ["Date", new Date(incident.date).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })],
-            ["Description", incident.description],
-            ["Facility", incident.facility.name],
-            ["Latitude / Longitude", `${incident.latitude}, ${incident.longitude}`]
+            [t("manage-incidents.type"), incident.type],
+            [t("manage-incidents.date"), new Date(incident.date).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })],
+            [t("manage-incidents.description"), incident.description],
+            [t("manage-incidents.facility"), incident.facility.name],
+            [t("manage-incidents.coordinates"), `${incident.latitude}, ${incident.longitude}`]
         ];
 
         autoTable(doc, {
             startY: yPosition,
             theme: "grid",
-            head: [["Field", "Value"]],
+            head: [[t("manage-incidents.field"), t("manage-incidents.value")]],
             body: incidentDetails,
             styles: { fontSize: 10, cellPadding: 2 },
             columnStyles: {
@@ -189,20 +190,20 @@ const handleGeneratePdf = () => {
         // Sección de la persona afectada
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        doc.text("Affected Person", 14, yPosition);
+        doc.text(t("manage-incidents.affected-person"), 14, yPosition);
         yPosition += 6;
 
         const personDetails = [
-            ["First Name", incident.firstName, "Last Name", incident.lastName],
-            ["DNI", incident.dni, "Age", incident.age],
-            ["Origin City", incident.cityOfOrigin, "Origin Country", incident.countryOfOrigin],
-            ["Gender", incident.gender, "Language", incident.language]
+            [t("manage-incidents.first-name"), incident.firstName, t("manage-incidents.last-name"), incident.lastName],
+            [t("manage-incidents.dni"), incident.dni, t("manage-incidents.age"), incident.age],
+            [t("manage-incidents.origin-city"), incident.cityOfOrigin, t("manage-incidents.origin-country"), incident.countryOfOrigin],
+            [t("manage-incidents.gender"), incident.gender, t("manage-incidents.language"), incident.language]
         ];
 
         autoTable(doc, {
             startY: yPosition,
             theme: "grid",
-            head: [["Field", "Value", "Field", "Value"]],
+            head: [[t("manage-incidents.field"), t("manage-incidents.value"), t("manage-incidents.field"), t("manage-incidents.value")]],
             body: personDetails,
             styles: { fontSize: 10, cellPadding: 2 },
             columnStyles: {
@@ -221,7 +222,7 @@ const handleGeneratePdf = () => {
     });
 
     // Guardar el PDF
-    doc.save("incident_report.pdf");
+    doc.save(t("manage-incidents.pdf-file-name"));
 };
 
 
@@ -232,11 +233,11 @@ const handleGeneratePdf = () => {
     return (
             <main className="content">
                 <header className="header">
-                    <h4>Manage Incidents</h4>
+                    <h4>{t("manage-incidents.title")}</h4>
                 </header>
 
                 <div className="incident-container">
-                    <h2>Incident List</h2>
+                    <h2>{t("manage-incidents.list-title")}</h2>
                     <div className="controlsIncidents">
                         {/* Dropdowns para filtrar por instalación y tipo de incidente */}
                         <div className="filter-controls">
@@ -246,7 +247,7 @@ const handleGeneratePdf = () => {
                                 value={selectedFacility}
                                 className="facility-select"
                             >
-                                <option value="all">All Facilities</option>
+                                <option value="all">{t("manage-incidents.select-facility")}</option>
                                 {facilities.map((facility) => (
                                     <option key={facility.id} value={facility.id}>{facility.name}</option>
                                 ))}
@@ -258,7 +259,7 @@ const handleGeneratePdf = () => {
                                 value={selectedIncidentType}
                                 className="incidentType-select"
                             >
-                                <option value="all">All Incident Types</option>
+                                <option value="all">{t("manage-incidents.select-type")}</option>
                                 {incidentTypes.map((incidentType) => (
                                     <option key={incidentType.id} value={incidentType.type}>
                                         {incidentType.type}
@@ -269,11 +270,11 @@ const handleGeneratePdf = () => {
 
                         <div className="date-selectors">
                             <div className="date-selector">
-                                <label htmlFor="year-select">Year</label>
+                                <label htmlFor="year-select">{t("manage-incidents.year")}</label>
                                 <input
                                     type="number"
                                     id="year-select"
-                                    placeholder="Year (e.g., 2022)"
+                                    placeholder={t("manage-incidents.year-place")}
                                     max={new Date().getFullYear()}
                                     onChange={handleYearChange}
                                     value={selectedYear === "all" ? "" : selectedYear}
@@ -282,14 +283,14 @@ const handleGeneratePdf = () => {
                             </div>
 
                             <div className="date-selector">
-                                <label htmlFor="month-select">Month</label>
+                                <label htmlFor="month-select">{t("manage-incidents.month")}</label>
                                 <select
                                     id="month-select"
                                     onChange={handleMonthChange}
                                     value={selectedMonth}
                                     className="month-select"
                                 >
-                                    <option value="all">All Months</option>
+                                    <option value="all">{t("manage-incidents.months")}</option>
                                     {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                                         <option key={month} value={month}>{month}</option>
                                     ))}
@@ -297,14 +298,14 @@ const handleGeneratePdf = () => {
                             </div>
 
                             <div className="date-selector">
-                                <label htmlFor="day-select">Day</label>
+                                <label htmlFor="day-select">{t("manage-incidents.day")}</label>
                                 <select
                                     id="day-select"
                                     onChange={handleDayChange}
                                     value={selectedDay}
                                     className="day-select"
                                 >
-                                    <option value="all">All Days</option>
+                                    <option value="all">{t("manage-incidents.days")}</option>
                                     {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                                         <option key={day} value={day}>{day}</option>
                                     ))}
@@ -313,24 +314,18 @@ const handleGeneratePdf = () => {
                         </div>
 
 
-
-
-
-
-
-
                         <div className="button-group">
-                            <button className="generatePDF-button" onClick={handleGeneratePdf}>Generate PDF</button>
-                            <button className="analysis-button" onClick={handleAnalysisClick}>Incident Analysis</button>
+                            <button className="generatePDF-button" onClick={handleGeneratePdf}>{t("manage-incidents.generate-pdf")}</button>
+                            <button className="analysis-button" onClick={handleAnalysisClick}>{t("manage-incidents.incident-analysis")}</button>
                         </div>
                     </div>
 
                     <table className="incident-table">
                         <thead>
                             <tr>
-                                <th>Type</th>
-                                <th>Date</th>
-                                <th>Facility</th>
+                                <th>{t("manage-incidents.type")}</th>
+                                <th>{t("manage-incidents.date")}</th>
+                                <th>{t("manage-incidents.facility")}</th>
                             </tr>
                         </thead>
                         <tbody>

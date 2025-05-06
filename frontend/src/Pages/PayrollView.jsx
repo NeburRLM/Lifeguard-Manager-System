@@ -1,16 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
-import "moment/locale/es";
+import "moment/locale/es"; // Importamos los idiomas adicionales
+import "moment/locale/ca"; // Catalán
+import "moment/locale/en-gb"; // Inglés británico
 import { Calendar, momentLocalizer } from "react-big-calendar";
+import { useTranslation } from 'react-i18next';
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./PayrollView.css";
 import { PDFViewer } from "@react-pdf/renderer";
 import PayslipPDF from "./PayslipPDF";
 
 moment.updateLocale("es", { week: { dow: 1 } });
-
-const localizer = momentLocalizer(moment);
 
 const PayrollView = () => {
   const navigate = useNavigate();
@@ -19,10 +20,11 @@ const PayrollView = () => {
   const [employee, setEmployee] = useState(null);
   const [events, setEvents] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [localizer, setLocalizer] = useState(momentLocalizer(moment));
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [payroll, setPayroll] = useState(null);
   const { payrollId } = useParams();
-
+  const { t, i18n } = useTranslation();
   const queryParams = new URLSearchParams(location.search);
   const monthFromURL = parseInt(queryParams.get("month"), 10);
   const yearFromURL = parseInt(queryParams.get("year"), 10);
@@ -37,6 +39,20 @@ const PayrollView = () => {
   const [editedHours, setEditedHours] = useState("");
   const [defaultWorkedHours, setDefaultWorkedHours] = useState("0");
 
+  // Función para actualizar el idioma de Moment.js y react-big-calendar
+    const updateLocale = useCallback(() => {
+        const newLanguage = i18n.language;
+
+        // Actualizar el idioma de Moment.js
+        moment.locale(newLanguage); // Cambia el idioma de Moment.js dinámicamente
+
+        // Actualizar el localizador de react-big-calendar
+        setLocalizer(momentLocalizer(moment));
+      }, [i18n.language]);
+
+      useEffect(() => {
+        updateLocale();
+      }, [updateLocale]);
 
   useEffect(() => {
     setCurrentMonth(new Date(validYear, validMonth - 1, 1));
@@ -165,7 +181,7 @@ const PayrollView = () => {
 
   const handleDeletePayroll = () => {
       if (!payrollId) {
-        alert("No se encontró un ID de nómina válido.");
+        alert(t("payroll-view.alert-id"));
         return;
       }
 
@@ -176,9 +192,10 @@ const PayrollView = () => {
         .then((response) => response.json())
         .then((data) => {
           if (data.error) {
-            alert(`Error al eliminar: ${data.error}`);
+            alert(`${t("payroll-view.error-delete")} ${data.error}`);
+
           } else {
-            alert("Nómina eliminada exitosamente.");
+            alert(t("payroll-view.delete-ok"));
             navigate(-1); // Vuelve a la página anterior
           }
         })
@@ -209,7 +226,7 @@ const PayrollView = () => {
 
    const handleConfirmRecalculate = async () => {
      if (!id || isNaN(parseFloat(editedHours))) {
-       alert("Introduce un número válido.");
+       alert(t("payroll-view.error-number"));
        return;
      }
 
@@ -230,18 +247,18 @@ const PayrollView = () => {
        const data = await response.json();
 
        if (response.ok) {
-         alert("Nómina recalculada correctamente.");
+         alert(t("payroll-view.recalculate-ok"));
          fetchRoleSalary(payrollId);
          fetchEmployeeData();
          fetchAttendanceData();
        } else {
-         alert(data.message || "Error al recalcular nómina.");
+         alert(data.message || t("payroll-view.recalculate-error"));
        }
 
        setIsRecalcModalOpen(false);
      } catch (error) {
        console.error("Error:", error);
-       alert("Error al conectar con el servidor.");
+       alert(t("payroll-view.error-server"));
      }
    };
 
@@ -249,13 +266,13 @@ const PayrollView = () => {
 
 
   if (!employee || !currentSchedule || !payroll) {
-    return <div>Cargando...</div>;
+    return <div>{t("payroll-view.loading")}</div>;
   }
 
   return (
     <div className="schedule-view-container" style={{ minHeight: "100vh", overflowY: "auto" }}>
-      <button className="deletee-btn" onClick={handleDeletePayroll}>Eliminar Nómina</button>
-      <h2>Horas {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
+      <button className="deletee-btn" onClick={handleDeletePayroll}>{t("payroll-view.delete-payroll")}</button>
+      <h2>{t("payroll-view.title")} {moment(currentMonth).format("MMMM YYYY")} - {employee.name}</h2>
       <div className="calendar-container">
         <Calendar
           localizer={localizer}
@@ -289,7 +306,7 @@ const PayrollView = () => {
         {isModalOpen && (
           <div className="custom-modalP">
             <div className="modal-contentP">
-              <h3>🗓️ Detalles del Día</h3>
+              <h3>🗓️ {t("payroll-view.day-details")}</h3>
               {selectedDateEvents.length > 0 ? (
                 selectedDateEvents.map((ev) => {
                   const isAttendance = ev.type === "attendance";
@@ -299,49 +316,49 @@ const PayrollView = () => {
 
                   switch (data.status) {
                     case "absent":
-                      statusText = "❌ Ausente";
+                      statusText = `❌ ${t("payroll-view.status.absent")}`;
                       statusColor = "#D32F2F";
                       break;
                     case "missing_check_out":
-                      statusText = "⚠️ Falta check-out";
+                      statusText = `⚠️ ${t("payroll-view.status.missing-check-out")}`;
                       statusColor = "#FFA000";
                       break;
                     case "missing":
-                      statusText = "❗ No asistió (sin justificar)";
+                      statusText = `❗ ${t("payroll-view.status.missing")}`;
                       statusColor = "#E53935";
                       break;
                     default:
-                      statusText = "✔️ Presente";
+                      statusText = `✔️ ${t("payroll-view.status.present")}`;
                       statusColor = "#4CAF50";
                   }
 
                   return (
                     <div key={ev.id} className="event-detail-card">
-                      <p><strong>📍 Tipo:</strong> {isAttendance ? "Asistencia" : "Turno programado"}</p>
-                      <p><strong>🏢 Ubicación:</strong> {ev.title.split("\n")[1]}</p>
-                      <p><strong>🕒 Horario:</strong> {moment(ev.start).format("HH:mm")} - {moment(ev.end).format("HH:mm")}</p>
-                      <p><strong>📅 Fecha:</strong> {moment(ev.start).format("DD/MM/YYYY")}</p>
+                      <p><strong>📍 {t("payroll-view.type")}</strong> {isAttendance ? t("payroll-view.attendance") : t("payroll-view.scheduled-shift")}</p>
+                      <p><strong>🏢 {t("payroll-view.location")}</strong> {ev.title.split("\n")[1]}</p>
+                      <p><strong>🕒 {t("payroll-view.schedule")}</strong> {moment(ev.start).format("HH:mm")} - {moment(ev.end).format("HH:mm")}</p>
+                      <p><strong>📅 {t("payroll-view.date")}</strong> {moment(ev.start).format("DD/MM/YYYY")}</p>
 
                       {isAttendance && (
                         <div className="attendance-info">
-                          <p><strong>📊 Estado:</strong> <span style={{ color: statusColor }}>{statusText}</span></p>
+                          <p><strong>📊 {t("payroll-view.status.title")}</strong> <span style={{ color: statusColor }}>{statusText}</span></p>
 
                           {data.status === "absent" && (
                             <>
-                              <p><strong>📄 Justificada:</strong> {data.justified ? "Sí" : "No"}</p>
-                              {data.absence_reason && <p><strong>✏️ Motivo:</strong> {data.absence_reason}</p>}
+                              <p><strong>📄 {t("payroll-view.justified")}</strong> {data.justified ? t("payroll-view.yes") : t("payroll-view.no")}</p>
+                              {data.absence_reason && <p><strong>✏️ {t("payroll-view.reason")}</strong> {data.absence_reason}</p>}
                               {data.justification_url && (
                                 <div className="pdf-link-container">
                                   <a href={data.justification_url} target="_blank" rel="noopener noreferrer">
-                                    📎 Ver justificante (PDF)
+                                    📎 {t("payroll-view.see-justification")}
                                   </a>
                                 </div>
                               )}
                             </>
                           )}
 
-                          {data.note_in && <p><strong>📝 Nota de entrada:</strong> {data.note_in}</p>}
-                          {data.note_out && <p><strong>📝 Nota de salida:</strong> {data.note_out}</p>}
+                          {data.note_in && <p><strong>📝 {t("payroll-view.note-in")}</strong> {data.note_in}</p>}
+                          {data.note_out && <p><strong>📝 {t("payroll-view.note-out")}</strong> {data.note_out}</p>}
                         </div>
                       )}
                       <hr />
@@ -349,9 +366,9 @@ const PayrollView = () => {
                   );
                 })
               ) : (
-                <p>No hay eventos en esta fecha.</p>
+                <p>{t("payroll-view.no-events")}</p>
               )}
-              <button onClick={closeModal}>Cerrar</button>
+              <button onClick={closeModal}>{t("payroll-view.close")}</button>
             </div>
           </div>
         )}
@@ -359,8 +376,8 @@ const PayrollView = () => {
         {isRecalcModalOpen && (
           <div className="custom-modalP">
             <div className="modal-contentP">
-              <h3>🧮 Recalcular Nómina</h3>
-              <p>Introduce las horas trabajadas:</p>
+              <h3>🧮 {t("payroll-view.recalculate-payroll")}</h3>
+              <p>{t("payroll-view.input-hours")}</p>
               <input
                 type="number"
                 value={editedHours}
@@ -369,8 +386,8 @@ const PayrollView = () => {
                 style={{ width: "100%", padding: "10px", margin: "10px 0" }}
               />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <button onClick={() => setIsRecalcModalOpen(false)}>Cancelar</button>
-                <button onClick={handleConfirmRecalculate}>Confirmar</button>
+                <button onClick={() => setIsRecalcModalOpen(false)}>{t("payroll-view.cancel")}</button>
+                <button onClick={handleConfirmRecalculate}>{t("payroll-view.confirm")}</button>
               </div>
             </div>
           </div>
@@ -382,12 +399,12 @@ const PayrollView = () => {
 
       </div>
 
-      <h2 className="payroll-title">Nómina de {employee.name} - {payroll.month} {payroll.year}</h2>
+      <h2 className="payroll-title">{t("payroll-view.payroll-of")} {employee.name} - {payroll.month} {payroll.year}</h2>
      <button
        onClick={handleOpenRecalculateModal}
        style={{ marginBottom: "1rem", padding: "10px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
      >
-       Recalcular Nómina
+       {t("payroll-view.recalculate-payroll")}
      </button>
 
 

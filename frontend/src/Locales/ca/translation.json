@@ -104,6 +104,7 @@
       }
     }
   },
+
   "employee-view": {
     "months": {
       "1": "Gener",
@@ -276,6 +277,7 @@
     "facility-exist": "Ja existeix una instal·lació amb aquest nom i ubicació.",
     "facility-exist2": "Ja existeix una instal·lació amb aquesta longitud i latitud.",
     "error-add": "Hi ha hagut un error en afegir la instal·lació.",
+    "open-map": "Seleccioni la ubicació",
     "name": "Nom",
     "location": "Ubicació",
     "type": "Tipus d'instal·lació",
@@ -283,7 +285,163 @@
     "latitude": "Latitud",
     "longitude": "Longitud",
     "add-facility": "Afegir instal·lació",
-    "cancel": "Cancel·lar"
+    "cancel": "Cancel·lar",
+    "map-note": "Seleccioni una ubicació al mapa per obtenir les coordenades"
+  },
+
+  "manage-payrolls": {
+    "manage-payrolls": "Gestionar Nòmines",
+    "employee-list": "Llista d'Empleats",
+    "generate-payrolls": "Generar Nòmines",
+    "search-placeholder": "Cerca per nom o ID",
+    "sort": "Ordenar alfabèticament",
+    "employee-name": "Nom de l'Empleat",
+    "generate-modal-title": "Generar Nòmina",
+    "select-month": "Selecciona un mes",
+    "select-year": "Any",
+    "generate": "Generar",
+    "cancel": "Cancel·lar",
+    "select-month-year": "Si us plau, selecciona un mes i un any.",
+    "success": "Nòmines generades correctament.",
+    "partial-error": "Algunes nòmines no es van generar:\n{{errors}}",
+    "error-generate": "Error generant nòmines.",
+    "server-error": "Error connectant amb el servidor.",
+    "error-employees": "No s'han trobat empleats.",
+    "error-update": "Error actualitzant el salari del rol.",
+    "base-salary": "Salari Base:",
+    "earnings": "Ganàncies:",
+    "deductions": "Deduccions:",
+    "search": "Buscar per nom o DNI"
+  },
+  "months": {
+    "1": "Gener",
+    "2": "Febrer",
+    "3": "Març",
+    "4": "Abril",
+    "5": "Maig",
+    "6": "Juny",
+    "7": "Juliol",
+    "8": "Agost",
+    "9": "Setembre",
+    "10": "Octubre",
+    "11": "Novembre",
+    "12": "Desembre"
+  },
+
+  "payrolls-view": {
+    "month": "Mes",
+    "year": "Any",
+    "sort": "Ordenar per Mes/Any"
+  },
+
+  "payroll-view": {
+    "alert-id" : "No valid payroll ID found.",
+    "error-delete": "Error al eliminar: ",
+    "delete-ok": "Nòmina eliminada exitosament.",
+    "error-number": "Introdueix un número vàlid",
+    "recalculate-ok": "Nòmina recalculada correctament.",
+    "recalculate-error": "Error al recalcular la nòmina.",
+    "error-server": "Error al connectar amb el servidor.",
+    "loading": "Carregant...",
+    "delete-payroll": "Eliminar Nòmina",
+    "title": "Hores",
+    "day-details": "Detalls del Día",
+    "type": "Tipus:",
+    "attendance":  "Assistència",
+    "scheduled-shift": "Torn programat",
+    "location": "Ubicació:",
+    "schedule": "Horari:",
+    "date": "Data",
+    "status": {
+      "title": "Estat",
+      "absent": "Ausent",
+      "missing-check-out": "Falta check-out",
+      "missing": "No va assistir (sense justificant)",
+      "present": "Present"
+    },
+    "justified": "Justificat:",
+    "yes": "Sí",
+    "no": "No",
+    "reason": "Raó:",
+    "see-justification": "Veure justificant (PDF)",
+    "note-in": "Nota d'entrada:",
+    "note-out": "Nota de sortida:",
+    "no-events": "No hi ha esdeveniments en aquesta data.",
+    "close": "Tancar",
+    "recalculate-payroll": "Recalcular Nòmina",
+    "input-hours": "Introdueix las hores traballades:",
+    "cancel": "Cancel·lar",
+    "confirm": "Confirmar",
+    "payroll-of": "Nòmina de"
+  },
+
+  "manage-incidents": {
+    "title": "Gestionar Incidències",
+    "list-title": "Llista d'Incidències",
+    "no-incidents": "No s'han trobat incidències.",
+    "error-fetch-incidents": "Error en obtenir les incidències.",
+    "error-fetch-facilities": "Error en obtenir les instal·lacions.",
+    "error-fetch-incident-types": "Error en obtenir els tipus d'incidències.",
+    "pdf-title": "Informe d'Incidències",
+    "pdf-generated": "Generat el:",
+    "incident": "Incidència",
+    "type": "Tipus",
+    "date": "Data",
+    "description": "Descripció",
+    "facility": "Instal·lació",
+    "coordinates": "Coordenades",
+    "field": "Camp",
+    "value": "Valor",
+    "incident-report": "Report d'Incidents",
+    "generated-on": "Generat al:",
+    "affected-person": "Persona Afectada",
+    "first-name": "Nom",
+    "last-name": "Cognoms",
+    "dni": "DNI",
+    "age": "Edat",
+    "origin-city": "Ciutat d'Origen",
+    "origin-country": "Pais d'Origen",
+    "gender": "Sexe",
+    "language": "Idioma",
+    "no-incidents-pdf": "No s'han trobat incidències per als filtres seleccionats.",
+    "pdf-file-name": "informe_incidencies.pdf",
+    "select-type": "Tots els tipus d'incidents",
+    "select-facility": "Totes les instal·lacions",
+    "year": "Any",
+    "year-place": "Any (ex., 2022)",
+    "month": "Mes",
+    "day": "Dia",
+    "months": "Tots els mesos",
+    "days": "Tots els dies",
+    "generate-pdf": "Generar PDF",
+    "incident-analysis": "Anàlisi incidències"
+  },
+
+  "incident-view": {
+    "loading": "Carregant...",
+    "title": "Detalls de l'Incident",
+    "title-incident": "Informació de l'Incident",
+    "type": "Tipus:",
+    "description": "Descripció:",
+    "date": "Data:",
+    "facility": "Instal·lació:",
+    "location": "Ubicació:",
+    "title-info": "Detalls de la víctima i de qui reporta",
+    "victim-info": "Víctima Info",
+    "name": "Nom:",
+    "dni": "DNI:",
+    "age": "Edat",
+    "origin-city": "Ciutat:",
+    "origin-country": "País:",
+    "gender": "Gènere:",
+    "language": "Idioma:",
+    "reported-by": "Reportat per",
+    "phone": "Telèfon:",
+    "role": "Rol:"
   }
+
+
+
+
 
 }

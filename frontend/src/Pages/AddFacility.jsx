@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import "./AddFacility.css"; // Archivo de estilos
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "./AddFacility.css";
 
 const AddFacility = () => {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const AddFacility = () => {
 
   const [facilities, setFacilities] = useState([]);
   const [error, setError] = useState(""); // Estado para errores
+  const [showMapModal, setShowMapModal] = useState(false); // Estado para mostrar/ocultar modal
   const { t } = useTranslation();
 
   // Manejo de cambios en los inputs
@@ -40,6 +43,54 @@ const AddFacility = () => {
         setError(t("add-facility.facility-error"));
       });
   }, [t]);
+
+const openMapModal = () => {
+  setShowMapModal(true);
+  // Inicializar el mapa en el siguiente ciclo del renderizado
+  setTimeout(() => {
+    const map = L.map("modal-map"); // Crear el mapa sin vista inicial
+
+    // Si se seleccionó un lugar anteriormente, centrar en ese lugar, de lo contrario en Cataluña
+    const hasSelectedLocation = formData.latitude && formData.longitude;
+    const initialCoords = hasSelectedLocation
+      ? [parseFloat(formData.latitude), parseFloat(formData.longitude)]
+      : [41.3851, 2.1734]; // Coordenadas de Cataluña por defecto
+
+    const initialZoom = hasSelectedLocation ? 15 : 7; // Usar un zoom más cercano si ya hay una ubicación seleccionada
+    map.setView(initialCoords, initialZoom);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Crear un marcador solo si ya hay una ubicación seleccionada
+    let marker = null;
+    if (hasSelectedLocation) {
+      marker = L.marker(initialCoords, { draggable: true }).addTo(map);
+    }
+
+    // Evento de clic en el mapa para actualizar latitud y longitud
+    map.on("click", (e) => {
+      const { lat, lng } = e.latlng;
+      setFormData({ ...formData, latitude: lat.toFixed(6), longitude: lng.toFixed(6) });
+
+      // Si no existe un marcador, crearlo; si ya existe, moverlo
+      if (!marker) {
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      } else {
+        marker.setLatLng([lat, lng]);
+      }
+    });
+
+    // Limpiar el mapa al desmontar el modal
+    return () => {
+      map.remove();
+    };
+  }, 0);
+};
+  const closeMapModal = () => {
+    setShowMapModal(false);
+  };
 
   const validateField = (input) => {
     if (input.name === "name" && !input.value.trim()) {
@@ -183,7 +234,7 @@ const AddFacility = () => {
             value={formData.latitude}
             onChange={handleInputChange}
             onInvalid={(e) => validateField(e.target)}
-            required
+            readOnly
           />
         </div>
 
@@ -195,9 +246,28 @@ const AddFacility = () => {
             value={formData.longitude}
             onChange={handleInputChange}
             onInvalid={(e) => validateField(e.target)}
-            required
+            readOnly
           />
         </div>
+
+        <div className="form-group location-selector">
+          <small className="location-note">{t("add-facility.map-note")}</small>
+          <button type="button" className="map-button" onClick={openMapModal}>
+            {t("add-facility.open-map")}
+          </button>
+        </div>
+
+
+        {showMapModal && (
+          <div className="modal" onClick={closeMapModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <span className="close-button" onClick={closeMapModal}>
+                &times;
+              </span>
+              <div id="modal-map" className="map-container"></div>
+            </div>
+          </div>
+        )}
 
         {error && <div className="error-message">{error}</div>}
 
