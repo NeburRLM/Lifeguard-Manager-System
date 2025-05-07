@@ -143,7 +143,7 @@ function ManageEmployees() {
                       <td>{employee.name}</td>
                       <td>{employee.id}</td>
                       <td>{employee.email}</td>
-                      <td>{employee.role}</td>
+                      <td>{t(`roles.${employee.role}`)}</td>
                       <td>
                         <div className="action-buttons">
                           <Link to={`/employeeview/${employee.id}`} className="view-btn">

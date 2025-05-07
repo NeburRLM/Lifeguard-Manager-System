@@ -466,7 +466,8 @@
     "all-incidents": "Todos los incidentes",
     "distribution-age": "Distribución por Tipo/Edad",
     "age-dist": "Distribución por edad de",
-    "incidents-time": "Incidentes a las"
+    "incidents-time": "Incidentes a las",
+    "all": "todo"
   },
 
   "profile-view": {
@@ -488,6 +489,28 @@
     "change-password": "Cambiar Contraseña",
     "current-password": "Contraseña actual",
     "new-password": "Nueva contraseña",
-    "confirm-password": "Confirmar nueva contraseña"
+    "confirm-password": "Confirmar nueva contraseña",
+    "select-role": "Selecciona un rol"
+  },
+
+  "roles": {
+    "Boss": "Jefe",
+    "Lifeguard": "Socorrista",
+    "Coordinator": "Coordinador"
+  },
+
+  "type-facilities": {
+    "Beach": "Playa",
+    "Pool": "Piscina"
+  },
+
+  "forgot-password": {
+    "title": "Recuperar Contraseña",
+    "emailLabel": "Introduce el correo asociado a tu cuenta",
+    "sendButton": "Enviar enlace de reinicio",
+    "successMessage": "Se ha enviado un correo con las instrucciones para restablecer la contraseña.",
+    "errorReset": "Error al restablecer la contraseña.",
+    "serverError": "Error al conectar con el servidor.",
+    "imageAlt": "Descripción de la imagen"
   }
 }

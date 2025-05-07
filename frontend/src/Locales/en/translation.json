@@ -466,7 +466,8 @@
     "all-incidents": "All incidents",
     "distribution-age": "Distribution by Type/Age",
     "age-dist": "Age distribution for",
-    "incidents-time": "Incidents at"
+    "incidents-time": "Incidents at",
+    "all": "all"
   },
 
   "profile-view": {
@@ -488,7 +489,29 @@
     "change-password": "Change Password",
     "current-password": "Current password",
     "new-password": "New password",
-    "confirm-password": "Confirm new password"
+    "confirm-password": "Confirm new password",
+    "select-role": "Select a role"
+  },
+
+  "roles": {
+    "Boss": "Boss",
+    "Lifeguard": "Lifeguard",
+    "Coordinator": "Coordinator"
+  },
+
+  "type-facilities": {
+    "Beach": "Beach",
+    "Pool": "Pool"
+  },
+
+  "forgot-password": {
+    "title": "Forgot Password",
+    "emailLabel": "Enter your email associated with your account",
+    "sendButton": "Send Reset Link",
+    "successMessage": "An email has been sent with the password reset instructions.",
+    "errorReset": "Error resetting password.",
+    "serverError": "Error connecting to the server.",
+    "imageAlt": "Image description"
   }
 }
 

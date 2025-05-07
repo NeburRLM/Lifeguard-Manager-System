@@ -466,7 +466,8 @@
     "all-incidents": "Tots els incidents",
     "distribution-age": "Distribució per Tipus/Edat",
     "age-dist": "Distribució per edat de",
-    "incidents-time": "Incidents a les"
+    "incidents-time": "Incidents a les",
+    "all": "tot"
   },
 
   "profile-view": {
@@ -488,6 +489,28 @@
     "change-password": "Canviar Contrasenya",
     "current-password": "Contrasenya actual",
     "new-password": "Nova contrasenya",
-    "confirm-password": "Confirmar nova contrasenya"
+    "confirm-password": "Confirmar nova contrasenya",
+    "select-role": "Selecciona un rol"
+  },
+
+  "roles": {
+    "Boss": "Cap",
+    "Lifeguard": "Socorrista",
+    "Coordinator": "Coordinador"
+  },
+
+  "type-facilities": {
+    "Beach": "Platja",
+    "Pool": "Piscina"
+  },
+
+  "forgot-password": {
+    "title": "Recuperar Contrasenya",
+    "emailLabel": "Introdueix el correu associat al teu compte",
+    "sendButton": "Enviar enllaç de reinici",
+    "successMessage": "S'ha enviat un correu amb les instruccions per restablir la contrasenya.",
+    "errorReset": "Error en restablir la contrasenya.",
+    "serverError": "Error en connectar amb el servidor.",
+    "imageAlt": "Descripció de la imatge"
   }
 }

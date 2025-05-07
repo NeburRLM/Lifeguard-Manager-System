@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from "react-i18next";
 import './ForgotPassword.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const { t, i18n} = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,24 +25,36 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('An email has been sent with the password reset instructions.');
+        setMessage(t('forgot-password.successMessage'));
       } else {
-        setError(data.message || 'Error resetting password.');
+        setError(data.message || t('forgot-password.errorReset'));
       }
     } catch (error) {
-      setError('Error connecting to the server.');
+      setError(t('forgot-password.serverError'));
     }
   };
 
   return (
       <div className="centered-containerF">
+      <div className="language-selector">
+              <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language}>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="ca">Català</option>
+              </select>
+              <img
+                src={`/flags/${i18n.language === "en" ? "gb" : i18n.language}.png`}
+                alt="flag"
+                className="flag-icon"
+              />
+            </div>
       <div className="forgot-password-containerF">
-        <h2>Forgot Password</h2>
+        <h2>{t("forgot-password.title")}</h2>
         {error && <p className="error-messageF">{error}</p>}
         {message && <p className="success-messageF">{message}</p>}
         <form onSubmit={handleSubmit} className="forgot-password-formF">
           <div className="form-groupF">
-            <label htmlFor="email">Enter your email associated with your account</label>
+            <label htmlFor="email">{t('forgot-password.emailLabel')}</label>
             <input
               type="email"
               id="email"
@@ -51,12 +65,12 @@ const ForgotPassword = () => {
             />
           </div>
           <button type="submit" className="reset-buttonF">
-            Send Reset Link
+            {t('forgot-password.sendButton')}
           </button>
         </form>
       </div>
       <div className="image-containerF">
-        <img src="/LogoSL.png" alt="Descripción de la imagen" />
+        <img src="/LogoSL.png" alt={t('forgot-password.imageAlt')} />
       </div>
       </div>
     );

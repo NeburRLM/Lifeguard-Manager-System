@@ -7,6 +7,7 @@ function ProfileView() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [roles, setRoles] = useState([]);
   ////
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
@@ -30,6 +31,23 @@ function ProfileView() {
         .catch((err) => console.error("Error fetching user data:", err));
     }
   }, []);
+
+    useEffect(() => {
+      fetch("http://localhost:4000/roles-types")
+        .then((response) => response.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            console.log("Roles cargados: ", data);
+            setRoles(data);
+          } else {
+            setError(t("employee-view.error-roles"));
+          }
+        })
+        .catch((error) => {
+          console.error("Error al obtener los roles:", error);
+          setError(t("employee-view.error-roles"));
+        });
+    }, [t]);
 
   useEffect(() => {
     if (user) {
@@ -224,7 +242,15 @@ function ProfileView() {
             <>
               <input type="text" name="name" value={formData.name || ""} onChange={handleInputChange} />
               <input type="email" name="email" value={formData.email || ""} onChange={handleInputChange} />
-              <input type="text" name="role" value={formData.role || ""} onChange={handleInputChange} />
+              <select name="role" value={formData.role || ""} onChange={handleInputChange} className="select-profile">
+                <option value="">{t("profile-view.select-role")}</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.type}>
+                    {t(`roles.${role.type}`, role.type)}
+                  </option>
+                ))}
+              </select>
+
               <input type="date" name="birthdate" value={formData.birthdate || ""} onChange={handleInputChange} />
               <input type="text" name="phone_number" value={formData.phone_number || ""} onChange={handleInputChange} />
             </>
@@ -233,7 +259,7 @@ function ProfileView() {
               <h3>{user.name}</h3>
               <p><strong>{t("profile-view.dni")}</strong> {user.id}</p>
               <p><strong>{t("profile-view.email")}</strong> {user.email}</p>
-              <p><strong>{t("profile-view.role")}</strong> {user.role}</p>
+              <p><strong>{t("profile-view.role")}</strong> {t(`roles.${user.role}`, user.role)}</p>
               <p><strong>{t("profile-view.birthdate")}</strong> {user.birthdate}</p>
               <p><strong>{t("profile-view.number")}</strong> {user.phone_number}</p>
             </>

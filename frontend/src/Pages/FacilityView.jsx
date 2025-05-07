@@ -153,9 +153,10 @@ const FacilityView = () => {
                     <option value="">{t("facility-view.type")}</option>
                     {facilitiesTypes.map((facility) => (
                       <option key={facility.id} value={facility.type}>
-                        {facility.type}
+                        {t(`type-facilities.${facility.type}`, facility.type)}
                       </option>
                     ))}
+
                   </select>
                   {fetchError && <p className="error">{fetchError}</p>}
 
@@ -174,7 +175,10 @@ const FacilityView = () => {
             ) : (
               <div>
                 <p><strong>{t("facility-view.location")}</strong> {facility.location}</p>
-                <p><strong>{t("facility-view.type")}</strong> {facility.facility_type}</p>
+                <p>
+                  <strong>{t("facility-view.type")}</strong>{" "}
+                  {t(`type-facilities.${facility.facility_type}`, facility.facility_type)}
+                </p>
                 {coordinates && (
                   <>
                     <p><strong>{t("facility-view.latitude")}</strong> {coordinates[0]}</p>

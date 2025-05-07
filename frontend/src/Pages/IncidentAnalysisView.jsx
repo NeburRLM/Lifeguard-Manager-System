@@ -71,7 +71,7 @@ function IncidentAnalysisView() {
     const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
     const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const generateColors = useCallback((incidentTypes) => {
         const newColors = {};
@@ -296,12 +296,12 @@ const getTrendChartData = () => {
                 let key;
 
                 if (year === "all" && month === "all" && day === "all") {
-                    key = new Date(incident.date).toLocaleString('default', { month: 'long', year: 'numeric' });
+                    key = new Date(incident.date).toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
                 } else if (year === "all" && month !== "all" && day === "all") {
                     const incidentDate = new Date(incident.date);
                     key = `${incidentDate.getDate()} ${incidentDate.getFullYear()}`;
                 } else if (year !== "all" && month === "all" && day === "all") {
-                    key = new Date(incident.date).toLocaleString('default', { month: 'long' }); // Mes (Enero, Febrero, etc.)
+                    key = new Date(incident.date).toLocaleString(i18n.language, { month: 'long' }); // Mes (Enero, Febrero, etc.)
                 } else if (year !== "all" && month !== "all" && day === "all") {
                     key = new Date(incident.date).getDate().toString(); // Día del mes
                 } else if (day !== "all") {
@@ -323,7 +323,7 @@ const getTrendChartData = () => {
         const current = new Date(startDate);
         while (current <= endDate) {
             if (unit === "month") {
-                range.push(current.toLocaleString('default', { month: 'long', year: 'numeric' }));
+                range.push(current.toLocaleString(i18n.language, { month: 'long', year: 'numeric' }));
                 current.setMonth(current.getMonth() + 1);
             } else if (unit === "day") {
                 range.push(`${current.getDate()} ${current.getFullYear()}`);
@@ -345,7 +345,7 @@ const getTrendChartData = () => {
         ...Object.keys(comparisonData),
         ...(selectedYear === "all" && selectedMonth === "all" && selectedDay === "all" ? getFullRange(new Date(Math.min(...filteredIncidents.map(i => new Date(i.date)))), new Date(Math.max(...filteredIncidents.map(i => new Date(i.date)))), "month") : []),
         ...(selectedYear === "all" && selectedMonth !== "all" && selectedDay === "all" ? getFullRange(new Date(Math.min(...filteredIncidents.map(i => new Date(i.date)))), new Date(Math.max(...filteredIncidents.map(i => new Date(i.date)))), "day") : []),
-        ...(selectedYear !== "all" && selectedMonth === "all" ? Array.from({ length: 12 }, (_, i) => new Date(2000, i).toLocaleString('default', { month: 'long' })) : []),
+        ...(selectedYear !== "all" && selectedMonth === "all" ? Array.from({ length: 12 }, (_, i) => new Date(2000, i).toLocaleString(i18n.language, { month: 'long' })) : []),
         ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay === "all" ? Array.from({ length: 31 }, (_, i) => (i + 1).toString()) : []),
         ...(selectedYear !== "all" && selectedMonth !== "all" && selectedDay !== "all" ? Array.from({ length: 24 }, (_, i) => `${i}:00`) : []),
     ]);
@@ -365,7 +365,9 @@ const getTrendChartData = () => {
                     const bMonth = bParts.slice(0, -1).join(' ').toLowerCase();
                     const aYear = parseInt(aParts[aParts.length - 1]); // Asegura que sea número
                     const bYear = parseInt(bParts[bParts.length - 1]);
-            const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            const months = [...Array(12).keys()].map(i =>
+                            new Date(2000, i).toLocaleString(i18n.language, { month: 'long' }).toLowerCase()
+                        );
 
             if (aYear !== bYear) {
                         return aYear - bYear; // Primero ordena por año
@@ -381,7 +383,9 @@ const getTrendChartData = () => {
             }
             return parseInt(aYear) - parseInt(bYear);
         } else if (selectedYear !== "all" && selectedMonth === "all" && selectedDay === "all") {
-            const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            const months = [...Array(12).keys()].map(i =>
+                            new Date(2000, i).toLocaleString(i18n.language, { month: 'long' }).toLowerCase()
+                        );
             return months.indexOf(a.key.toLowerCase()) - months.indexOf(b.key.toLowerCase());
         } else if (selectedYear !== "all" && selectedMonth !== "all" && selectedDay === "all") {
             return parseInt(a.key) - parseInt(b.key);

@@ -79,7 +79,7 @@ function IncidentView() {
             <Grid item xs={12} md={6}>
               <Card sx={{ p: 2, borderLeft: '6px solid #9e9e9e' }}>
                 <CardContent>
-                  <Typography variant="h6" color="primary" fontWeight="bold">🧍 Victim Info</Typography>
+                  <Typography variant="h6" color="primary" fontWeight="bold">🧍 {t("incident-view.victim-info")}</Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography><strong>{t("incident-view.name")}</strong> {incident.firstName} {incident.lastName}</Typography>
                   <Typography><strong>{t("incident-view.dni")}</strong> {incident.dni}</Typography>
@@ -107,7 +107,9 @@ function IncidentView() {
                       <Typography><strong>{t("incident-view.name")}</strong> {incident.reported_by.name}</Typography>
                       <Typography><strong>{t("incident-view.dni")}</strong> {incident.reported_by.id}</Typography>
                       <Typography><strong>{t("incident-view.phone")}</strong> {incident.reported_by.phone_number}</Typography>
-                      <Typography><strong>{t("incident-view.role")}</strong> {incident.reported_by.role}</Typography>
+                      <Typography>
+                        <strong>{t("incident-view.role")}</strong> {t(`roles.${incident.reported_by.role}`, incident.reported_by.role)}
+                      </Typography>
                     </Box>
                   </Box>
                 </CardContent>

@@ -126,7 +126,7 @@ const handleDelete = (id) => {
             {filteredFacilities.map((facility) => (
               <tr key={facility.id}>
                 <td>{facility.name}</td>
-                <td>{facility.facility_type}</td>
+                <td>{t(`type-facilities.${facility.facility_type}`)}</td>
                 <td>
                   <div className="action-buttons">
                     <Link to={`/facilityview/${facility.id}`} className="view-btn">

@@ -301,7 +301,7 @@ const EmployeeView = () => {
                                 <option value="">{t("employee-view.select-role")}</option>
                                 {roles.map((role) => (
                                   <option key={role.id} value={role.type}>
-                                    {role.type}
+                                    {t(`roles.${role.type}`)}
                                   </option>
                                 ))}
                               </select>
@@ -323,7 +323,7 @@ const EmployeeView = () => {
                           <p><strong>{t("employee-view.dni")}:</strong> {employee.id}</p>
                           <p><strong>{t("employee-view.email")}:</strong> {employee.email}</p>
 
-                          <p><strong>{t("employee-view.role")}:</strong> {employee.role}</p>
+                          <p><strong>{t("employee-view.role")}:</strong> {t(`roles.${employee.role}`)}</p>
                           <p><strong>{t("employee-view.number")}:</strong> {employee.phone_number}</p>
                           <p><strong>{t("employee-view.birthdate")}:</strong> {employee.birthdate}</p>
                           <p><strong>{t("employee-view.hire-date")}:</strong> {new Date(employee.hire_date).toLocaleDateString("es-ES")}</p>
