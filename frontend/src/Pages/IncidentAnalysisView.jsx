@@ -163,13 +163,7 @@ function IncidentAnalysisView() {
             setSelectedFacilities(value);
         };
 
-        const getFilteredFacilityChartData = () => {
-            // Filtrar las instalaciones seleccionadas para los gráficos
-            if (selectedFacilities.length === 0) {
-                return facilities; // Devuelve todas las instalaciones si no hay selección
-            }
-            return facilities.filter((facility) => selectedFacilities.includes(facility.name));
-        };
+
 
     const filterIncidents = useCallback(() => {
         let filtered = incidents;
@@ -610,7 +604,7 @@ const getAgePieChartData = () => {
                                     mode="multiple"
                                     allowClear
                                     showSearch
-                                    placeholder="Selecciona instalaciones"
+                                    placeholder={t("incidentAnalysis-view.select-facility")}
                                     onChange={handleFacilityChange}
                                     style={{ width: "100%", marginBottom: "20px" }}
                                     optionFilterProp="children"

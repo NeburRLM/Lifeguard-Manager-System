@@ -1,0 +1,12 @@
+{
+  "login": {
+    "welcome": "Bienvenido",
+    "subtitle": "Por favor inicia sesión en tu cuenta",
+    "dni": "DNI",
+    "password": "Contraseña",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "error": "Error en el inicio de sesión.",
+    "error-dni-required": "El DNI es obligatorio",
+    "error-password-required": "La contraseña es obligatoria"
+  }
+}

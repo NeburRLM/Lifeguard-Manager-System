@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Constants from 'expo-constants';
-
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
   const API_URL = Constants.expoConfig.extra.API_URL;
@@ -19,6 +19,7 @@ const Login = () => {
   const [recoveryDNI, setRecoveryDNI] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [modalError, setModalError] = useState('');
+  const { t, i18n } = useTranslation();
 
   const navigation = useNavigation();
 
@@ -127,6 +128,21 @@ const Login = () => {
   return (
     <ImageBackground source={require('../assets/1.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
+        {/* 🔤 Selector de idioma */}
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <Text style={{ marginBottom: 5 }}>{t('select-language')}</Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <TouchableOpacity onPress={() => i18n.changeLanguage('es')}>
+                    <Text>🇪🇸</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => i18n.changeLanguage('en')}>
+                    <Text>🇬🇧</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => i18n.changeLanguage('ca')}>
+                    <Text>🇨🇦</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
         <View style={styles.card}>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Please login to your account</Text>

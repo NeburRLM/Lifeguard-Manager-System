@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
+//import './i18n';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import AppDrawer from './pages/AppDrawer'; // 🔥 Este contiene Drawer + Header

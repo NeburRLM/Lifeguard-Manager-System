@@ -445,6 +445,7 @@
     "all-years": "Tots els Anys",
     "all-months": "Tots els Mesos",
     "all-days": "Tots els Dies",
+    "select-facility": "Selecciona instal·lacions",
     "order": {
       "default": "Ordre per Defecte",
       "asc": "Ordre Ascendent",
@@ -517,5 +518,17 @@
       "required": "Aquest camp és obligatori.",
       "invalidEmail": "Si us plau, introdueix una adreça de correu electrònic vàlida."
     }
+  },
+
+  "resetPassword": {
+    "title": "Restablir la contrasenya",
+    "loading": "Carregant...",
+    "newPasswordPlaceholder": "Nova contrasenya",
+    "confirmPasswordPlaceholder": "Confirma la contrasenya",
+    "changePasswordButton": "Canviar contrasenya",
+    "passwordsDoNotMatch": "Les contrasenyes no coincideixen.",
+    "noToken": "No s'ha proporcionat el token.",
+    "passwordUpdated": "Contrasenya actualitzada amb èxit.",
+    "serverError": "Error en connectar amb el servidor."
   }
 }

@@ -445,6 +445,7 @@
     "all-years": "Todos los Años",
     "all-months": "Todos los Meses",
     "all-days": "Todos los Días",
+    "select-facility": "Selecciona instalaciones",
     "order": {
       "default": "Orden por Defecto",
       "asc": "Orden Ascendente",
@@ -517,5 +518,17 @@
       "required": "Este campo es obligatorio.",
       "invalidEmail": "Por favor, introduce una dirección de correo válida."
     }
+  },
+
+  "resetPassword": {
+    "title": "Reset Password",
+    "loading": "Loading...",
+    "newPasswordPlaceholder": "New password",
+    "confirmPasswordPlaceholder": "Confirm password",
+    "changePasswordButton": "Change Password",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "noToken": "Token not provided.",
+    "passwordUpdated": "Password successfully updated.",
+    "serverError": "Error connecting to the server."
   }
 }

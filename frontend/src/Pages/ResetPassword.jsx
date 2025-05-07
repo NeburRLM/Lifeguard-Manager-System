@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './ResetPassword.css';
 
 const ResetPassword = () => {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('error');
   const [isLoading, setIsLoading] = useState(false); // Estado para el indicador de carga
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar u ocultar la contraseña
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para mostrar u ocultar la confirmación de contraseña
@@ -16,14 +19,14 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token) {
-      setMessage('Token no proporcionado.');
+      setMessage(t('resetPassword.noToken'));
     }
-  }, [token]);
+  }, [token, t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setMessage('Las contraseñas no coinciden.');
+      setMessage(t('resetPassword.passwordsDoNotMatch'));
       return;
     }
 
@@ -38,6 +41,7 @@ const ResetPassword = () => {
 
       const data = await response.json();
       setMessage(data.message);
+      setMessageType(data.message === 'Contraseña actualizada con éxito.' ? 'success' : 'error');
 
       if (data.message === 'Contraseña actualizada con éxito.') {
         setTimeout(() => {
@@ -48,7 +52,8 @@ const ResetPassword = () => {
         setIsLoading(false); // Desactiva el indicador de carga en caso de error
       }
     } catch (error) {
-      setMessage('Error al conectar con el servidor.');
+      setMessage(t('resetPassword.serverError'));
+      setMessageType('error');
       setIsLoading(false); // Desactiva el indicador de carga en caso de error
     }
   };
@@ -56,18 +61,18 @@ const ResetPassword = () => {
   return (
     <div className="centered-containerR">
       <div className="reset-password-containerR">
-        <h2>Restablecer contraseña</h2>
+        <h2>{t('resetPassword.title')}</h2>
         {isLoading ? (
           <div className="loading-indicator">
             <progress value={null} />
-            <p>Cargando...</p>
+            <p>{t('resetPassword.loading')}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="reset-password-formR">
                       <div className="input-groupR">
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Nueva contraseña"
+                          placeholder={t('resetPassword.newPasswordPlaceholder')}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
@@ -80,7 +85,7 @@ const ResetPassword = () => {
                       <div className="input-groupR">
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirmar contraseña"
+                          placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           required
@@ -91,11 +96,11 @@ const ResetPassword = () => {
                       </div>
 
                       <button type="submit" className="reset-buttonR">
-                        Cambiar contraseña
+                        {t('resetPassword.changePasswordButton')}
                       </button>
                     </form>
         )}
-        {message && <p className="messageR">{message}</p>}
+        {message && <p className={`messageR ${messageType}`}>{message}</p>}
       </div>
     </div>
   );
