@@ -11,11 +11,13 @@ const resources = {
   ca: { translation: translationCA },
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  lng: 'en', // idioma por defecto
-  fallbackLng: 'en',
-  interpolation: { escapeValue: false },
-});
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: localStorage.getItem('language') || 'en', // lee idioma guardado o usa inglés
+    fallbackLng: 'en',
+    interpolation: { escapeValue: false },
+  });
 
 export default i18n;

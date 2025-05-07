@@ -6,12 +6,20 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const { t, i18n} = useTranslation();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    const emailInput = document.getElementById("email");
+        validateEmailInput(emailInput); // Valida el campo antes de enviar el formulario
+
+        if (!emailInput.checkValidity()) {
+          emailInput.reportValidity(); // Muestra mensajes de error nativos
+          return; // Detiene el envío si hay errores
+        }
 
     try {
       const response = await fetch('http://localhost:4000/employee/forgot-password', {
@@ -34,20 +42,21 @@ const ForgotPassword = () => {
     }
   };
 
+  const validateEmailInput = (input) => {
+      if (input.validity.valueMissing) {
+        // Mensaje personalizado para campo obligatorio
+        input.setCustomValidity(t('forgot-password.validation.required'));
+      } else if (input.validity.typeMismatch) {
+        // Mensaje personalizado para formato de correo electrónico no válido
+        input.setCustomValidity(t('forgot-password.validation.invalidEmail'));
+      } else {
+        // Limpia los mensajes personalizados si no hay errores
+        input.setCustomValidity('');
+      }
+    };
+
   return (
       <div className="centered-containerF">
-      <div className="language-selector">
-              <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language}>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="ca">Català</option>
-              </select>
-              <img
-                src={`/flags/${i18n.language === "en" ? "gb" : i18n.language}.png`}
-                alt="flag"
-                className="flag-icon"
-              />
-            </div>
       <div className="forgot-password-containerF">
         <h2>{t("forgot-password.title")}</h2>
         {error && <p className="error-messageF">{error}</p>}
@@ -61,6 +70,8 @@ const ForgotPassword = () => {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onInput={(e) => validateEmailInput(e.target)}
+              onInvalid={(e) => validateEmailInput(e.target)}
               required
             />
           </div>

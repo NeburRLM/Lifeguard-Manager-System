@@ -80,8 +80,20 @@ function ProfileView() {
   };
 
   const handleDeleteImage = () => {
-    setFormData({ ...formData, image: "", previewImage: null });
+    setFormData((prevData) => ({
+      ...prevData,
+      image: "",
+      previewImage: null,
+      file: null
+    }));
+
+    // También resetear el input file (esto requiere referencia)
+    const fileInput = document.getElementById("file-upload");
+    if (fileInput) {
+      fileInput.value = "";
+    }
   };
+
 
   const handleSave = async () => {
     try {
@@ -220,13 +232,22 @@ function ProfileView() {
         <div className="profile-image-sectionP">
           {isEditing ? (
             <>
-              <input type="file" accept="image/*" onChange={handleFileChange} />
+              <label htmlFor="file-upload" className="custom-file-upload">
+                {t("profile-view.select-image")}
+              </label>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                className="hidden-file-input"
+                onChange={handleFileChange}
+              />
               <img
                 src={formData.previewImage || formData.image || "/default-avatar.jpg"}
                 alt="Employee"
                 className="employeeP-image"
               />
-              {formData.image && (
+              {(formData.image || formData.previewImage) && (
                 <button className="deleteProfile-image-btn" onClick={handleDeleteImage}>
                   {t("profile-view.delete-image")}
                 </button>
@@ -235,6 +256,7 @@ function ProfileView() {
           ) : (
             <img src={user.image || "/default-avatar.jpg"} alt={user.name} className="employeeP-image" />
           )}
+
         </div>
 
         <div className="profile-detailsP">

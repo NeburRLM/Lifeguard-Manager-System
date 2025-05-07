@@ -88,11 +88,18 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="language-selector">
-        <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language}>
+        <select
+          onChange={(e) => {
+            i18n.changeLanguage(e.target.value);
+            localStorage.setItem('language', e.target.value); // <- aquí se guarda
+          }}
+          value={i18n.language}
+        >
           <option value="en">English</option>
           <option value="es">Español</option>
           <option value="ca">Català</option>
         </select>
+
         <img
           src={`/flags/${i18n.language === "en" ? "gb" : i18n.language}.png`}
           alt="flag"

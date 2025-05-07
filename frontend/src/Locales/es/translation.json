@@ -490,7 +490,8 @@
     "current-password": "Contraseña actual",
     "new-password": "Nueva contraseña",
     "confirm-password": "Confirmar nueva contraseña",
-    "select-role": "Selecciona un rol"
+    "select-role": "Selecciona un rol",
+    "select-image": "Selecciona una imagen"
   },
 
   "roles": {
@@ -511,6 +512,10 @@
     "successMessage": "Se ha enviado un correo con las instrucciones para restablecer la contraseña.",
     "errorReset": "Error al restablecer la contraseña.",
     "serverError": "Error al conectar con el servidor.",
-    "imageAlt": "Descripción de la imagen"
+    "imageAlt": "Descripción de la imagen",
+    "validation": {
+      "required": "Este campo es obligatorio.",
+      "invalidEmail": "Por favor, introduce una dirección de correo válida."
+    }
   }
 }

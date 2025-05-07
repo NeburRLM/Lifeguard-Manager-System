@@ -490,7 +490,8 @@
     "current-password": "Contrasenya actual",
     "new-password": "Nova contrasenya",
     "confirm-password": "Confirmar nova contrasenya",
-    "select-role": "Selecciona un rol"
+    "select-role": "Selecciona un rol",
+    "select-image": "Seleccioni una imatge"
   },
 
   "roles": {
@@ -511,6 +512,10 @@
     "successMessage": "S'ha enviat un correu amb les instruccions per restablir la contrasenya.",
     "errorReset": "Error en restablir la contrasenya.",
     "serverError": "Error en connectar amb el servidor.",
-    "imageAlt": "Descripció de la imatge"
+    "imageAlt": "Descripció de la imatge",
+    "validation": {
+      "required": "Aquest camp és obligatori.",
+      "invalidEmail": "Si us plau, introdueix una adreça de correu electrònic vàlida."
+    }
   }
 }

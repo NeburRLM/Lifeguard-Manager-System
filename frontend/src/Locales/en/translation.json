@@ -490,7 +490,8 @@
     "current-password": "Current password",
     "new-password": "New password",
     "confirm-password": "Confirm new password",
-    "select-role": "Select a role"
+    "select-role": "Select a role",
+    "select-image": "Select a image"
   },
 
   "roles": {
@@ -511,7 +512,11 @@
     "successMessage": "An email has been sent with the password reset instructions.",
     "errorReset": "Error resetting password.",
     "serverError": "Error connecting to the server.",
-    "imageAlt": "Image description"
+    "imageAlt": "Image description",
+    "validation": {
+      "required": "This field is required.",
+      "invalidEmail": "Please enter a valid email address."
+    }
   }
 }
 
