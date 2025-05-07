@@ -71,6 +71,8 @@ function IncidentAnalysisView() {
     const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
     const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
+    const [selectedFacilities, setSelectedFacilities] = useState([]);
+
     const { t, i18n } = useTranslation();
 
     const generateColors = useCallback((incidentTypes) => {
@@ -157,7 +159,17 @@ function IncidentAnalysisView() {
             .catch((error) => console.log("Error fetching incident types:", error));
     }, [generateColors]);
 
+    const handleFacilityChange = (value) => {
+            setSelectedFacilities(value);
+        };
 
+        const getFilteredFacilityChartData = () => {
+            // Filtrar las instalaciones seleccionadas para los gráficos
+            if (selectedFacilities.length === 0) {
+                return facilities; // Devuelve todas las instalaciones si no hay selección
+            }
+            return facilities.filter((facility) => selectedFacilities.includes(facility.name));
+        };
 
     const filterIncidents = useCallback(() => {
         let filtered = incidents;
@@ -225,28 +237,32 @@ function IncidentAnalysisView() {
     };
 
     const getSiteChartData = () => {
-        const groupedData = facilities.reduce((acc, facility) => {
-            const facilityName = facility.name;
+        // Usar instalaciones seleccionadas o todas si no hay selección
+        const filteredFacilities = selectedFacilities.length > 0
+            ? facilities.filter(facility => selectedFacilities.includes(facility.name))
+            : facilities;
+
+        // Generar datos agrupados para las instalaciones filtradas
+        const groupedData = filteredFacilities.map(facility => {
             const facilityIncidents = filteredIncidents.filter(incident => incident.facility.id === facility.id);
             const incidentCounts = incidentTypes.reduce((typeAcc, incidentType) => {
                 const typeCount = facilityIncidents.filter(incident => incident.type === incidentType.type).length;
                 typeAcc[incidentType.type] = typeCount;
                 return typeAcc;
             }, {});
-            acc.push({ name: facilityName, total: facilityIncidents.length, ...incidentCounts });
-            return acc;
-        }, []);
+            return { name: facility.name, total: facilityIncidents.length, ...incidentCounts };
+        });
 
+        // Si el modo de comparación está habilitado, agregar datos de comparación
         if (isComparisonMode) {
-            facilities.forEach(facility => {
-                const facilityName = facility.name;
+            filteredFacilities.forEach(facility => {
                 const facilityIncidents = comparisonFilteredIncidents.filter(incident => incident.facility.id === facility.id);
                 const incidentCounts = incidentTypes.reduce((typeAcc, incidentType) => {
                     const typeCount = facilityIncidents.filter(incident => incident.type === incidentType.type).length;
                     typeAcc[`${incidentType.type}_comparison`] = typeCount;
                     return typeAcc;
                 }, {});
-                const index = groupedData.findIndex(item => item.name === facilityName);
+                const index = groupedData.findIndex(item => item.name === facility.name);
                 if (index !== -1) {
                     groupedData[index] = { ...groupedData[index], ...incidentCounts };
                 }
@@ -257,16 +273,29 @@ function IncidentAnalysisView() {
     };
 
     const getTypeChartData = () => {
+        // Filtrar los incidentes según las instalaciones seleccionadas
+        const facilitiesFiltered = selectedFacilities.length === 0
+            ? facilities // Si no hay instalaciones seleccionadas, usar todas
+            : facilities.filter(facility => selectedFacilities.includes(facility.name));
+
+        const filteredIncidentsByFacility = filteredIncidents.filter(incident =>
+            facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+        );
+
+        const filteredComparisonIncidentsByFacility = comparisonFilteredIncidents.filter(incident =>
+            facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+        );
+
         const groupedData = incidentTypes.reduce((acc, incidentType) => {
             const type = incidentType.type;
 
             // Cuenta de incidentes seleccionados
-            const selectedCount = filteredIncidents.filter(incident => incident.type === type).length;
+            const selectedCount = filteredIncidentsByFacility.filter(incident => incident.type === type).length;
             acc[type] = { count: selectedCount };
 
             // Cuenta de incidentes de comparación (si está habilitado el modo de comparación)
             if (isComparisonMode) {
-                const comparisonCount = comparisonFilteredIncidents.filter(incident => incident.type === type).length;
+                const comparisonCount = filteredComparisonIncidentsByFacility.filter(incident => incident.type === type).length;
                 acc[type].count_comparison = comparisonCount;
             }
 
@@ -289,6 +318,18 @@ const getTrendChartData = () => {
                (month === "all" || incidentDate.getMonth() + 1 === parseInt(month)) &&
                (day === "all" || incidentDate.getDate() === parseInt(day));
     };
+
+    const facilitiesFiltered = selectedFacilities.length === 0
+            ? facilities // Si no hay instalaciones seleccionadas, usar todas
+            : facilities.filter(facility => selectedFacilities.includes(facility.name));
+
+        const filteredIncidentsByFacility = filteredIncidents.filter(incident =>
+            facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+        );
+
+        const filteredComparisonIncidentsByFacility = comparisonFilteredIncidents.filter(incident =>
+            facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+        );
 
     const groupByTimeUnit = (incidents, year, month, day) => {
         return incidents.reduce((acc, incident) => {
@@ -333,12 +374,12 @@ const getTrendChartData = () => {
         return range;
     };
 
-    const selectedData = groupByTimeUnit(filteredIncidents, selectedYear, selectedMonth, selectedDay);
+     const selectedData = groupByTimeUnit(filteredIncidentsByFacility, selectedYear, selectedMonth, selectedDay);
 
-    let comparisonData = {};
-    if (isComparisonMode) {
-        comparisonData = groupByTimeUnit(comparisonFilteredIncidents, comparisonYear, selectedMonth, selectedDay);
-    }
+        let comparisonData = {};
+        if (isComparisonMode) {
+            comparisonData = groupByTimeUnit(filteredComparisonIncidentsByFacility, comparisonYear, selectedMonth, selectedDay);
+        }
 
     const allKeys = new Set([
         ...Object.keys(selectedData),
@@ -448,7 +489,18 @@ const handleLineChartClick = (e) => {
 
 
 const getHeatmapData = () => {
-    return filteredIncidents
+    // Filtrar instalaciones seleccionadas
+    const facilitiesFiltered = selectedFacilities.length === 0
+        ? facilities // Si no hay instalaciones seleccionadas, usar todas
+        : facilities.filter(facility => selectedFacilities.includes(facility.name));
+
+    // Filtrar incidentes basados en instalaciones seleccionadas
+    const filteredIncidentsByFacility = filteredIncidents.filter(incident =>
+        facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+    );
+
+    // Filtrar incidentes por tipo seleccionado en el mapa de calor
+    return filteredIncidentsByFacility
         .filter(incident => heatmapSelectedIncidentType === "all" || incident.type === heatmapSelectedIncidentType)
         .map(incident => {
             let intensity = 2; // Intensidad por defecto para la acumulación de incidentes
@@ -488,25 +540,63 @@ const ageRanges = [
 
 // Generar datos para el gráfico de pastel
 const getPieChartData = () => {
+    // Filtrar instalaciones seleccionadas
+    const facilitiesFiltered = selectedFacilities.length === 0
+        ? facilities // Si no hay instalaciones seleccionadas, usar todas
+        : facilities.filter(facility => selectedFacilities.includes(facility.name));
+
+    // Filtrar incidentes basados en instalaciones seleccionadas
+    const filteredIncidentsByFacility = filteredIncidents.filter(incident =>
+        facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+    );
+
+    // Si no hay incidentes después de los filtros, devuelve un array vacío
+    if (filteredIncidentsByFacility.length === 0) {
+        console.warn("No hay datos para el gráfico de distribución por tipo.");
+        return [];
+    }
+
+    // Generar datos agrupados por tipo de incidente
     return incidentTypes.map(({ type }) => {
-        const count = filteredIncidents.filter(incident => incident.type === type).length;
+        const count = filteredIncidentsByFacility.filter(incident => incident.type === type).length;
         return { name: type, value: count };
     });
 };
 
 // Generar datos para el gráfico de edades
 const getAgePieChartData = () => {
-    if (!selectedIncidentForAge) return [];
+    if (!selectedIncidentForAge) {
+        console.warn("No se ha seleccionado ningún tipo de incidente para el gráfico de edades.");
+        return [];
+    }
 
+    // Filtrar instalaciones seleccionadas
+    const facilitiesFiltered = selectedFacilities.length === 0
+        ? facilities // Si no hay instalaciones seleccionadas, usar todas
+        : facilities.filter(facility => selectedFacilities.includes(facility.name));
+
+    // Filtrar incidentes basados en instalaciones seleccionadas y el tipo seleccionado
+    const filteredIncidentsByFacility = filteredIncidents.filter(incident =>
+        facilitiesFiltered.some(facility => facility.id === incident.facility.id)
+    );
+
+    // Si no hay incidentes después de los filtros, devuelve un array vacío
+    if (filteredIncidentsByFacility.length === 0) {
+        console.warn("No hay datos para el gráfico de distribución por edad.");
+        return [];
+    }
+
+    // Generar datos agrupados por franjas de edad
     const ageCounts = ageRanges.map(({ label, min, max }) => ({
         name: label,
-        value: filteredIncidents.filter(
+        value: filteredIncidentsByFacility.filter(
             incident => incident.type === selectedIncidentForAge && incident.age >= min && incident.age <= max
         ).length
     }));
 
-    return ageCounts.filter(ageGroup => ageGroup.value > 0); // Eliminar grupos sin datos
- };
+    // Eliminar grupos sin datos
+    return ageCounts.filter(ageGroup => ageGroup.value > 0);
+};
 
     return (
         <main className="content">
@@ -515,6 +605,22 @@ const getAgePieChartData = () => {
             </header>
 
             <div className="filter-container">
+                {/* Filtro de instalaciones */}
+                                <Select
+                                    mode="multiple"
+                                    allowClear
+                                    showSearch
+                                    placeholder="Selecciona instalaciones"
+                                    onChange={handleFacilityChange}
+                                    style={{ width: "100%", marginBottom: "20px" }}
+                                    optionFilterProp="children"
+                                >
+                                    {facilities.map(facility => (
+                                        <Option key={facility.id} value={facility.name}>
+                                            {facility.name}
+                                        </Option>
+                                    ))}
+                                </Select>
                 <Select defaultValue="all" onChange={value => { setSelectedYear(value); filterIncidents(); }} className="year-select">
                     <Option value="all">{t("incidentAnalysis-view.all-years")}</Option>
                     {[...Array(10).keys()].map(i => {
