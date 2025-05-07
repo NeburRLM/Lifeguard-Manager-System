@@ -438,6 +438,57 @@
     "reported-by": "Reported By",
     "phone": "Phone:",
     "role": "Role:"
+  },
+
+  "incidentAnalysis-view": {
+    "title": "Incident Analysis",
+    "all-years": "All Years",
+    "all-months": "All Months",
+    "all-days": "All Days",
+    "order": {
+      "default": "Default Order",
+      "asc": "Ascending Order",
+      "desc": "Descending Order"
+    },
+    "compare": {
+      "disable": "Disable Comparison Mode",
+      "enable": "Enable Comparison Mode"
+    },
+    "distribution-title": "Distribution by Installation",
+    "frequency-title": "Frequency by Type",
+    "incident-count": "Incident Count",
+    "comparison-count": "Comparison Count",
+    "temporal-title": "Temporal Trends",
+    "time": "Time",
+    "quantity": "Quantity",
+    "count": "Count",
+    "heat-map-title": "Heat map",
+    "all-incidents": "All incidents",
+    "distribution-age": "Distribution by Type/Age",
+    "age-dist": "Age distribution for",
+    "incidents-time": "Incidents at"
+  },
+
+  "profile-view": {
+    "fields-required": "All fields are required.",
+    "password-no-match": "Passwords do not match",
+    "password-update-ok": "Password updated successfully",
+    "password-update-error": "Error changing password",
+    "loading": "Loading...",
+    "title": "Profile User",
+    "delete-image": "Delete Image",
+    "dni": "DNI:",
+    "email": "Email:",
+    "role": "Role:",
+    "birthdate": "Birthdate",
+    "number": "Phone number:",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "change-password": "Change Password",
+    "current-password": "Current password",
+    "new-password": "New password",
+    "confirm-password": "Confirm new password"
   }
 }
 

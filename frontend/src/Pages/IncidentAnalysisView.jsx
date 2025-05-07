@@ -7,6 +7,7 @@ import L from 'leaflet';
 import 'leaflet.heat';
 import './IncidentAnalysisView.css';
 import 'leaflet/dist/leaflet.css';
+import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -62,16 +63,15 @@ function IncidentAnalysisView() {
     const [isComparisonMode, setIsComparisonMode] = useState(false);
     const [comparisonYear, setComparisonYear] = useState("all");
 
+    const [comparisonFilteredIncidents, setComparisonFilteredIncidents] = useState([]);
+    const [colors, setColors] = useState({});
+    const [selectedHourIncidents, setSelectedHourIncidents] = useState([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [activeTab, setActiveTab] = useState("1");
+    const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
+    const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
-
-        const [comparisonFilteredIncidents, setComparisonFilteredIncidents] = useState([]);
-        const [colors, setColors] = useState({});
-        const [selectedHourIncidents, setSelectedHourIncidents] = useState([]);
-        const [isModalVisible, setIsModalVisible] = useState(false);
-        const [activeTab, setActiveTab] = useState("1");
-        const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
-        const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
-
+    const { t } = useTranslation();
 
     const generateColors = useCallback((incidentTypes) => {
         const newColors = {};
@@ -507,37 +507,37 @@ const getAgePieChartData = () => {
     return (
         <main className="content">
             <header className="header">
-                <h4>Incident Analysis</h4>
+                <h4>{t("incidentAnalysis-view.title")}</h4>
             </header>
 
             <div className="filter-container">
                 <Select defaultValue="all" onChange={value => { setSelectedYear(value); filterIncidents(); }} className="year-select">
-                    <Option value="all">All Years</Option>
+                    <Option value="all">{t("incidentAnalysis-view.all-years")}</Option>
                     {[...Array(10).keys()].map(i => {
                         const year = new Date().getFullYear() - i;
                         return <Option key={year} value={year}>{year}</Option>;
                     })}
                 </Select>
                 <Select defaultValue="all" onChange={value => { setSelectedMonth(value); filterIncidents(); }} className="month-select">
-                    <Option value="all">All Months</Option>
+                    <Option value="all">{t("incidentAnalysis-view.all-months")}</Option>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
                         <Option key={month} value={month}>{month}</Option>
                     ))}
                 </Select>
                 <Select defaultValue="all" onChange={value => { setSelectedDay(value); filterIncidents(); }} className="day-select">
-                    <Option value="all">All Days</Option>
+                    <Option value="all">{t("incidentAnalysis-view.all-days")}</Option>
                     {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                         <Option key={day} value={day}>{day}</Option>
                     ))}
                 </Select>
                 <Select defaultValue="default" onChange={value => { setSortOrder(value); filterIncidents(); }} className="sort-select">
-                    <Option value="default">Default Order</Option>
-                    <Option value="asc">Ascending Order</Option>
-                    <Option value="desc">Descending Order</Option>
+                    <Option value="default">{t("incidentAnalysis-view.order.default")}</Option>
+                    <Option value="asc">{t("incidentAnalysis-view.order.asc")}</Option>
+                    <Option value="desc">{t("incidentAnalysis-view.order.desc")}</Option>
                 </Select>
                 {activeTab !== "4" && activeTab !== "5" && (
                         <Button onClick={() => setIsComparisonMode(!isComparisonMode)} className="comparison-button">
-                            {isComparisonMode ? "Disable Comparison Mode" : "Enable Comparison Mode"}
+                            {isComparisonMode ? t("incidentAnalysis-view.compare.disable") : t("incidentAnalysis-view.compare.enable")}
                         </Button>
                     )}
             </div>
@@ -545,7 +545,7 @@ const getAgePieChartData = () => {
             {isComparisonMode && (
                 <div className="comparison-filter-container">
                     <Select defaultValue="all" onChange={value => { setComparisonYear(value); filterComparisonIncidents(); }} className="year-select">
-                        <Option value="all">All Years</Option>
+                        <Option value="all">{t("incidentAnalysis-view.all-years")}</Option>
                         {[...Array(10).keys()].map(i => {
                             const year = new Date().getFullYear() - i;
                             return <Option key={year} value={year}>{year}</Option>;
@@ -555,7 +555,7 @@ const getAgePieChartData = () => {
             )}
 
             <Tabs defaultActiveKey="1" onChange={key => setActiveTab(key)}>
-                <TabPane tab="Distribución por Instalación" key="1">
+                <TabPane tab={t("incidentAnalysis-view.distribution-title")} key="1">
                     <div className="chart-container">
                         <BarChart width={Math.max(1200, facilities.length * 50)} height={650} data={getSiteChartData()}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -579,22 +579,22 @@ const getAgePieChartData = () => {
                     </div>
                 </TabPane>
 
-                <TabPane tab="Frecuencia por Tipo" key="2">
+                <TabPane tab={t("incidentAnalysis-view.frequency-title")} key="2">
                     <div className="chart-container">
                         <BarChart width={Math.max(1200, incidentTypes.length * 50)} height={650} data={getTypeChartData()}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="type" angle={-45} textAnchor="end" interval={0} height={250} />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="count" fill="#82ca9d" name="Incident Count" />
+                            <Bar dataKey="count" fill="#82ca9d" name={t("incidentAnalysis-view.incident-count")} />
                             {isComparisonMode && (
-                                <Bar dataKey="count_comparison" fill="#8884d8" name="Comparison Count" />
+                                <Bar dataKey="count_comparison" fill="#8884d8" name={t("incidentAnalysis-view.comparison-count")} />
                             )}
                         </BarChart>
                     </div>
                 </TabPane>
 
-                <TabPane tab="Tendencias Temporales" key="3">
+                <TabPane tab={t("incidentAnalysis-view.temporal-title")} key="3">
                     <div className="chart-container" style={{ overflowX: "auto", textAlign: "center" }}>
                         <div className="zoom-controls" style={{ marginBottom: 10 }}>
                             <ZoomInOutlined onClick={handleZoomIn} style={{ fontSize: 20, cursor: "pointer" }} />
@@ -608,15 +608,15 @@ const getAgePieChartData = () => {
                             margin={{ top: 20, right: 30, left: 40, bottom: 70 }}
                             onClick={handleLineChartClick}
                         >
-                            <XAxis dataKey="key" label={{ value: "Tiempo", position: "insideBottom", offset: -10 }} />
+                            <XAxis dataKey="key" label={{ value: t("incidentAnalysis-view.time"), position: "insideBottom", offset: -10 }} />
                              <YAxis
-                                                            label={{ value: "Cantidad", angle: -90, position: "insideLeft" }}
+                                                            label={{ value: t("incidentAnalysis-view.quantity"), angle: -90, position: "insideLeft" }}
                                                             domain={[0, "dataMax + 10"]}
                                                         />
                             <Tooltip />
 
                             <Legend formatter={(value) =>
-                                                            value === "count"
+                                                            value === t("incidentAnalysis-view.count")
                                                                 ? `${selectedDay}-${selectedMonth}-${selectedYear}`
                                                                 : `${selectedDay}-${selectedMonth}-${comparisonYear}`
                                                         } />
@@ -631,7 +631,7 @@ const getAgePieChartData = () => {
 
 
 
-                <TabPane tab="Mapa de calor" key="4">
+                <TabPane tab={t("incidentAnalysis-view.heat-map-title")} key="4">
                     <div className="chart-container">
                         <MapContainer center={[41.066797, 1.070257]} zoom={13} style={{ height: "600px", width: "100%" }}>
                             <TileLayer
@@ -646,7 +646,7 @@ const getAgePieChartData = () => {
                         {/* Botón flotante para seleccionar el tipo de incidente */}
                         <div style={{ position: "absolute", top: "10px", right: "10px", background: "#007BFF", padding: "10px", borderRadius: "5px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", zIndex: 1000 }}>
                             <Select defaultValue="all" style={{ width: 200 }} onChange={setHeatmapSelectedIncidentType}>
-                                <Option value="all">Todos los incidentes</Option>
+                                <Option value="all">{t("incidentAnalysis-view.all-incidents")}</Option>
                                 {incidentTypes.map(type => (
                                     <Option key={type.type} value={type.type}>{type.type}</Option>
                                 ))}
@@ -657,7 +657,7 @@ const getAgePieChartData = () => {
 
 
 
-                <TabPane tab="Distribución por Tipo/Edad" key="5">
+                <TabPane tab={t("incidentAnalysis-view.distribution-age")} key="5">
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height={400}>
                             <PieChart>
@@ -685,7 +685,7 @@ const getAgePieChartData = () => {
                     {/* Gráfico de edades al hacer clic en una porción */}
                     {selectedIncidentForAge && (
                         <div style={{ marginTop: "-200px" }}> {/* Ajusté el margen superior para mover el gráfico hacia arriba */}
-                            <h3>Distribución de edades para "{selectedIncidentForAge}"</h3>
+                            <h3>{t("incidentAnalysis-view.age-dist")} "{selectedIncidentForAge}"</h3>
                             <ResponsiveContainer width="100%" height={400}>
                                 <PieChart>
                                     <Pie
@@ -717,7 +717,7 @@ const getAgePieChartData = () => {
             </Tabs>
             {/* Modal que se abre cuando se hace clic en una hora */}
                         <Modal
-                            title={`Incidentes a las ${selectedHourIncidents[0] && new Date(selectedHourIncidents[0].date).getHours()}:00`}
+                            title={`${t("incidentAnalysis-view.incidents-time")} ${selectedHourIncidents[0] && new Date(selectedHourIncidents[0].date).getHours()}:00`}
                             visible={isModalVisible}
                             onCancel={handleCancel}
                             footer={null}

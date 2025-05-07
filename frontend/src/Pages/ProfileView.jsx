@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaSave, FaTimes, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useTranslation } from 'react-i18next';
 import "./ProfileView.css";
 
 function ProfileView() {
@@ -7,13 +8,15 @@ function ProfileView() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   ////
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
-    const [error, setError] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+  const [error, setError] = useState("");
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
@@ -102,7 +105,7 @@ function ProfileView() {
       const { name, email, role, birthdate, phone_number, hourlyRate } = formData;
 
       if (!name || !email || !role || !birthdate || !phone_number || hourlyRate === "") {
-        alert("Todos los campos son obligatorios.");
+        alert(t("profile-view.fields-required"));
         return;
       }
 
@@ -147,7 +150,7 @@ function ProfileView() {
 
     const handleChangePassword = async () => {
         if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            setError("Las contraseñas no coinciden");
+            setError(t("profile-view.password-no-match"));
             return;
         }
 
@@ -170,11 +173,11 @@ function ProfileView() {
                 throw new Error(errorData.message);  // Lanzamos el error con el mensaje recibido
             }
 
-            alert("Contraseña actualizada con éxito");
+            alert(t("profile-view.password-update-ok"));
             setShowPasswordModal(false);
             setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
         } catch (error) {
-            console.error("Error al cambiar contraseña:", error);
+            console.error(t("profile-view.password-update-error"), error);
             setError(error.message);  // Aquí guardamos el mensaje de error para mostrarlo en el UI
         }
     };
@@ -186,13 +189,13 @@ function ProfileView() {
     };
 
 
-  if (!user) return <div className="loading">Cargando...</div>;
+  if (!user) return <div className="loading">{t("profile-view.loading")}</div>;
 
   return (
 
     <div>
             <header className="header">
-              <h4>Profile User</h4>
+              <h4>{t("profile-view.title")}</h4>
             </header>
     <div className="profile-containerP">
       <div className="profile-contentP">
@@ -207,7 +210,7 @@ function ProfileView() {
               />
               {formData.image && (
                 <button className="deleteProfile-image-btn" onClick={handleDeleteImage}>
-                  Eliminar Imagen
+                  {t("profile-view.delete-image")}
                 </button>
               )}
             </>
@@ -228,11 +231,11 @@ function ProfileView() {
           ) : (
             <>
               <h3>{user.name}</h3>
-              <p><strong>DNI:</strong> {user.id}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Rol:</strong> {user.role}</p>
-              <p><strong>Fecha de Nacimiento:</strong> {user.birthdate}</p>
-              <p><strong>Teléfono:</strong> {user.phone_number}</p>
+              <p><strong>{t("profile-view.dni")}</strong> {user.id}</p>
+              <p><strong>{t("profile-view.email")}</strong> {user.email}</p>
+              <p><strong>{t("profile-view.role")}</strong> {user.role}</p>
+              <p><strong>{t("profile-view.birthdate")}</strong> {user.birthdate}</p>
+              <p><strong>{t("profile-view.number")}</strong> {user.phone_number}</p>
             </>
           )}
         </div>
@@ -240,13 +243,13 @@ function ProfileView() {
         <div className="profile-actionsP">
           {isEditing ? (
             <div className="edit-actionsP">
-                <button className="saveProfile-btn" onClick={handleSave}><FaSave /> Guardar</button>
-                <button className="cancelProfile-btn" onClick={handleCancelEdit}><FaTimes /> Cancelar</button>
+                <button className="saveProfile-btn" onClick={handleSave}><FaSave /> {t("profile-view.save")}</button>
+                <button className="cancelProfile-btn" onClick={handleCancelEdit}><FaTimes /> {t("profile-view.cancel")}</button>
             </div>
           ) : (
             <>
-            <button className="editProfile-btn" onClick={() => setIsEditing(true)}><FaEdit /> Editar</button>
-            <button className="changePassword-btn" onClick={() => setShowPasswordModal(true)}><FaKey /> Cambiar Contraseña</button>
+            <button className="editProfile-btn" onClick={() => setIsEditing(true)}><FaEdit /> {t("profile-view.edit")}</button>
+            <button className="changePassword-btn" onClick={() => setShowPasswordModal(true)}><FaKey /> {t("profile-view.change-password")}</button>
             </>
           )}
         </div>
@@ -256,15 +259,15 @@ function ProfileView() {
      {showPasswordModal && (
              <div className="password-modalP">
                <div className="modal-contentProfile">
-                 <h3>Cambiar Contraseña</h3>
+                 <h3>{t("profile-view.change-password")}</h3>
                  {error && <p className="error-textP">{error}</p>}
                  <div className="input-groupP">
-                   <label htmlFor="currentPassword">Contraseña actual</label>
+                   <label htmlFor="currentPassword">{t("profile-view.current-password")}</label>
                    <div className="password-input-wrapper">
                      <input
                        type={showCurrentPassword ? "text" : "password"}
                        name="currentPassword"
-                       placeholder="Contraseña actual"
+                       placeholder={t("profile-view.current-password")}
                        value={passwordData.currentPassword}
                        onChange={handlePasswordChange}
                      />
@@ -278,12 +281,12 @@ function ProfileView() {
                    </div>
                  </div>
                  <div className="input-groupP">
-                   <label htmlFor="newPassword">Nueva contraseña</label>
+                   <label htmlFor="newPassword">{t("profile-view.new-password")}</label>
                    <div className="password-input-wrapper">
                      <input
                        type={showNewPassword ? "text" : "password"}
                        name="newPassword"
-                       placeholder="Nueva contraseña"
+                       placeholder={t("profile-view.new-password")}
                        value={passwordData.newPassword}
                        onChange={handlePasswordChange}
                      />
@@ -297,12 +300,12 @@ function ProfileView() {
                    </div>
                  </div>
                  <div className="input-groupP">
-                   <label htmlFor="confirmNewPassword">Confirmar nueva contraseña</label>
+                   <label htmlFor="confirmNewPassword">{t("profile-view.confirm-password")}</label>
                    <div className="password-input-wrapper">
                      <input
                        type={showConfirmNewPassword ? "text" : "password"}
                        name="confirmNewPassword"
-                       placeholder="Confirmar nueva contraseña"
+                       placeholder={t("profile-view.confirm-password")}
                        value={passwordData.confirmNewPassword}
                        onChange={handlePasswordChange}
                      />
@@ -317,10 +320,10 @@ function ProfileView() {
                  </div>
                  <div className="modal-buttonsP">
                    <button className="saveProfile-btn" onClick={handleChangePassword}>
-                     <FaSave /> Guardar
+                     <FaSave /> {t("profile-view.save")}
                    </button>
                    <button className="cancelProfile-btn" onClick={handleCancelPasswordModal}>
-                     <FaTimes /> Cancelar
+                     <FaTimes /> {t("profile-view.cancel")}
                    </button>
                  </div>
                </div>

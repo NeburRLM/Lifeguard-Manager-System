@@ -438,8 +438,56 @@
     "reported-by": "Reportado por",
     "phone": "Teléfono:",
     "role": "Rol:"
+  },
+
+  "incidentAnalysis-view": {
+    "title": "Análisis de Incidentes",
+    "all-years": "Todos los Años",
+    "all-months": "Todos los Meses",
+    "all-days": "Todos los Días",
+    "order": {
+      "default": "Orden por Defecto",
+      "asc": "Orden Ascendente",
+      "desc": "Orden Descendente"
+    },
+    "compare": {
+      "disable": "Desactivar Modo Comparación",
+      "enable": "Activar Modo Comparación"
+    },
+    "distribution-title": "Distribución por Instalación",
+    "frequency-title": "Frecuencia por Tipo",
+    "incident-count": "Cantidad de Incidentes",
+    "comparison-count": "Cantidad Comparativa",
+    "temporal-title": "Tendencias Temporales",
+    "time": "Tiempo",
+    "quantity": "Cantidad",
+    "count": "Recuento",
+    "heat-map-title": "Mapa de Calor",
+    "all-incidents": "Todos los incidentes",
+    "distribution-age": "Distribución por Tipo/Edad",
+    "age-dist": "Distribución por edad de",
+    "incidents-time": "Incidentes a las"
+  },
+
+  "profile-view": {
+    "fields-required": "Todos los campos son obligatorios.",
+    "password-no-match": "Las contraseñas no coinciden",
+    "password-update-ok": "Contraseña actualizada correctamente",
+    "password-update-error": "Error al cambiar la contraseña",
+    "loading": "Cargando...",
+    "title": "Perfil de Usuario",
+    "delete-image": "Eliminar Imagen",
+    "dni": "DNI:",
+    "email": "Correo electrónico:",
+    "role": "Rol:",
+    "birthdate": "Fecha de nacimiento",
+    "number": "Número de teléfono:",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "change-password": "Cambiar Contraseña",
+    "current-password": "Contraseña actual",
+    "new-password": "Nueva contraseña",
+    "confirm-password": "Confirmar nueva contraseña"
   }
-
-
-
 }

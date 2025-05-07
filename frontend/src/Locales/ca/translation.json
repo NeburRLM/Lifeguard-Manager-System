@@ -438,10 +438,56 @@
     "reported-by": "Reportat per",
     "phone": "Telèfon:",
     "role": "Rol:"
+  },
+
+  "incidentAnalysis-view": {
+    "title": "Anàlisi d'Incidents",
+    "all-years": "Tots els Anys",
+    "all-months": "Tots els Mesos",
+    "all-days": "Tots els Dies",
+    "order": {
+      "default": "Ordre per Defecte",
+      "asc": "Ordre Ascendent",
+      "desc": "Ordre Descendent"
+    },
+    "compare": {
+      "disable": "Desactiva Mode Comparació",
+      "enable": "Activa Mode Comparació"
+    },
+    "distribution-title": "Distribució per Instal·lació",
+    "frequency-title": "Freqüència per Tipus",
+    "incident-count": "Nombre d'Incidents",
+    "comparison-count": "Nombre Comparatiu",
+    "temporal-title": "Tendències Temporals",
+    "time": "Temps",
+    "quantity": "Quantitat",
+    "count": "Recompte",
+    "heat-map-title": "Mapa de Calor",
+    "all-incidents": "Tots els incidents",
+    "distribution-age": "Distribució per Tipus/Edat",
+    "age-dist": "Distribució per edat de",
+    "incidents-time": "Incidents a les"
+  },
+
+  "profile-view": {
+    "fields-required": "Tots els camps són obligatoris.",
+    "password-no-match": "Les contrasenyes no coincideixen",
+    "password-update-ok": "Contrasenya actualitzada correctament",
+    "password-update-error": "Error en canviar la contrasenya",
+    "loading": "Carregant...",
+    "title": "Perfil d'Usuari",
+    "delete-image": "Eliminar Imatge",
+    "dni": "DNI:",
+    "email": "Correu electrònic:",
+    "role": "Rol:",
+    "birthdate": "Data de naixement",
+    "number": "Número de telèfon:",
+    "save": "Desar",
+    "cancel": "Cancel·lar",
+    "edit": "Editar",
+    "change-password": "Canviar Contrasenya",
+    "current-password": "Contrasenya actual",
+    "new-password": "Nova contrasenya",
+    "confirm-password": "Confirmar nova contrasenya"
   }
-
-
-
-
-
 }

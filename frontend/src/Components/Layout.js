@@ -56,7 +56,7 @@ function Layout() {
                         <li><Link to="/payrolls">{t('layout.Manage Payrolls')}</Link></li>
                         <li><Link to="/incidents">{t('layout.Manage Incidents')}</Link></li>
                         <li><Link to="/profile">{t('layout.Profile')}</Link></li>
-            <li><button className="logout-btn" onClick={signOut}><FaSignOutAlt /> Sign Out</button></li>
+            <li><button className="logout-btn" onClick={signOut}><FaSignOutAlt /> {t('layout.Sign Out')}</button></li>
           </ul>
         </nav>
         <div className="language-selectorLayout">
