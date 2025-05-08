@@ -1,0 +1,11 @@
+{
+  "select-language": "Select your language",
+  "login": {
+    "welcome": "Welcome!",
+    "subtitle": "Please login to your account",
+    "dni": "DNI",
+    "password": "Password",
+    "button": "Login",
+    "forgot": "Forgot Password?"
+  }
+}

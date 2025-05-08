@@ -1,0 +1,11 @@
+{
+  "select-language": "Seleccioni el teu idioma",
+  "login": {
+    "welcome": "Benvingut!",
+    "subtitle": "Si us plau, accedeix al teu compte",
+    "dni": "DNI",
+    "password": "Password",
+    "button": "Login",
+    "forgot": "Has oblidat la contrasenya?"
+  }
+}

@@ -521,14 +521,15 @@
   },
 
   "resetPassword": {
-    "title": "Reset Password",
-    "loading": "Loading...",
-    "newPasswordPlaceholder": "New password",
-    "confirmPasswordPlaceholder": "Confirm password",
-    "changePasswordButton": "Change Password",
-    "passwordsDoNotMatch": "Passwords do not match.",
-    "noToken": "Token not provided.",
-    "passwordUpdated": "Password successfully updated.",
-    "serverError": "Error connecting to the server."
+    "title": "Restablecer Contraseña",
+    "loading": "Cargando...",
+    "newPasswordPlaceholder": "Nueva contraseña",
+    "confirmPasswordPlaceholder": "Confirmar contraseña",
+    "changePasswordButton": "Cambiar contraseña",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+    "noToken": "Falta el token de restablecimiento de contraseña",
+    "successMessage": "Tu contraseña ha sido actualizada con éxito.",
+    "serverError": "Error al conectar con el servidor.",
+    "errorMessage": "Hubo un error al actualizar tu contraseña."
   }
 }

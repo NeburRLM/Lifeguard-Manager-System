@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ImageBackground, Modal, Alert,
+  View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ImageBackground, Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -19,7 +19,9 @@ const Login = () => {
   const [recoveryDNI, setRecoveryDNI] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [modalError, setModalError] = useState('');
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const { t, i18n } = useTranslation();
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
   const navigation = useNavigation();
 
@@ -35,14 +37,10 @@ const Login = () => {
 
   const handleSubmit = async () => {
     setError('');
-    console.log('API_URL:', API_URL);
-
     try {
       const response = await fetch(`${API_URL}/login_app`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, password }),
       });
 
@@ -80,9 +78,7 @@ const Login = () => {
 
       const forgotResponse = await fetch(`${API_URL}/employee/forgot-passwordApp`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email }),
       });
 
@@ -90,10 +86,7 @@ const Login = () => {
 
       if (forgotResponse.ok) {
         setModalMessage('Se ha enviado un correo con instrucciones para restablecer tu contraseña.');
-            // Cierra el modal automáticamente después de 1.5 segundos
-            setTimeout(() => {
-            closeModal();
-        }, 1500);
+        setTimeout(() => closeModal(), 1500);
       } else {
         setModalError(forgotData.message || 'No se pudo enviar el correo de recuperación.');
       }
@@ -110,43 +103,38 @@ const Login = () => {
   };
 
   const renderPasswordInput = () => (
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          textContentType="password"
-          autoCapitalize="none"
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
-        </TouchableOpacity>
-      </View>
-    );
+    <View style={styles.passwordContainer}>
+      <TextInput
+        style={styles.passwordInput}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry={!showPassword}
+        textContentType="password"
+        autoCapitalize="none"
+      />
+      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+        <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <ImageBackground source={require('../assets/1.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
-        {/* 🔤 Selector de idioma */}
-              <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                <Text style={{ marginBottom: 5 }}>{t('select-language')}</Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <TouchableOpacity onPress={() => i18n.changeLanguage('es')}>
-                    <Text>🇪🇸</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => i18n.changeLanguage('en')}>
-                    <Text>🇬🇧</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => i18n.changeLanguage('ca')}>
-                    <Text>🇨🇦</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
         <View style={styles.card}>
-          <Text style={styles.title}>Welcome Back</Text>
+          <View style={styles.languageButtonWrapper}>
+            <TouchableOpacity
+              style={styles.languageButton}
+              onPress={() => setLanguageModalVisible(true)}
+            >
+              <Feather name="globe" size={20} color="#333" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.title}>{t('login.welcome')}</Text>
           <Text style={styles.subtitle}>Please login to your account</Text>
           {error && <Text style={styles.error}>{error}</Text>}
+
           <View style={styles.formGroup}>
             <Text style={styles.label}>DNI</Text>
             <TextInput
@@ -158,10 +146,11 @@ const Login = () => {
               textContentType="username"
             />
           </View>
+
           <View style={styles.formGroup}>
-                    <Text style={styles.label}>Password</Text>
-                    {renderPasswordInput()}
-                  </View>
+            <Text style={styles.label}>Password</Text>
+            {renderPasswordInput()}
+          </View>
 
           <Button title="Login" onPress={handleSubmit} />
           <View style={styles.footer}>
@@ -172,7 +161,41 @@ const Login = () => {
         </View>
       </View>
 
-      {/* Modal para recuperación por DNI */}
+      {/* 🔤 Modal de idiomas */}
+      <Modal
+        animationType="fade"
+        transparent
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.languageModalContainer}>
+            <Text style={styles.modalTitle}>{t('login.select-language')}</Text>
+            {[
+              { code: 'es', label: 'Español' },
+              { code: 'en', label: 'English' },
+              { code: 'ca', label: 'Català' },
+            ].map(lang => (
+              <TouchableOpacity
+                key={lang.code}
+                onPress={() => {
+                  i18n.changeLanguage(lang.code);
+                  setSelectedLanguage(lang.code);
+                  setLanguageModalVisible(false);
+                }}
+                style={styles.languageOption}
+              >
+                <Text style={{ fontSize: 16 }}>{lang.label}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setLanguageModalVisible(false)} style={{ marginTop: 10 }}>
+              <Text style={styles.link}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 🔐 Modal de recuperación */}
       <Modal
         visible={showModal}
         animationType="slide"
@@ -189,8 +212,8 @@ const Login = () => {
               onChangeText={setRecoveryDNI}
               autoCapitalize="none"
             />
-            {modalError ? <Text style={styles.error}>{modalError}</Text> : null}
-            {modalMessage ? <Text style={{ color: 'green', marginBottom: 10 }}>{modalMessage}</Text> : null}
+            {modalError && <Text style={styles.error}>{modalError}</Text>}
+            {modalMessage && <Text style={{ color: 'green', marginBottom: 10 }}>{modalMessage}</Text>}
 
             <Button title="Enviar correo" onPress={handleForgotPassword} />
             <TouchableOpacity onPress={closeModal} style={{ marginTop: 15 }}>
@@ -221,6 +244,18 @@ const styles = StyleSheet.create({
     borderRadius: wp('3%'),
     width: '100%',
     maxWidth: wp('90%'),
+    position: 'relative',
+  },
+  languageButtonWrapper: {
+    alignItems: 'flex-end',
+    marginBottom: 10,
+  },
+  languageButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f2f2f2',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     marginBottom: hp('2%'),
@@ -255,6 +290,20 @@ const styles = StyleSheet.create({
     borderRadius: wp('1%'),
     marginBottom: hp('1%'),
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: wp('1%'),
+    padding: wp('2%'),
+    marginBottom: hp('1%'),
+    width: '100%',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 0,
+  },
   footer: {
     marginTop: hp('2%'),
     alignItems: 'center',
@@ -263,20 +312,6 @@ const styles = StyleSheet.create({
     color: '#007bff',
     textDecorationLine: 'underline',
   },
-  passwordContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: wp('1%'),
-      padding: wp('2%'), // Asegura el mismo padding que el input
-      marginBottom: hp('1%'),
-      width: '100%', // Asegura el mismo ancho que el input
-    },
-    passwordInput: {
-      flex: 1, // Ocupa todo el espacio disponible dentro del contenedor
-      padding: 0, // Evita duplicación de padding (ya se aplica en passwordContainer)
-    },
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
@@ -296,6 +331,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: hp('2%'),
     textAlign: 'center',
+  },
+  languageModalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  languageOption: {
+    paddingVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
 });
 

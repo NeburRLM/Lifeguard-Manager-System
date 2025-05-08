@@ -27,6 +27,7 @@ const ResetPassword = () => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setMessage(t('resetPassword.passwordsDoNotMatch'));
+      setMessageType('error');
       return;
     }
 
@@ -40,15 +41,19 @@ const ResetPassword = () => {
       });
 
       const data = await response.json();
-      setMessage(data.message);
-      setMessageType(data.message === 'Contraseña actualizada con éxito.' ? 'success' : 'error');
+      const successMessage = t('resetPassword.successMessage'); // Mensaje traducido
+      const errorMessage = t('resetPassword.errorMessage'); // Mensaje traducido en caso de error
 
       if (data.message === 'Contraseña actualizada con éxito.') {
+        setMessage(successMessage); // Usa el mensaje traducido
+        setMessageType('success');
         setTimeout(() => {
           navigate('/'); // Redirige a la página principal
           setIsLoading(false); // Desactiva el indicador de carga
         }, 2000); // Espera 2 segundos antes de redirigir
       } else {
+        setMessage(errorMessage); // Usa el mensaje traducido
+        setMessageType('error');
         setIsLoading(false); // Desactiva el indicador de carga en caso de error
       }
     } catch (error) {

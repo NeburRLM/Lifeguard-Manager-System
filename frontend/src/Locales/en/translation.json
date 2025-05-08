@@ -525,11 +525,12 @@
     "loading": "Loading...",
     "newPasswordPlaceholder": "New password",
     "confirmPasswordPlaceholder": "Confirm password",
-    "changePasswordButton": "Change Password",
+    "changePasswordButton": "Change password",
     "passwordsDoNotMatch": "Passwords do not match.",
-    "noToken": "Token not provided.",
-    "passwordUpdated": "Password successfully updated.",
-    "serverError": "Error connecting to the server."
+    "noToken": "Reset password token is missing",
+    "successMessage": "Your password has been successfully updated.",
+    "serverError": "Error connecting to the server.",
+    "errorMessage": "There was an error updating your password."
   }
 }
 

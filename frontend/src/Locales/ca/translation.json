@@ -521,14 +521,15 @@
   },
 
   "resetPassword": {
-    "title": "Restablir la contrasenya",
+    "title": "Restablir Contrasenya",
     "loading": "Carregant...",
     "newPasswordPlaceholder": "Nova contrasenya",
     "confirmPasswordPlaceholder": "Confirma la contrasenya",
     "changePasswordButton": "Canviar contrasenya",
     "passwordsDoNotMatch": "Les contrasenyes no coincideixen.",
-    "noToken": "No s'ha proporcionat el token.",
-    "passwordUpdated": "Contrasenya actualitzada amb èxit.",
-    "serverError": "Error en connectar amb el servidor."
+    "noToken": "Falta el token de restabliment de contrasenya",
+    "successMessage": "La teva contrasenya s'ha actualitzat amb èxit.",
+    "serverError": "Error al connectar amb el servidor.",
+    "errorMessage": "Hi ha hagut un error en actualitzar la teva contrasenya."
   }
 }
