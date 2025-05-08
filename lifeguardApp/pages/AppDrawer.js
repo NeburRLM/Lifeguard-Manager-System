@@ -8,6 +8,7 @@ import Nomina from './Nomina';
 import Incidencia from './Incidencia'
 import ScreenWrapper from './ScreenWrapper'; // 🔥 Esto envuelve cada pantalla con el Header fijo
 import CustomDrawerContent from './CustomDrawerContent';
+import { useTranslation } from 'react-i18next';
 
 const Drawer = createDrawerNavigator();
 
@@ -19,6 +20,8 @@ const NominaScreen = () => <ScreenWrapper><Nomina /></ScreenWrapper>;
 const ProfileScreen = () => <ScreenWrapper><Profile /></ScreenWrapper>;
 
 export default function AppDrawer() {
+  const { t } = useTranslation();
+
   return (
     <Drawer.Navigator
       drawerContent={props => <CustomDrawerContent {...props} />}
@@ -27,11 +30,11 @@ export default function AppDrawer() {
         drawerType: 'slide',
       }}
     >
-      <Drawer.Screen name="Inicio" component={DashboardScreen} />
-      <Drawer.Screen name="Cuadrante" component={CuadranteScreen} />
-      <Drawer.Screen name="Fichar" component={FicharScreen} />
-      <Drawer.Screen name="Incidencia" component={IncidenciaScreen} />
-      <Drawer.Screen name="Nómina" component={NominaScreen} />
+      <Drawer.Screen name="Inicio" component={DashboardScreen} options={{ title: t('drawer.home') }} />
+      <Drawer.Screen name="Cuadrante" component={CuadranteScreen} options={{ title: t('drawer.schedule') }} />
+      <Drawer.Screen name="Fichar" component={FicharScreen} options={{ title: t('drawer.check-in') }} />
+      <Drawer.Screen name="Incidencia" component={IncidenciaScreen} options={{ title: t('drawer.incident') }} />
+      <Drawer.Screen name="Nómina" component={NominaScreen} options={{ title: t('drawer.payroll') }} />
       <Drawer.Screen
         name="Profile"
         component={ProfileScreen}

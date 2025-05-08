@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ImageBackground, Modal,
+  View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ImageBackground, Modal, Image, TouchableWithoutFeedback,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -51,10 +51,20 @@ const Login = () => {
         await AsyncStorage.setItem('userId', id);
         navigation.replace('MainApp');
       } else {
-        setError(data.message || 'Error al iniciar sesión.');
+        if (data.message === "Empleado no encontrado.") {
+            setError(t("login.error-employee"));
+        } else if (data.message === "Error, la contraseña no es correcta.") {
+            setError(t("login.error-password"));
+        } else if (data.message === "No tienes acceso al sistema.") {
+            setError(t("login.error-access"));
+        } else if (data.message === "Id y contraseña son requeridos.") {
+            setError(t("login.error-required"));
+        } else {
+            setError(t("login.access-error"));
+        }
       }
     } catch (error) {
-      setError('Error de conexión con el servidor.');
+      setError(t("login.server-error"));
     }
   };
 
@@ -63,7 +73,7 @@ const Login = () => {
     setModalError('');
 
     if (!recoveryDNI.trim()) {
-      setModalError('Por favor, ingresa un DNI.');
+      setModalError(t("login.recoveryDNI"));
       return;
     }
 
@@ -72,7 +82,7 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok || !data.email) {
-        setModalError('No se pudo encontrar el empleado o su correo.');
+        setModalError(t("login.find-error"));
         return;
       }
 
@@ -85,13 +95,13 @@ const Login = () => {
       const forgotData = await forgotResponse.json();
 
       if (forgotResponse.ok) {
-        setModalMessage('Se ha enviado un correo con instrucciones para restablecer tu contraseña.');
+        setModalMessage(t("login.email-send"));
         setTimeout(() => closeModal(), 1500);
       } else {
-        setModalError(forgotData.message || 'No se pudo enviar el correo de recuperación.');
+        setModalError(forgotData.message || t("login.error-email-send"));
       }
     } catch (error) {
-      setModalError('Error de conexión con el servidor.');
+      setModalError(t("login.server-error"));
     }
   };
 
@@ -118,25 +128,45 @@ const Login = () => {
     </View>
   );
 
+  const languages = [
+      { code: 'es', label: 'Español', icon: require('../assets/flags/es.png') },
+      { code: 'en', label: 'English', icon: require('../assets/flags/gb.png') },
+      { code: 'ca', label: 'Català', icon: require('../assets/flags/ca.png') },
+    ];
+
+  const handleLanguageChange = async (langCode) => {
+    i18n.changeLanguage(langCode); // Cambia el idioma en i18n
+    setSelectedLanguage(langCode); // Actualiza el estado local del idioma
+    await AsyncStorage.setItem('selectedLanguage', langCode); // Guarda el idioma seleccionado
+  };
+
   return (
     <ImageBackground source={require('../assets/1.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
         <View style={styles.card}>
-          <View style={styles.languageButtonWrapper}>
-            <TouchableOpacity
-              style={styles.languageButton}
-              onPress={() => setLanguageModalVisible(true)}
-            >
-              <Feather name="globe" size={20} color="#333" />
-            </TouchableOpacity>
-          </View>
+          {/* Selector de idioma */}
+                    <View style={styles.languageButtonWrapper}>
+                      <TouchableOpacity
+                        style={styles.languageButton}
+                        onPress={() => setLanguageModalVisible(true)}
+                      >
+                        <Image
+                          source={languages.find(lang => lang.code === selectedLanguage)?.icon}
+                          style={styles.flagIcon}
+                        />
+                        <Text style={styles.languageText}>
+                          {languages.find(lang => lang.code === selectedLanguage)?.label}
+                        </Text>
+                        <Feather name="chevron-down" size={16} color="#333" />
+                      </TouchableOpacity>
+                    </View>
 
           <Text style={styles.title}>{t('login.welcome')}</Text>
-          <Text style={styles.subtitle}>Please login to your account</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
           {error && <Text style={styles.error}>{error}</Text>}
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>DNI</Text>
+            <Text style={styles.label}>{t('login.dni')}</Text>
             <TextInput
               style={styles.input}
               value={id}
@@ -148,52 +178,47 @@ const Login = () => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('login.password')}</Text>
             {renderPasswordInput()}
           </View>
 
           <Button title="Login" onPress={handleSubmit} />
           <View style={styles.footer}>
             <TouchableOpacity onPress={() => setShowModal(true)}>
-              <Text style={styles.link}>Forgot Password?</Text>
+              <Text style={styles.link}>{t('login.forgot')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
       {/* 🔤 Modal de idiomas */}
-      <Modal
-        animationType="fade"
-        transparent
-        visible={languageModalVisible}
-        onRequestClose={() => setLanguageModalVisible(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.languageModalContainer}>
-            <Text style={styles.modalTitle}>{t('login.select-language')}</Text>
-            {[
-              { code: 'es', label: 'Español' },
-              { code: 'en', label: 'English' },
-              { code: 'ca', label: 'Català' },
-            ].map(lang => (
-              <TouchableOpacity
-                key={lang.code}
-                onPress={() => {
-                  i18n.changeLanguage(lang.code);
-                  setSelectedLanguage(lang.code);
-                  setLanguageModalVisible(false);
-                }}
-                style={styles.languageOption}
-              >
-                <Text style={{ fontSize: 16 }}>{lang.label}</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity onPress={() => setLanguageModalVisible(false)} style={{ marginTop: 10 }}>
-              <Text style={styles.link}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+       <Modal
+              animationType="slide"
+              transparent
+              visible={languageModalVisible}
+              onRequestClose={() => setLanguageModalVisible(false)}
+            >
+              <TouchableWithoutFeedback onPress={() => setLanguageModalVisible(false)}>
+                <View style={styles.modalBackground}>
+                  <View style={styles.languageModalContainer}>
+                    <Text style={styles.modalTitle}>{t('login.select-language')}</Text>
+                    {languages.map(lang => (
+                      <TouchableOpacity
+                        key={lang.code}
+                        onPress={() => {
+                          handleLanguageChange(lang.code);
+                          setLanguageModalVisible(false);
+                        }}
+                        style={styles.languageOption}
+                      >
+                        <Image source={lang.icon} style={styles.flagIconSmall} />
+                        <Text style={styles.languageLabel}>{lang.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
 
       {/* 🔐 Modal de recuperación */}
       <Modal
@@ -204,10 +229,10 @@ const Login = () => {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Recuperar contraseña</Text>
+            <Text style={styles.modalTitle}>{t('login.recover-password')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Introduce tu DNI"
+              placeholder={t('login.input-dni')}
               value={recoveryDNI}
               onChangeText={setRecoveryDNI}
               autoCapitalize="none"
@@ -215,9 +240,9 @@ const Login = () => {
             {modalError && <Text style={styles.error}>{modalError}</Text>}
             {modalMessage && <Text style={{ color: 'green', marginBottom: 10 }}>{modalMessage}</Text>}
 
-            <Button title="Enviar correo" onPress={handleForgotPassword} />
+            <Button title={t('login.send-email')} onPress={handleForgotPassword} />
             <TouchableOpacity onPress={closeModal} style={{ marginTop: 15 }}>
-              <Text style={styles.link}>Cerrar</Text>
+              <Text style={styles.link}>{t('login.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -247,16 +272,25 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   languageButtonWrapper: {
-    alignItems: 'flex-end',
-    marginBottom: 10,
-  },
-  languageButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#f2f2f2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      alignItems: 'flex-end',
+      marginBottom: 10,
+    },
+    languageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#f2f2f2',
+      padding: 8,
+      borderRadius: 20,
+    },
+    flagIcon: {
+        width: 20,
+        height: 15,
+        marginRight: 8,
+      },
+      languageText: {
+        fontSize: 14,
+        color: '#333',
+      },
   title: {
     marginBottom: hp('2%'),
     fontSize: wp('6%'),
@@ -333,19 +367,34 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   languageModalContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  languageOption: {
-    paddingVertical: 10,
-    width: '100%',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      width: '80%',
+      alignItems: 'center',
+    },
+    languageOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+      width: '100%',
+    },
+    flagIconSmall: {
+      width: 20,
+      height: 15,
+      marginRight: 10,
+    },
+    languageLabel: {
+      fontSize: 16,
+      color: '#333',
+    },
+    modalTitle: {
+      fontSize: wp('5%'),
+      fontWeight: 'bold',
+      marginBottom: hp('2%'),
+    },
 });
 
 export default Login;

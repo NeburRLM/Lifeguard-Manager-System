@@ -1,8 +1,12 @@
 import React from "react";
 import styled from "styled-components/native";
+import { useTranslation } from "react-i18next";
 
 const CurrentForecast = ({ currentWeather }) => {
+  const { t } = useTranslation();
+
   console.log("TIEMPOO -> ", currentWeather);
+
   return (
     <CurrentView>
       <Timezone>{currentWeather.name}</Timezone>
@@ -27,29 +31,29 @@ const CurrentForecast = ({ currentWeather }) => {
       <SecondaryInfoContainer>
         <Row>
           <DetailsBox>
-            <Label>Feels</Label>
+            <Label>{t("forecast.feels")}</Label>
             <Details>{Math.round(currentWeather.main.feels_like)}°C</Details>
           </DetailsBox>
           <DetailsBox>
-            <Label>Low</Label>
+            <Label>{t("forecast.low")}</Label>
             <Details>{Math.round(currentWeather.main.temp_min)}°C</Details>
           </DetailsBox>
           <DetailsBox>
-            <Label>High</Label>
+            <Label>{t("forecast.high")}</Label>
             <Details>{Math.round(currentWeather.main.temp_max)}°C</Details>
           </DetailsBox>
         </Row>
         <Row>
           <DetailsBox>
-            <Label>Wind</Label>
+            <Label>{t("forecast.wind")}</Label>
             <Details>{currentWeather.wind.speed} m/s</Details>
           </DetailsBox>
           <DetailsBox>
-            <Label>Humidity</Label>
+            <Label>{t("forecast.humidity")}</Label>
             <Details>{currentWeather.main.humidity}%</Details>
           </DetailsBox>
           <DetailsBox>
-            <Label>Rain</Label>
+            <Label>{t("forecast.rain")}</Label>
             <Details>{currentWeather.daily ? currentWeather.daily[0].rain : "0"} MM</Details>
           </DetailsBox>
         </Row>

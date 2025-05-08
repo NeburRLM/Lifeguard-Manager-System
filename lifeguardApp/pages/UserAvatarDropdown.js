@@ -5,8 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 const UserAvatarDropdown = () => {
+  const { t } = useTranslation();
   const API_URL = Constants.expoConfig.extra.API_URL;
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -68,7 +70,7 @@ const UserAvatarDropdown = () => {
                   }}
                 >
                   <Ionicons name="person-circle-outline" size={20} color="black" />
-                  <Text style={styles.dropdownText}>Datos personales</Text>
+                  <Text style={styles.dropdownText}>{t('user-avatar.personal-dates')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -79,7 +81,7 @@ const UserAvatarDropdown = () => {
                   }}
                 >
                   <Ionicons name="log-out-outline" size={20} color="red" />
-                  <Text style={styles.dropdownText}>Cerrar sesión</Text>
+                  <Text style={styles.dropdownText}>{t('user-avatar.logout')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

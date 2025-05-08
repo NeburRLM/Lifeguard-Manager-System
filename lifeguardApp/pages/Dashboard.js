@@ -7,6 +7,7 @@ import bgImg from "../assets/4.png";
 import { useNavigation } from "@react-navigation/native"; // 👈 para navegar
 import moment from 'moment-timezone';
 import Constants from 'expo-constants';
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
   const API_URL = Constants.expoConfig.extra.API_URL;
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const [hasScheduleToday, setHasScheduleToday] = useState(true);
   const [currentDate, setCurrentDate] = useState('');
 
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation(); // 👈 hook para navegación
 
   useEffect(() => {
@@ -35,7 +37,7 @@ const Dashboard = () => {
           const todaySchedule = allSchedules.find(sch => sch.date === today);
           const todayD = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formattedDate = todayD.toLocaleDateString('es-ES', options);
+            const formattedDate = todayD.toLocaleDateString(i18n.language, options);
             setCurrentDate(formattedDate);
           if (todaySchedule && todaySchedule.facility) {
             setLat(todaySchedule.facility.latitude);
@@ -59,7 +61,7 @@ const Dashboard = () => {
       const signal = controller.signal;
 
       fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=es`,
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=cf3bf4d881f3fa46d34ed51b07a6e7f7&units=metric&lang=${i18n.language}`,
         { signal }
       )
         .then((res) => res.json())
@@ -70,33 +72,33 @@ const Dashboard = () => {
 
       return () => controller.abort();
     }
-  }, [lat, long]);
+  }, [lat, long, i18n.language]);
 
   return (
     <Container>
       <ImageBackground source={bgImg} style={{ width: "100%", height: "100%" }}>
-        <Greeting>Hola, {employeeName}</Greeting>
+        <Greeting>{t('dashboard.greeting', { name: employeeName })}</Greeting>
 
         <CurrentDate>{currentDate}</CurrentDate>
 
         {!hasScheduleToday ? (
-          <FreeDayMessage>🏖️ Hoy es tu día de fiesta, ¡disfrútalo al máximo! 🎉</FreeDayMessage>
+          <FreeDayMessage>{t('dashboard.freeDayMessage')}</FreeDayMessage>
         ) : weather.main ? (
           <CurrentForecast currentWeather={weather} timezone={weather.timezone} />
         ) : (
-          <NoWeather>No hay datos del clima disponibles</NoWeather>
+          <NoWeather>{t('dashboard.noWeather')}</NoWeather>
         )}
 
         {hasScheduleToday && (  // Aquí agregamos la condición
             <>
-              <MessageButtons>Directo a</MessageButtons>
+              <MessageButtons>{t('dashboard.directTo')}</MessageButtons>
               <ButtonsContainer>
                 <ActionButton onPress={() => navigation.navigate("Fichar")}>
-                  <ButtonText>📍 Fichar</ButtonText>
+                  <ButtonText>📍 {t('dashboard.checkIn')}</ButtonText>
                 </ActionButton>
 
                 <ActionButton onPress={() => navigation.navigate("Incidencia")}>
-                  <ButtonText>📝 Incidencia</ButtonText>
+                  <ButtonText>📝 {t('dashboard.reportIssue')}</ButtonText>
                 </ActionButton>
               </ButtonsContainer>
             </>

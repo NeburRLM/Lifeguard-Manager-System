@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react'
 import { NavigationContainer, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
 import './i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from 'i18next';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
-import AppDrawer from './pages/AppDrawer'; // 🔥 Este contiene Drawer + Header
+import AppDrawer from './pages/AppDrawer';
 import ScreenWrapper from './pages/ScreenWrapper';
 import ChangePassword from './pages/ChangePassword';
 import ResetPassword from './pages/ResetPassword';
@@ -23,6 +25,26 @@ const linking = {
 };
 
 export default function App() {
+  const [isLanguageLoaded, setIsLanguageLoaded] = useState(false);
+
+    useEffect(() => {
+      const loadLanguage = async () => {
+        try {
+          const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
+          if (savedLanguage) {
+            await i18n.changeLanguage(savedLanguage); // Configura el idioma guardado
+          }
+        } catch (error) {
+          console.error('Error loading selected language:', error);
+        } finally {
+          setIsLanguageLoaded(true); // Marcamos que el idioma está cargado
+        }
+      };
+
+      loadLanguage();
+    }, []);
+
+
   return (
      <NavigationContainer
        linking={linking}

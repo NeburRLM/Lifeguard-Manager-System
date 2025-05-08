@@ -7,6 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment-timezone';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 const getCurrentDate = () => {
   const today = new Date();
@@ -15,6 +16,7 @@ const getCurrentDate = () => {
 };
 
 const Incidencia = () => {
+    const { t } = useTranslation();
     const API_URL = Constants.expoConfig.extra.API_URL;
     const [loading, setLoading] = useState(true);
     const [employeeName, setEmployeeName] = useState('');

@@ -19,6 +19,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Notifications from 'expo-notifications';
 import moment from 'moment-timezone';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -65,7 +66,7 @@ const Fichar = () => {
   const [justificationImage, setJustificationImage] = useState(null);
   const [modalVisibleCheckout, setModalVisibleCheckout] = useState(false);
   const [checkOutNote, setCheckOutNote] = useState('');
-
+  const { t, i18n } = useTranslation();
 
   const getCurrentDate = () => moment().tz('Europe/Madrid').format('YYYY-MM-DD');
 
@@ -213,7 +214,7 @@ const Fichar = () => {
                setCountdown({
                           text: `${String(remaining.hours()).padStart(2, '0')}:${String(remaining.minutes()).padStart(2, '0')}:${String(remaining.seconds()).padStart(2, '0')}`,
                           color: '#FF9500',
-                          label: 'Tiempo restante para fichar',
+                          label: t('fichar.remainingTime'),
                         });
 
                setCanFichar(remaining.asMinutes() <= 10);
@@ -224,7 +225,7 @@ const Fichar = () => {
                         setCountdown({
                           text: `${String(late.hours()).padStart(2, '0')}:${String(late.minutes()).padStart(2, '0')}:${String(late.seconds()).padStart(2, '0')}`,
                           color: '#FF3B30',
-                          label: 'Llegas tarde',
+                          label: t('fichar.late'),
                         });
                         setCanFichar(true);
                         setCanNotificarAusencia(true);
@@ -279,7 +280,7 @@ useEffect(() => {
 
           if (response.ok) {
             await AsyncStorage.setItem(`missingMarked-${todayDate}`, 'true'); // Evitar duplicado
-            Alert.alert('Ausencia registrada', 'No has fichado a tiempo, tu asistencia está marcada como ausente.');
+            Alert.alert(t('fichar.absenceSuccess'), t('fichar.no-check-in'));
           } else {
             const errorText = await response.text();
             //console.error('Error al registrar asistencia:', errorText);
@@ -316,14 +317,14 @@ useEffect(() => {
 
   const handleConfirmFichar = async () => {
     if (!todaySchedule) {
-      Alert.alert('Error', 'No tienes un horario asignado para hoy.');
+      Alert.alert(t('fichar.missingSchedule'), t('fichar.missingScheduleMessage'));
       return;
     }
 
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'No se pudo obtener la ubicación.');
+        Alert.alert(t('fichar.ubi-denied'), t('fichar.ubi-denied2'));
         return;
       }
 
@@ -342,7 +343,7 @@ useEffect(() => {
       const distance = haversineDistance(location, facilityCoords);
 
       if (distance > 50) {
-        Alert.alert('Error de ubicación', 'No estás en la ubicación correcta donde deberías estar.');
+        Alert.alert(t('fichar.locationError'), t('fichar.locationErrorMessage'));
         return;
       }
 
@@ -378,7 +379,7 @@ useEffect(() => {
       });
 
       if (response.ok) {
-        Alert.alert('Éxito', 'Fichaje registrado correctamente.');
+        Alert.alert(t('fichar.checkInSuccess'), t('fichar.checkInSuccessMessage'));
         await AsyncStorage.setItem('checkInDate', getCurrentDate());
         setHasCheckedIn(true);
         setModalVisible(false);
@@ -390,7 +391,7 @@ useEffect(() => {
       }
     } catch (error) {
       console.error('Error al fichar:', error);
-      Alert.alert('Error', 'No se pudo obtener la ubicación o registrar el fichaje.');
+      Alert.alert(t('fichar.missingSchedule'), t('fichar.no-ubi-found'));
     }
   };
 
@@ -398,7 +399,7 @@ const handleConfirmCheckOut = async () => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso de ubicación denegado', 'No se puede obtener tu ubicación.');
+      Alert.alert(t('fichar.no-ubi-found'), t('fichar.no-ubi-found2'));
       return;
     }
 
@@ -422,20 +423,20 @@ const handleConfirmCheckOut = async () => {
     });
 
     if (response.ok) {
-      Alert.alert('Check-out realizado', 'Tu salida ha sido registrada correctamente.');
+      Alert.alert(t('fichar.checkOutSuccess'), t('fichar.checkOutSuccessMessage'));
       await AsyncStorage.setItem('checkOutDate', now.format('YYYY-MM-DD')); // Guardar la fecha actual
       setHasCheckedOut(true);
       setModalVisibleCheckout(false);
       setCheckOutNote('');
-      Alert.alert('Hasta mañana 👋', 'Nos vemos en tu próximo turno.');
+      Alert.alert(`${t('fichar.see-tomorrow1')} 👋`, t('fichar.see-tomorrow2'));
     } else {
       const errorText = await response.text();
       console.error('Respuesta del servidor:', errorText);
-      Alert.alert('Error', 'No se pudo registrar tu check-out.');
+      Alert.alert(t('fichar.missingSchedule'), t('fichar.checkout-error'));
     }
   } catch (error) {
     console.error('Error en check-out:', error);
-    Alert.alert('Error', 'Hubo un problema al realizar el check-out.');
+    Alert.alert(t('fichar.missingSchedule'), t('fichar.checkout-error2'));
   }
 };
 
@@ -443,7 +444,7 @@ const handleConfirmCheckOut = async () => {
 const handleSubmitAbsence = async () => {
   try {
     if (!absenceNote.trim()) {
-      Alert.alert('Nota requerida', 'Por favor, escribe una razón para tu ausencia.');
+      Alert.alert(t('fichar.absenceReason'), t('fichar.absenceReasonMessage'));
       return;
     }
 
@@ -473,7 +474,7 @@ const handleSubmitAbsence = async () => {
     });
 
     if (response.ok) {
-      Alert.alert('Ausencia registrada', 'Tu ausencia ha sido notificada correctamente.');
+      Alert.alert(t('fichar.absenceSuccess'), t('fichar.absenceSuccessMessage'));
       setAbsenceModalVisible(false);
       setButtonsVisible(false);
       setHasCheckedIn(false);
@@ -492,11 +493,11 @@ const handleSubmitAbsence = async () => {
     } else {
       const errorText = await response.text();
       console.error('❌ Error al registrar ausencia:', errorText);
-      Alert.alert('Error', 'No se pudo registrar la ausencia.');
+      Alert.alert(t('fichar.missingSchedule'), t('fichar.abs-error1'));
     }
   } catch (error) {
     console.error('❌ Error al notificar ausencia:', error);
-    Alert.alert('Error', 'Ocurrió un error al enviar tu ausencia.');
+    Alert.alert(t('fichar.missingSchedule'), t('fichar.abs-error2'));
   }
 };
 
@@ -541,8 +542,8 @@ const scheduleMissingCheckoutNotification = async (schedule) => {
     if (!alreadyNotified || alreadyNotified === 'false') {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "⏰ ¡Te olvidaste de fichar!",
-          body: "Por favor, no olvides hacer el check-out.",
+          title: t('fichar.notificationTitle'),
+          body: t('fichar.notificationBody'),
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
         },
@@ -566,7 +567,7 @@ useEffect(() => {
   const requestNotificationPermissions = async () => {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'No se podrán enviar notificaciones.');
+      Alert.alert(t('fichar.ubi-denied'), t('fichar.noti-denied'));
     }
   };
 
@@ -687,29 +688,29 @@ const pickDocument = async () => {
 
 return (
   <View style={styles.container}>
-    <Text style={styles.header}>Bienvenido, {employeeName}</Text>
+    <Text style={styles.header}>{t('fichar.welcome', { name: employeeName })}</Text>
 
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>📅 Horario para hoy ({getCurrentDateFormat()})</Text>
+      <Text style={styles.cardTitle}>{t('fichar.scheduleForToday', { date: getCurrentDateFormat() })}</Text>
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" />
       ) : todaySchedule ? (
         <>
           <View style={styles.row}><Icon name="time-outline" size={20} color="#007AFF" style={styles.icon} />
-            <Text style={styles.scheduleText}>Entrada: <Text style={styles.bold}>{todaySchedule.start_time} h</Text></Text>
+            <Text style={styles.scheduleText}>{t('fichar.entry')}: <Text style={styles.bold}>{todaySchedule.start_time} h</Text></Text>
           </View>
           <View style={styles.row}><Icon name="log-out-outline" size={20} color="#FF3B30" style={styles.icon} />
-            <Text style={styles.scheduleText}>Salida: <Text style={styles.bold}>{todaySchedule.end_time} h</Text></Text>
+            <Text style={styles.scheduleText}>{t('fichar.exit')}: <Text style={styles.bold}>{todaySchedule.end_time} h</Text></Text>
           </View>
           <View style={styles.row}><Icon name="location-outline" size={20} color="#34C759" style={styles.icon} />
-            <Text style={styles.scheduleText}>Instalación: <Text style={styles.bold}>{todaySchedule.facilityName}</Text></Text>
+            <Text style={styles.scheduleText}>{t('fichar.facility')}: <Text style={styles.bold}>{todaySchedule.facilityName}</Text></Text>
           </View>
           <View style={styles.row}><Icon name="map-outline" size={20} color="#8E8E93" style={styles.icon} />
-            <Text style={styles.scheduleText}>Dirección: <Text style={styles.bold}>{todaySchedule.facilityLocation}</Text></Text>
+            <Text style={styles.scheduleText}>{t('fichar.address')}: <Text style={styles.bold}>{todaySchedule.facilityLocation}</Text></Text>
           </View>
         </>
       ) : (
-        <Text style={styles.noSchedule}>No tienes horario asignado para hoy.</Text>
+        <Text style={styles.noSchedule}>{t('fichar.noSchedule')}</Text>
       )}
     </View>
 
@@ -721,7 +722,7 @@ return (
          onPress={handleFichar}
          disabled={!canFichar}
        >
-         <Text style={styles.ficharText}>📍 Fichar ahora</Text>
+         <Text style={styles.ficharText}>{t('fichar.clockInNow')}</Text>
        </TouchableOpacity>
 
        {canNotificarAusencia && (
@@ -729,7 +730,7 @@ return (
            style={[styles.ficharButton, { backgroundColor: '#FF9500', marginTop: 10 }]}
            onPress={() => setAbsenceModalVisible(true)}
          >
-           <Text style={styles.ficharText}>🚫 Notificar ausencia</Text>
+           <Text style={styles.ficharText}>{t('fichar.notifyAbsence')}</Text>
          </TouchableOpacity>
        )}
      </>
@@ -742,10 +743,10 @@ return (
          style={[styles.ficharButton, { backgroundColor: '#34C759', marginTop: 10 }]}
          onPress={() => setModalVisibleCheckout(true)}
        >
-         <Text style={styles.ficharText}>📤 Realizar Check-out</Text>
+         <Text style={styles.ficharText}>{t('fichar.checkOut')}</Text>
        </TouchableOpacity>
        <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
-         ✅ Realiza tu Check-out
+         {t('fichar.do-checkOut')}
        </Text>
      </>
    )}
@@ -753,14 +754,14 @@ return (
    {/* Caso 3: Mostrar mensaje de jornada completada */}
    {hasCheckedIn && hasCheckedOut && !absenceSubmitted && (
      <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
-       ✅ Has completado tu jornada. ¡Hasta mañana!
+       {t('fichar.completeDay')}
      </Text>
    )}
 
 {/* Caso 4: Mostrar mensaje de ausencia registrada */}
 {absenceSubmitted && (
   <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#888' }}>
-    ✅ Tu ausencia ha sido registrada.
+    {t('fichar.absenceRegistered')}
   </Text>
 )}
 
@@ -795,11 +796,11 @@ return (
             elevation: 5
           }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
-              ¿Deseas añadir una nota?
+              {t('fichar.addNote')}
             </Text>
 
             <TextInput
-              placeholder="Ej. Llegué tarde por tráfico..."
+              placeholder={t('fichar.exampleNote')}
               value={note}
               onChangeText={setNote}
               style={{
@@ -819,14 +820,14 @@ return (
                 style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 10, flex: 1, marginRight: 8 }}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancelar</Text>
+                <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>{t('fichar.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={{ padding: 12, backgroundColor: '#007AFF', borderRadius: 10, flex: 1, marginLeft: 8 }}
                 onPress={handleConfirmFichar}
               >
-                <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Fichar</Text>
+                <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>{t('fichar.do-entry')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -852,11 +853,11 @@ return (
                 elevation: 5
               }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
-                  Justifica tu ausencia
+                  {t('fichar.justifyAbsence')}
                 </Text>
 
                 <TextInput
-                  placeholder="Ej. Enfermedad, transporte, etc..."
+                  placeholder={t('fichar.exampleAbsenceNote')}
                   value={absenceNote}
                   onChangeText={setAbsenceNote}
                   style={{
@@ -874,17 +875,17 @@ return (
                 <TouchableOpacity
                   onPress={() => {
                     Alert.alert(
-                      'Seleccionar justificante',
-                      '(El documento tiene que ser en formato PDF)',
+                      t('fichar.justify-select'),
+                      t('fichar.doc-pdf'),
                       [
-                        { text: '📄 Documento PDF', onPress: pickDocument },
-                        { text: 'Cancelar', style: 'cancel' },
+                        { text: `📄 ${t('fichar.doc-pdf2')}`, onPress: pickDocument },
+                        { text: t('fichar.cancel'), style: 'cancel' },
                       ]
                     );
                   }}
                   style={{ backgroundColor: '#eee', padding: 12, borderRadius: 10, marginBottom: 10 }}
                 >
-                  <Text style={{ textAlign: 'center' }}>📎 Adjuntar justificante PDF</Text>
+                  <Text style={{ textAlign: 'center' }}>{t('fichar.attachJustification')}</Text>
                 </TouchableOpacity>
 
 
@@ -897,7 +898,7 @@ return (
                     />
                   ) : (
                     <Text style={{ marginBottom: 10, textAlign: 'center' }}>
-                      📄 Archivo adjunto: {justificationImage.fileName}
+                      📄 {t('fichar.attached-file')}: {justificationImage.fileName}
                     </Text>
                   )
                 )}
@@ -909,14 +910,14 @@ return (
                     style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 10, flex: 1, marginRight: 8 }}
                     onPress={() => setAbsenceModalVisible(false)}
                   >
-                    <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancelar</Text>
+                    <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>{t('fichar.cancel')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={{ padding: 12, backgroundColor: '#FF3B30', borderRadius: 10, flex: 1, marginLeft: 8 }}
                     onPress={handleSubmitAbsence}
                   >
-                    <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Enviar</Text>
+                    <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>{t('fichar.send')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -941,11 +942,11 @@ return (
                   elevation: 5
                 }}>
                   <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
-                    ¿Deseas añadir una nota al salir?
+                    {t('fichar.addExitNote')}
                   </Text>
 
                   <TextInput
-                    placeholder="Ej. Salí antes por cita médica..."
+                    placeholder={t('fichar.exampleExitNote')}
                     value={checkOutNote}
                     onChangeText={setCheckOutNote}
                     style={{
@@ -965,14 +966,14 @@ return (
                       style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 10, flex: 1, marginRight: 8 }}
                       onPress={() => setModalVisibleCheckout(false)}
                     >
-                      <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Cancelar</Text>
+                      <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>{t('fichar.cancel')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       style={{ padding: 12, backgroundColor: '#34C759', borderRadius: 10, flex: 1, marginLeft: 8 }}
                       onPress={handleConfirmCheckOut}
                     >
-                      <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Confirmar</Text>
+                      <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>{t('fichar.confirm')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
