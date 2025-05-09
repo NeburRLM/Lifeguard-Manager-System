@@ -13,8 +13,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
+  const { t, i18n } = useTranslation();
   const API_URL = Constants.expoConfig.extra.API_URL;
   const navigation = useNavigation();
   const [token, setToken] = useState(null);
@@ -107,30 +109,30 @@ const Profile = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Datos personales</Text>
+      <Text style={styles.header}>{t('profile.personalData')}</Text>
 
-      <Text style={styles.subHeader}>Información personal</Text>
+      <Text style={styles.subHeader}>{t('profile.personalInfo')}</Text>
       <View style={styles.card}>
-        <Text style={styles.item}><Text style={styles.label}>Nombre y apellidos:</Text> {employee.name}</Text>
-        <Text style={styles.item}><Text style={styles.label}>Documento de identidad:</Text> {employee.id}</Text>
-        <Text style={styles.item}><Text style={styles.label}>Fecha de nacimiento:</Text> {formatBirthday(employee.birthdate)}</Text>
-        <Text style={styles.item}><Text style={styles.label}>Fecha de contratación:</Text> {formatHireDate(employee.hire_date)}</Text>
-        <Text style={styles.item}><Text style={styles.label}>Rol:</Text> {employee.role}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.fullName')}</Text> {employee.name}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.identityDocument')}</Text> {employee.id}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.birthDate')}</Text> {formatBirthday(employee.birthdate)}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.hireDate')}</Text> {formatHireDate(employee.hire_date)}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.role')}</Text> {t(`roles.${employee.role}`)}</Text>
       </View>
 
-      <Text style={styles.subHeader}>Datos de contacto</Text>
+      <Text style={styles.subHeader}>{t('profile.contactData')}</Text>
       <View style={styles.contactHeader}>
-        <Text style={styles.contactTitle}>Datos administrativos</Text>
+        <Text style={styles.contactTitle}>{t('profile.adminData')}</Text>
         <TouchableOpacity onPress={openEditModal}>
-          <Text style={styles.editButton}>Modificar</Text>
+          <Text style={styles.editButton}>{t('profile.edit')}</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.card}>
-        <Text style={styles.item}><Text style={styles.label}>Número móvil:</Text> {employee.phone_number}</Text>
-        <Text style={styles.item}><Text style={styles.label}>Correo electrónico:</Text> {employee.email}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.mobileNumber')}</Text> {employee.phone_number}</Text>
+        <Text style={styles.item}><Text style={styles.label}>{t('profile.email')}</Text> {employee.email}</Text>
       </View>
 
-      <Text style={styles.subHeader}>Contraseña</Text>
+      <Text style={styles.subHeader}>{t('profile.password')}</Text>
       <View style={styles.card}>
         <TouchableOpacity
           style={styles.changePasswordButton}
@@ -139,7 +141,7 @@ const Profile = () => {
             token: token, // asegúrate de que tienes el token accesible en este componente
           })}
         >
-          <Text style={styles.changePasswordText}>Cambiar contraseña</Text>
+          <Text style={styles.changePasswordText}>{t('profile.changePassword')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -148,15 +150,15 @@ const Profile = () => {
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Modificar datos</Text>
+            <Text style={styles.modalTitle}>{t('profile.editData')}</Text>
             <TextInput
-              placeholder="Número móvil"
+              placeholder={t('profile.placeholderMobile')}
               style={styles.input}
               value={formData.phone_number}
               onChangeText={text => setFormData({ ...formData, phone_number: text })}
             />
             <TextInput
-              placeholder="Correo electrónico"
+              placeholder={t('profile.placeholderEmail')}
               style={styles.input}
               value={formData.email}
               onChangeText={text => setFormData({ ...formData, email: text })}
@@ -164,10 +166,10 @@ const Profile = () => {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Text style={styles.cancelButton}>Cancelar</Text>
+                <Text style={styles.cancelButton}>{t('profile.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSaveChanges}>
-                <Text style={styles.saveButton}>Guardar</Text>
+                <Text style={styles.saveButton}>{t('profile.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>

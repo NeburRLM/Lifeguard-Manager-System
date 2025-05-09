@@ -9,8 +9,10 @@ import { shareAsync } from 'expo-sharing';
 import moment from "moment";
 import "moment/locale/es";
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 const Nomina = () => {
+  const { t } = useTranslation();
   const API_URL = Constants.expoConfig.extra.API_URL;
   const [employeeName, setEmployeeName] = useState('');
   const [employeeData, setEmployeeData] = useState(null);
@@ -21,9 +23,19 @@ const Nomina = () => {
   const [isMonthModalVisible, setIsMonthModalVisible] = useState(false);
 
   const monthNames = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
+      t('nomina.monthNames.january'),
+      t('nomina.monthNames.february'),
+      t('nomina.monthNames.march'),
+      t('nomina.monthNames.april'),
+      t('nomina.monthNames.may'),
+      t('nomina.monthNames.june'),
+      t('nomina.monthNames.july'),
+      t('nomina.monthNames.august'),
+      t('nomina.monthNames.september'),
+      t('nomina.monthNames.october'),
+      t('nomina.monthNames.november'),
+      t('nomina.monthNames.december'),
+    ];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -117,19 +129,19 @@ const Nomina = () => {
             </style>
           </head>
           <body>
-            <h1>NÓMINA - ${payroll.month}/${payroll.year}</h1>
-            <p><strong>EMPRESA:</strong> LIFEGUARD COMPANY, S.L.</p>
-            <p><strong>CIF:</strong> B00000000</p>
-            <p><strong>DIRECCIÓN:</strong> CL SOCO, 0 - 43850 CAMBRILS</p>
-            <p><strong>TRABAJADOR:</strong> ${employeeData.name}</p>
-            <p><strong>DNI:</strong> ${payroll.employee_id}</p>
-            <p><strong>CATEGORIA:</strong> ${employeeData.role}</p>
-            <p><strong>FECHA DE ALTA:</strong> ${hireDateFormatted}</p>
-            <p><strong>PERÍODO DE LIQUIDACIÓN:</strong> DEL 01 AL 31 ${monthName} ${payroll.year}</p>
+            <h1>${t('nomina.payroll')} - ${payroll.month}/${payroll.year}</h1>
+            <p><strong>${t('nomina.company')}</strong> LIFEGUARD COMPANY, S.L.</p>
+            <p><strong>${t('nomina.cif')}</strong> B00000000</p>
+            <p><strong>${t('nomina.address')}</strong> CL SOCO, 0 - 43850 CAMBRILS</p>
+            <p><strong>${t('nomina.employee')}</strong> ${employeeData.name}</p>
+            <p><strong>${t('nomina.dni')}</strong> ${payroll.employee_id}</p>
+            <p><strong>${t('nomina.category')}</strong> ${employeeData.role}</p>
+            <p><strong>${t('nomina.hireDate')}</strong> ${hireDateFormatted}</p>
+            <p><strong>${t('nomina.settlementPeriod')}</strong> ${t('nomina.from')} 01 ${t('nomina.to')} 31 ${monthName} ${payroll.year}</p>
 
-            <div class="section-title">Conceptos Devengados</div>
+            <div class="section-title">${t('nomina.conceptsEarned')}</div>
             <table>
-              <tr><th>Concepto</th><th>Importe (€)</th></tr>
+              <tr><th>${t('nomina.concept2')}</th><th>${t('nomina.import')} (€)</th></tr>
               ${earnings.map(e => `
                 <tr>
                   <td>${e.name}</td>
@@ -138,9 +150,9 @@ const Nomina = () => {
               `).join('')}
             </table>
 
-            <div class="section-title">Deducciones</div>
+            <div class="section-title">${t('nomina.deductions')}</div>
             <table>
-              <tr><th>Concepto</th><th>Porcentaje</th><th>Importe (€)</th></tr>
+              <tr><th>${t('nomina.concept2')}</th><th>${t('nomina.percentage')}</th><th>${t('nomina.import')} (€)</th></tr>
               ${deductions.map(d => `
                 <tr>
                   <td>${d.name}</td>
@@ -150,14 +162,14 @@ const Nomina = () => {
               `).join('')}
             </table>
 
-            <div class="section-title">Totales</div>
+            <div class="section-title">${t('nomina.totals')}</div>
             <table>
-              <tr><td class="label-strong">Total Horas</td><td>${payroll.total_hours}</td></tr>
-              <tr><td class="label-strong">Total Devengado</td><td>${totalEarnings.toFixed(2)} €</td></tr>
-              <tr><td class="label-strong">Total Deducciones</td><td>${totalDeductions.toFixed(2)} €</td></tr>
-              <tr><td class="label-strong">Total Neto</td><td>${netTotal.toFixed(2)} €</td></tr>
+              <tr><td class="label-strong">${t('nomina.totalHours')}</td><td>${payroll.total_hours}</td></tr>
+              <tr><td class="label-strong">${t('nomina.totalEarned')}</td><td>${totalEarnings.toFixed(2)} €</td></tr>
+              <tr><td class="label-strong">${t('nomina.totalDeductions')}</td><td>${totalDeductions.toFixed(2)} €</td></tr>
+              <tr><td class="label-strong">${t('nomina.totalNet')}</td><td>${netTotal.toFixed(2)} €</td></tr>
             </table>
-            <p style="margin-top: 10px;">Abonado en cuenta: ES00-0000-0000**************</p>
+            <p style="margin-top: 10px;">${t('nomina.paidToAccount')} ES00-0000-0000**************</p>
           </body>
         </html>
       `;
@@ -172,29 +184,29 @@ const Nomina = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Nóminas de {employeeName}</Text>
+      <Text style={styles.header}>{t('nomina.header', { name: employeeName })}</Text>
 
       <View style={styles.filterContainer}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Mes:</Text>
+          <Text style={styles.label}>{t('nomina.month')}</Text>
           <TouchableOpacity
             style={styles.monthButton}
             onPress={() => setIsMonthModalVisible(true)}
           >
             <Text style={styles.monthButtonText}>
-              {selectedMonth ? monthNames[selectedMonth - 1] : 'Seleccionar mes'}
+              {selectedMonth ? monthNames[selectedMonth - 1] : t('nomina.selectMonth')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Año:</Text>
+          <Text style={styles.label}>{t('nomina.year')}</Text>
           <TextInput
             value={selectedYear}
             onChangeText={setSelectedYear}
             style={styles.textInput}
             keyboardType="numeric"
-            placeholder="Escribe el año"
+            placeholder={t('nomina.writeYear')}
             placeholderTextColor="#aaa"
           />
         </View>
@@ -243,11 +255,11 @@ const Nomina = () => {
                   setIsMonthModalVisible(false);
                 }}
               >
-                <Text style={[styles.monthOptionText, { color: '#d00' }]}>Limpiar selección</Text>
+                <Text style={[styles.monthOptionText, { color: '#d00' }]}>{t('nomina.clearSelection')}</Text>
               </TouchableOpacity>
             </ScrollView>
             <TouchableOpacity onPress={() => setIsMonthModalVisible(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={styles.cancelText}>{t('nomina.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -9,9 +9,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-
+import { useTranslation } from 'react-i18next';
 
 export default function ChangePassword({ navigation, route }) {
+  const { t, i18n } = useTranslation();
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -41,15 +42,15 @@ export default function ChangePassword({ navigation, route }) {
     const { newPassword, confirmNewPassword } = passwordData;
 
     if (newPassword && newPassword.length < 6) {
-      errors.newPassword = 'Debe tener al menos 6 caracteres.';
+      errors.newPassword = t('changePassword.validation.minLength');
     } else if (newPassword && !/[a-zA-Z]/.test(newPassword)) {
-      errors.newPassword = 'Debe incluir al menos una letra.';
+      errors.newPassword = t('changePassword.validation.includeLetter');
     } else if (newPassword && !/[0-9]/.test(newPassword)) {
-      errors.newPassword = 'Debe incluir al menos un número.';
+      errors.newPassword = t('changePassword.validation.includeNumber');
     }
 
     if (newPassword && confirmNewPassword && newPassword !== confirmNewPassword) {
-      errors.confirmNewPassword = 'Las contraseñas no coinciden.';
+      errors.confirmNewPassword = t('changePassword.validation.passwordsMatch');
     }
 
     setValidationErrors(errors);
@@ -71,6 +72,7 @@ export default function ChangePassword({ navigation, route }) {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'Accept-Language': i18n.language,
         },
         body: JSON.stringify({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword }),
       });
@@ -79,7 +81,7 @@ export default function ChangePassword({ navigation, route }) {
       setCheckingCurrentPassword(false);
 
       if (!response.ok) throw new Error(result.message || 'Contraseña actual incorrecta');
-
+      console.log(result.message)
       return true;
     } catch (err) {
       setModalMessage(err.message || 'Error al verificar la contraseña actual');
@@ -91,14 +93,14 @@ export default function ChangePassword({ navigation, route }) {
 
   const handleChangePassword = async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
-      setModalMessage('Por favor, completa todos los campos.');
+      setModalMessage(t('changePassword.errorEmptyFields'));
       setIsError(true);
       setModalVisible(true);
       return;
     }
 
     if (Object.keys(validationErrors).length > 0) {
-      setModalMessage('Hay errores en el formulario. Revisa los campos.');
+      setModalMessage(t('changePassword.errorForm'));
       setIsError(true);
       setModalVisible(true);
       return;
@@ -110,6 +112,7 @@ export default function ChangePassword({ navigation, route }) {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'Accept-Language': i18n.language,
         },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
@@ -120,15 +123,15 @@ export default function ChangePassword({ navigation, route }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al cambiar la contraseña');
+        throw new Error(data.message || t('changePassword.errorMessage'));
       }
 
-      setModalMessage('Contraseña actualizada con éxito.');
+      setModalMessage(t('changePassword.successMessage'));
       setIsError(false);
       setModalVisible(true);
       setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error) {
-      setModalMessage(error.message || 'Error del servidor');
+      setModalMessage(error.message || t('changePassword.errorMessage'));
       setIsError(true);
       setModalVisible(true);
     }
@@ -169,24 +172,37 @@ export default function ChangePassword({ navigation, route }) {
   return (
     <>
       <View style={styles.container}>
-        <Text style={styles.title}>Cambiar Contraseña</Text>
+        <Text style={styles.title}>{t('changePassword.title')}</Text>
 
-        {renderPasswordInput("Contraseña actual", "currentPassword", "current", "currentPassword")}
-        {renderPasswordInput("Nueva contraseña", "newPassword", "new", "newPassword")}
-        {renderPasswordInput("Confirmar nueva contraseña", "confirmNewPassword", "confirm", "confirmNewPassword")}
+        {renderPasswordInput(
+                  t('changePassword.currentPassword'),
+                  'currentPassword',
+                  'current',
+                  'currentPassword'
+                )}
+                {renderPasswordInput(
+                  t('changePassword.newPassword'),
+                  'newPassword',
+                  'new',
+                  'newPassword'
+                )}
+                {renderPasswordInput(
+                  t('changePassword.confirmNewPassword'),
+                  'confirmNewPassword',
+                  'confirm',
+                  'confirmNewPassword'
+                )}
+
 
         <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
           <Text style={styles.buttonText}>
-            {checkingCurrentPassword ? 'Verificando...' : 'Cambiar contraseña'}
+            {checkingCurrentPassword
+                          ? t('changePassword.verifying')
+                          : t('changePassword.buttonText')}
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.passwordRules}>
-          La nueva contraseña debe tener:
-          {'\n'}• Mínimo 6 caracteres
-          {'\n'}• Al menos 1 letra
-          {'\n'}• Al menos 1 número
-        </Text>
+        <Text style={styles.passwordRules}>{t('changePassword.passwordRules')}</Text>
       </View>
 
       <Modal visible={modalVisible} transparent animationType="slide">
@@ -196,7 +212,7 @@ export default function ChangePassword({ navigation, route }) {
               {modalMessage}
             </Text>
             <TouchableOpacity onPress={closeModal}>
-              <Text style={styles.modalClose}>Cerrar</Text>
+              <Text style={styles.modalClose}>{t('changePassword.closeModal')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -88,7 +88,10 @@ const Login = () => {
 
       const forgotResponse = await fetch(`${API_URL}/employee/forgot-passwordApp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+         'Accept-Language': i18n.language
+        },
         body: JSON.stringify({ email: data.email }),
       });
 

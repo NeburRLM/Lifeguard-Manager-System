@@ -224,6 +224,36 @@ app.get('/employee/:id', async (req, res) => {
 
 
 app.put('/employee/change-password/:id', async (req, res) => {
+    const lang = req.headers['accept-language'] || 'en';
+    const messages = {
+      'employeeNotFound': {
+        en: 'Employee not found',
+        es: 'Empleado no encontrado',
+        ca: 'Empleat no trobat',
+      },
+      'currentPasswordIncorrect': {
+        en: 'Current password is incorrect',
+        es: 'La contraseña actual es incorrecta',
+        ca: 'La contrasenya actual és incorrecta',
+      },
+      'newPasswordSame': {
+        en: 'The new password must be different from the current password.',
+        es: 'La nueva contraseña debe ser diferente de la actual.',
+        ca: 'La nova contrasenya ha de ser diferent de l\'actual.',
+      },
+      'passwordUpdated': {
+        en: 'Password updated successfully',
+        es: 'Contraseña actualizada correctamente',
+        ca: 'Contrasenya actualitzada correctament',
+      },
+      'errorUpdating': {
+        en: 'Error updating password',
+        es: 'Error al actualizar la contraseña',
+        ca: 'Error en actualitzar la contrasenya',
+      }
+    };
+
+
     const { id } = req.params; // Obtener el ID del empleado de la URL
     const { currentPassword, newPassword } = req.body; // Obtener la contraseña actual y nueva del cuerpo de la solicitud
     console.log(currentPassword)
@@ -236,21 +266,21 @@ app.put('/employee/change-password/:id', async (req, res) => {
             .getOne();
 
         if (!employee) {
-            return res.status(404).json({ message: 'Employee not found' });
+            return res.status(404).json({ message: messages.employeeNotFound[lang] });
         }
 
         // Comparar la contraseña actual proporcionada con la contraseña almacenada
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, employee.password);
 
         if (!isCurrentPasswordValid) {
-            return res.status(400).json({ message: 'Current password is incorrect' });
+            return res.status(400).json({ message: messages.currentPasswordIncorrect[lang] });
         }
 
         // Verificar que la nueva contraseña no sea igual a la actual
         const isNewPasswordSameAsCurrent = await bcrypt.compare(newPassword, employee.password);
 
         if (isNewPasswordSameAsCurrent) {
-            return res.status(400).json({ message: 'The new password must be different from the current password.' });
+            return res.status(400).json({ message: messages.newPasswordSame[lang] });
         }
 
         // Si la contraseña actual es válida y la nueva es diferente, proceder con la actualización
@@ -261,11 +291,11 @@ app.put('/employee/change-password/:id', async (req, res) => {
         employee.password = hashedPassword;
         await dataSource.getRepository(EmployeeSchema).save(employee); // Guardamos la actualización
 
-        res.json({ message: 'Password updated successfully' });
+        res.json({ message: messages.passwordUpdated[lang] });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating password', error: error.message });
+        res.status(500).json({ message: messages.errorUpdating[lang], error: error.message });
     }
 });
 

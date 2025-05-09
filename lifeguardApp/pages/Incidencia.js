@@ -120,7 +120,7 @@ const Incidencia = () => {
     const userId = await AsyncStorage.getItem('userId');
 
     if (!todaySchedule) {
-          Alert.alert('No tienes turno asignado hoy.');
+          Alert.alert(t('incidencia.noScheduleAlert'));
           return;
         }
 
@@ -129,7 +129,7 @@ const Incidencia = () => {
    const required = ['type', 'description', 'firstName', 'lastName', 'dni', 'age', 'cityOfOrigin', 'countryOfOrigin', 'gender', 'language', 'latitude', 'longitude'];
        const missing = required.filter(field => !formData[field]);
        if (missing.length > 0) {
-         Alert.alert('Faltan campos obligatorios:', missing.join(', '));
+         Alert.alert(t('incidencia.requiredFieldsMissing'), missing.map(f => t(`incidencia.formLabels.${f}`)).join(', '));
          return;
        }
 
@@ -154,7 +154,7 @@ const Incidencia = () => {
 
     const { latitude, longitude } = formData;
     if (!latitude || !longitude) {
-      Alert.alert('Por favor, selecciona una ubicación en el mapa.');
+      Alert.alert(t('incidencia.selectLocationError'));
       return;
     }
     // Aquí puedes enviar los datos del formulario
@@ -168,7 +168,7 @@ const Incidencia = () => {
           });
 
           if (res.ok) {
-            Alert.alert('Incidencia reportada con éxito');
+            Alert.alert(t('incidencia.successMessage'));
             setFormData({
               type: '',
               description: '',
@@ -185,11 +185,11 @@ const Incidencia = () => {
             });
             setSelectedTypeId('');
           } else {
-            Alert.alert('Error al enviar la incidencia');
+            Alert.alert(t('incidencia.errorMessage'));
           }
         } catch (error) {
           console.error('Error al enviar incidencia:', error);
-          Alert.alert('Error de red al enviar la incidencia.');
+          Alert.alert(t('incidencia.networkError'));
         }
       };
 
@@ -226,11 +226,11 @@ const Incidencia = () => {
 
 return (
   <ScrollView contentContainerStyle={styles.container}>
-    <Text style={styles.title}>📋 Reportar Incidencia</Text>
-    <Text style={styles.label}>Empleado: {employeeName}</Text>
+    <Text style={styles.title}>{t('incidencia.reportIncident')}</Text>
+    <Text style={styles.label}>{t('incidencia.employee')}: {employeeName}</Text>
 
     {todaySchedule && (
-      <Text style={styles.label}>Turno en: {todaySchedule.facilityName}</Text>
+      <Text style={styles.label}>{t('incidencia.shiftAt')}: {todaySchedule.facilityName}</Text>
     )}
 
 
@@ -238,10 +238,10 @@ return (
     {!todaySchedule && (
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>
-          📅 Horario para hoy ({getCurrentDate().split('-').reverse().join('-')})
+          {t('incidencia.scheduleForToday', { date: getCurrentDate().split('-').reverse().join('-') })}
         </Text>
         <Text style={styles.infoText}>
-          No tienes horario asignado para hoy, por lo tanto no puedes reportar una incidencia.
+          {t('incidencia.noScheduleForToday')}
         </Text>
       </View>
     )}
@@ -259,7 +259,7 @@ return (
             }}
             style={styles.picker}
           >
-            <Picker.Item label="Selecciona el tipo de incid..." value="" />
+            <Picker.Item label={t('incidencia.selectIncidentType')} value="" />
             {incidentTypes.map((item) => (
               <Picker.Item key={item.id} label={item.type} value={item.id} />
             ))}
@@ -267,15 +267,15 @@ return (
         </View>
 
         {[
-          ['description', 'Descripción *'],
-          ['firstName', 'Nombre del afectado *'],
-          ['lastName', 'Apellidos del afectado *'],
-          ['dni', 'DNI del afectado *'],
-          ['age', 'Edad *'],
-          ['cityOfOrigin', 'Ciudad de origen *'],
-          ['countryOfOrigin', 'País de origen *'],
-          ['gender', 'Género (M/F/Otro) *'],
-          ['language', 'Idioma *'],
+          ['description', t('incidencia.description')],
+          ['firstName', t('incidencia.firstName')],
+          ['lastName', t('incidencia.lastName')],
+          ['dni', t('incidencia.dni')],
+          ['age', t('incidencia.age')],
+          ['cityOfOrigin', t('incidencia.cityOfOrigin')],
+          ['countryOfOrigin', t('incidencia.countryOfOrigin')],
+          ['gender', t('incidencia.gender')],
+          ['language', t('incidencia.language')],
         ].map(([field, label]) => (
           <TextInput
             key={field}
@@ -287,24 +287,24 @@ return (
         ))}
 
         <TouchableOpacity style={styles.selectLocationButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.buttonText}>📍 Seleccionar Ubicación</Text>
+          <Text style={styles.buttonText}>{t('incidencia.selectLocation')}</Text>
         </TouchableOpacity>
 
         <TextInput
-          placeholder="Latitud *"
+          placeholder={t('incidencia.latitude')}
           style={styles.input}
           value={formData.latitude ? formData.latitude.toString() : ''}
           editable={false}
         />
         <TextInput
-          placeholder="Longitud *"
+          placeholder={t('incidencia.longitude')}
           style={styles.input}
           value={formData.longitude ? formData.longitude.toString() : ''}
           editable={false}
         />
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>🚨 Enviar Incidencia</Text>
+          <Text style={styles.buttonText}>{t('incidencia.sendIncident')}</Text>
         </TouchableOpacity>
       </>
     )}
@@ -332,13 +332,13 @@ return (
               {formData.latitude && formData.longitude && (
                 <Marker
                   coordinate={{ latitude: formData.latitude, longitude: formData.longitude }}
-                  title="Ubicación seleccionada"
+                  title={t('incidencia.select-ubi')}
                 />
               )}
             </MapView>
 
             <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
-              <Text style={styles.buttonText}>Cerrar Mapa</Text>
+              <Text style={styles.buttonText}>{t('incidencia.closeMap')}</Text>
             </TouchableOpacity>
           </View>
         </View>
