@@ -256,8 +256,8 @@ app.put('/employee/change-password/:id', async (req, res) => {
 
     const { id } = req.params; // Obtener el ID del empleado de la URL
     const { currentPassword, newPassword } = req.body; // Obtener la contraseña actual y nueva del cuerpo de la solicitud
-    console.log(currentPassword)
-    console.log(newPassword)
+    //console.log(currentPassword)
+    //console.log(newPassword)
     try {
         // Buscar al empleado por su ID
         const employee = await dataSource.getRepository(EmployeeSchema)
@@ -2857,6 +2857,8 @@ function generateResetTokenApp(userId) {
 }
 
 app.post('/employee/forgot-passwordApp', async (req, res) => {
+  const lang = req.headers['accept-language'] || 'en';
+    console.log("forgot-passwordApp POST-> ", lang);
   const { email } = req.body;
   const employeeRepository = dataSource.getRepository(EmployeeSchema);
   const employee = await employeeRepository.findOne({ where: { email } });
@@ -2870,14 +2872,14 @@ app.post('/employee/forgot-passwordApp', async (req, res) => {
   const resetToken = generateResetTokenApp(employee.id);
   employee.resetToken = resetToken; // Almacenar el token en la base de datos
   await employeeRepository.save(employee);
-  await sendPasswordResetEmailApp(employee.email, resetToken);
+  await sendPasswordResetEmailApp(employee.email, resetToken, lang);
 
   res.json({ message: 'An email with password reset instructions has been sent.' });
 });
 
-async function sendPasswordResetEmailApp(email, resetToken) {
-  const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}`;
-
+async function sendPasswordResetEmailApp(email, resetToken, lang) {
+  const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}&lang=${lang}`;
+  console.log("FUNCTION-> ", lang);
   const msg = {
     to: email,
     from: 'lifeguardtfg@gmail.com',
@@ -2920,27 +2922,45 @@ async function sendPasswordResetEmailApp(email, resetToken) {
 }
 
 app.post('/reset-passwordApp', async (req, res) => {
-  const { token, password } = req.body;
+  const { token, password, lang } = req.body;
+
+  const messages = {
+        invalidOrExpiredToken: {
+          es: 'Token inválido o expirado.',
+          ca: 'Testimoni invàlid o caducat.',
+          en: 'Invalid or expired token.'
+        },
+        tokenUsedOrInvalid: {
+          es: 'Token inválido o ya ha sido usado.',
+          ca: 'Testimoni invàlid o ja s\'ha utilitzat.',
+          en: 'Invalid or already used token.'
+        },
+        passwordUpdated: {
+          es: 'Contraseña actualizada con éxito.',
+          ca: 'Contrasenya actualitzada amb èxit.',
+          en: 'Password successfully updated.'
+        }
+      };
 
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
   } catch (err) {
-    return res.status(400).send('Token inválido o expirado.');
+    return res.status(400).send(messages.invalidOrExpiredToken[lang]);
   }
 
   const employeeRepository = dataSource.getRepository(EmployeeSchema);
   const user = await employeeRepository.findOne({ where: { id: decoded.userId } });
 
   if (!user || user.resetToken !== token) {
-    return res.status(400).send('Token inválido o ya ha sido usado.');
+    return res.status(400).send(messages.tokenUsedOrInvalid[lang]);
   }
 
   user.password = await bcrypt.hash(password, 10);
   user.resetToken = null; // Invalida el token tras uso
   await employeeRepository.save(user);
 
-  res.send('Contraseña actualizada con éxito.');
+  res.send(messages.passwordUpdated[lang]);
 });
 
 
@@ -2948,14 +2968,69 @@ app.post('/reset-passwordApp', async (req, res) => {
 
 app.get('/reset-passwordApp', (req, res) => {
   const token = req.query.token;
+  const lang = req.query.lang || req.headers['accept-language']?.split(',')[0].split('-')[0].trim() || 'en';
+  console.log("Reset-passwordApp GET-> ", lang);
+
+  const messages = {
+        'resetPassword': {
+          es: 'Restablecer tu contraseña',
+          ca: 'Restablir la teva contrasenya',
+          en: 'Reset your password'
+        },
+        'newPassword': {
+          es: 'Nueva contraseña',
+          ca: 'Nova contrasenya',
+          en: 'New password'
+        },
+        'confirmPassword': {
+          es: 'Repite la contraseña',
+          ca: 'Repeteix la contrasenya',
+          en: 'Confirm password'
+        },
+        'changePassword': {
+          es: 'Cambiar contraseña',
+          ca: 'Canviar contrasenya',
+          en: 'Change password'
+        },
+        'passwordRules': {
+          es: '• Mínimo 6 caracteres<br/>• Al menos 1 letra<br/>• Al menos 1 número',
+          ca: '• Mínim 6 caràcters<br/>• Almenys 1 lletra<br/>• Almenys 1 número',
+          en: '• Minimum 6 characters<br/>• At least 1 letter<br/>• At least 1 number'
+        },
+        'characters': {
+          es: 'Debe tener al menos 6 caracteres.',
+          ca: 'Ha de tenir almenys 6 caràcters.',
+          en: 'It must have at least 6 characters.'
+        },
+        'letter': {
+          es: 'Debe incluir al menos una letra.',
+          ca: 'Ha d\'incloure almenys una lletra.',
+          en: 'It must include at least one letter.'
+        },
+        'num': {
+          es: 'Debe incluir al menos un número.',
+          ca: 'Ha d\'incloure almenys un número.',
+          en: 'It must include at least one number.'
+        },
+        'errorSendingRequest': {
+          es: 'Error al enviar la solicitud.',
+          ca: 'Error a l\'enviar la sol·licitud.',
+          en: 'Error sending the request.'
+        },
+        'errorPassword': {
+          es: 'Las contraseñas no coinciden.',
+          ca: 'Les contrasenyes no coincideixen.',
+          en: 'The passwords do not match.'
+        }
+      };
 
   res.send(`
     <!DOCTYPE html>
-    <html lang="es">
+    <html lang="${lang}">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Restablecer contraseña</title>
+      <title>${messages.resetPassword[lang]}</title>
       <style>
         * {
           box-sizing: border-box;
@@ -3053,12 +3128,12 @@ app.get('/reset-passwordApp', (req, res) => {
     </head>
     <body>
       <div class="container">
-        <h2>Restablecer tu contraseña</h2>
+        <h2>${messages.resetPassword[lang]}</h2>
         <form id="resetForm">
           <input type="hidden" name="token" value="${token}" />
 
           <div class="input-group">
-            <input type="password" name="password" id="password" placeholder="Nueva contraseña" required />
+            <input type="password" name="password" id="password" placeholder="${messages.newPassword[lang]}" required />
             <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
               <svg id="eye-password" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -3071,7 +3146,7 @@ app.get('/reset-passwordApp', (req, res) => {
           <div class="error" id="passwordError"></div>
 
           <div class="input-group">
-            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Repite la contraseña" required />
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="${messages.confirmPassword[lang]}" required />
             <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)">
               <svg id="eye-confirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -3083,19 +3158,19 @@ app.get('/reset-passwordApp', (req, res) => {
           </div>
           <div class="error" id="confirmError"></div>
 
-          <button type="submit">Cambiar contraseña</button>
+          <button type="submit">${messages.changePassword[lang]}</button>
         </form>
 
         <div class="rules">
-          • Mínimo 6 caracteres<br/>
-          • Al menos 1 letra<br/>
-          • Al menos 1 número
+            ${messages.passwordRules[lang]}
         </div>
         <div class="success" id="successMsg"></div>
         <div class="loader" id="loader"></div>
       </div>
 
       <script>
+        const lang = "${lang}";
+        const messages = ${JSON.stringify(messages)};
         const form = document.getElementById('resetForm');
         const password = document.getElementById('password');
         const confirmPassword = document.getElementById('confirmPassword');
@@ -3130,18 +3205,18 @@ app.get('/reset-passwordApp', (req, res) => {
           const confirm = confirmPassword.value;
 
           if (pwd.length < 6) {
-            passwordError.textContent = 'Debe tener al menos 6 caracteres.';
+            passwordError.textContent = messages.characters[lang];
             errors++;
           } else if (!/[a-zA-Z]/.test(pwd)) {
-            passwordError.textContent = 'Debe incluir al menos una letra.';
+            passwordError.textContent = messages.letter[lang];
             errors++;
           } else if (!/[0-9]/.test(pwd)) {
-            passwordError.textContent = 'Debe incluir al menos un número.';
+            passwordError.textContent = messages.num[lang];
             errors++;
           }
 
           if (pwd !== confirm) {
-            confirmError.textContent = 'Las contraseñas no coinciden.';
+            confirmError.textContent = messages.errorPassword[lang];
             errors++;
           }
 
@@ -3161,8 +3236,11 @@ app.get('/reset-passwordApp', (req, res) => {
           try {
             const res = await fetch('/reset-passwordApp', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token, password: newPassword })
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept-Language': lang
+              },
+              body: JSON.stringify({ token, password: newPassword, lang })
             });
 
             const text = await res.text();

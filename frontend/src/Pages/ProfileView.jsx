@@ -17,7 +17,7 @@ function ProfileView() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
@@ -191,6 +191,7 @@ function ProfileView() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'Accept-Language': i18n.language
                 },
                 body: JSON.stringify({
                     currentPassword: passwordData.currentPassword,
