@@ -62,7 +62,12 @@
     "startTime": "Inici",
     "endTime": "Final",
     "facility": "Instal·lació",
-    "freeDay": "Avui és dia lliure!"
+    "freeDay": "Avui és dia lliure!",
+    "checkIn": "Hora d'entrada",
+    "checkOut": "Hora de sortida",
+    "status": "Estat",
+    "notAvailable": "No disponible",
+    "noAttendance": "No hi ha assistència registrada"
   },
 
   "fichar": {

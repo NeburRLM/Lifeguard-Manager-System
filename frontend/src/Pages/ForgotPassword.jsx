@@ -6,7 +6,7 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +26,7 @@ const ForgotPassword = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept-Language': i18n.language
         },
         body: JSON.stringify({ email }),
       });

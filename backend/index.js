@@ -2761,54 +2761,103 @@ function generateResetToken(userId) {
 }
 
 app.post('/employee/forgot-password', async (req, res) => {
+  const messages = {
+          noUserFound: {
+            es: 'Ningún usuario encontrado con este correo electrónico.',
+            ca: 'No ha sigut trobat cap usuari amb aquest correu electrònic.',
+            en: 'No user found with this email.'
+          }
+        };
+
+  const lang = req.headers['accept-language'] || 'en'; // Obtener el idioma de la cabecera
+  const msgContent = messages;
   const { email } = req.body;
   const employee = await dataSource.getRepository(EmployeeSchema).findOne({ where: { email } });
 
   if (!employee) {
-    return res.status(404).json({ message: 'No user found with this email.' });
+    return res.status(404).json({ message: msgContent.noUserFound[lang] });
   }
 
   const resetToken = generateResetToken(employee.id);
   employee.resetToken = resetToken; // Almacenar el token en la base de datos
   await dataSource.getRepository(EmployeeSchema).save(employee);
-  await sendPasswordResetEmail(employee.email, resetToken);
+  await sendPasswordResetEmail(employee.email, resetToken, lang);
 
   res.json({ message: 'An email with password reset instructions has been sent.' });
 });
 
-async function sendPasswordResetEmail(email, resetToken) {
-  const resetUrl = `http://localhost:4000/reset-password?token=${resetToken}`;
+async function sendPasswordResetEmail(email, resetToken, lang) {
+  const resetUrl = `http://localhost:4000/reset-password?token=${resetToken}&lang=${lang}`;
+  console.log("FUNCTION-> ", lang);
+
+      const messages = {
+          es: {
+            subject: 'Restablecer tu contraseña',
+            greeting: 'Hola,',
+            receivedRequest: 'Hemos recibido una solicitud para restablecer tu contraseña.',
+            clickLink: 'Para continuar con el proceso, haz clic en el siguiente enlace:',
+            ignoreMessage: 'Si no has solicitado este cambio, puedes ignorar este mensaje.',
+            expires: 'Este enlace expirará en 30 minutos.',
+            regards: 'Saludos,',
+            team: 'El equipo de Lifeguard S.L.',
+            buttonText: 'Restablecer contraseña'
+          },
+          ca: {
+            subject: 'Restablir la teva contrasenya',
+            greeting: 'Hola,',
+            receivedRequest: 'Hem rebut una sol·licitud per restablir la teva contrasenya.',
+            clickLink: 'Per continuar amb el procés, fes clic al següent enllaç:',
+            ignoreMessage: 'Si no has sol·licitat aquest canvi, pots ignorar aquest missatge.',
+            expires: 'Aquest enllaç caducarà en 30 minuts.',
+            regards: 'Salutacions,',
+            team: "L'equip de Lifeguard S.L.",
+            buttonText: 'Restablir contrasenya'
+          },
+          en: {
+            subject: 'Reset your password',
+            greeting: 'Hello,',
+            receivedRequest: 'We received a request to reset your password.',
+            clickLink: 'To continue, click the following link:',
+            ignoreMessage: 'If you did not request this, you can ignore this message.',
+            expires: 'This link will expire in 30 minutes.',
+            regards: 'Regards,',
+            team: 'The Lifeguard S.L. Team',
+            buttonText: 'Reset Password'
+          }
+        };
+
+      const msgContent = messages[lang] || messages['es'];
 
   const msg = {
     to: email,
     from: 'lifeguardtfg@gmail.com',
-    subject: 'Restablecer tu contraseña',
+    subject: msgContent.subject,
     text: `
-        Hola,
+        ${msgContent.greeting}
 
-        Hemos recibido una solicitud para restablecer tu contraseña.
+        ${msgContent.receivedRequest}
 
-        Para continuar con el proceso, haz clic en el siguiente enlace:
+        ${msgContent.clickLink}
 
         ${resetUrl}
 
-        Si no has solicitado este cambio, puedes ignorar este mensaje.
+        ${msgContent.ignoreMessage}
 
-        Este enlace expirará en 30 minutos.
+        ${msgContent.expires}
 
-        Saludos,
-        El equipo de Lifeguard S.L.
+        ${msgContent.regards}
+        ${msgContent.team}
       `,
     html: `
-        <p>Hola,</p>
-        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
-        <p>Para continuar con el proceso, haz clic en el siguiente enlace:</p>
-        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">Restablecer contraseña</a></p>
-        <p>Si no has solicitado este cambio, puedes ignorar este mensaje.</p>
-        <p><strong>Este enlace expirará en 30 minutos.</strong></p>
+        <p>${msgContent.greeting}</p>
+        <p>${msgContent.receivedRequest}</p>
+        <p>${msgContent.clickLink}</p>
+        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">${msgContent.buttonText}</a></p>
+        <p>${msgContent.ignoreMessage}</p>
+        <p><strong>${msgContent.expires}</strong></p>
         <br>
-        <p>Saludos,</p>
-        <p><strong>El equipo de Lifeguard S.L.</strong></p>
+        <p>${msgContent.regards}</p>
+        <p><strong>${msgContent.team}</strong></p>
       `,
   };
 
@@ -2880,36 +2929,75 @@ app.post('/employee/forgot-passwordApp', async (req, res) => {
 async function sendPasswordResetEmailApp(email, resetToken, lang) {
   const resetUrl = `http://192.168.1.34:4000/reset-passwordApp?token=${resetToken}&lang=${lang}`;
   console.log("FUNCTION-> ", lang);
+
+  const messages = {
+        es: {
+          subject: 'Restablecer tu contraseña',
+          greeting: 'Hola,',
+          receivedRequest: 'Hemos recibido una solicitud para restablecer tu contraseña.',
+          clickLink: 'Para continuar con el proceso, haz clic en el siguiente enlace:',
+          ignoreMessage: 'Si no has solicitado este cambio, puedes ignorar este mensaje.',
+          expires: 'Este enlace expirará en 30 minutos.',
+          regards: 'Saludos,',
+          team: 'El equipo de Lifeguard S.L.',
+          buttonText: 'Restablecer contraseña'
+        },
+        ca: {
+          subject: 'Restablir la teva contrasenya',
+          greeting: 'Hola,',
+          receivedRequest: 'Hem rebut una sol·licitud per restablir la teva contrasenya.',
+          clickLink: 'Per continuar amb el procés, fes clic al següent enllaç:',
+          ignoreMessage: 'Si no has sol·licitat aquest canvi, pots ignorar aquest missatge.',
+          expires: 'Aquest enllaç caducarà en 30 minuts.',
+          regards: 'Salutacions,',
+          team: "L'equip de Lifeguard S.L.",
+          buttonText: 'Restablir contrasenya'
+        },
+        en: {
+          subject: 'Reset your password',
+          greeting: 'Hello,',
+          receivedRequest: 'We received a request to reset your password.',
+          clickLink: 'To continue, click the following link:',
+          ignoreMessage: 'If you did not request this, you can ignore this message.',
+          expires: 'This link will expire in 30 minutes.',
+          regards: 'Regards,',
+          team: 'The Lifeguard S.L. Team',
+          buttonText: 'Reset Password'
+        }
+      };
+
+      const msgContent = messages[lang] || messages['es'];
+
   const msg = {
     to: email,
     from: 'lifeguardtfg@gmail.com',
-    subject: 'Restablecer tu contraseña',
+    subject: msgContent.subject,
     text: `
-        Hola,
+        ${msgContent.greeting}
 
-        Hemos recibido una solicitud para restablecer tu contraseña.
+        ${msgContent.receivedRequest}
 
-        Para continuar con el proceso, haz clic en el siguiente enlace:
+        ${msgContent.clickLink}
 
         ${resetUrl}
 
-        Si no has solicitado este cambio, puedes ignorar este mensaje.
+        ${msgContent.ignoreMessage}
 
-        Este enlace expirará en 30 minutos.
+        ${msgContent.expires}
 
-        Saludos,
-        El equipo de Lifeguard S.L.
+        ${msgContent.regards}
+        ${msgContent.team}
       `,
     html: `
-        <p>Hola,</p>
-        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
-        <p>Para continuar con el proceso, haz clic en el siguiente enlace:</p>
-        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">Restablecer contraseña</a></p>
-        <p>Si no has solicitado este cambio, puedes ignorar este mensaje.</p>
-        <p><strong>Este enlace expirará en 30 minutos.</strong></p>
+        <p>${msgContent.greeting}</p>
+        <p>${msgContent.receivedRequest}</p>
+        <p>${msgContent.clickLink}</p>
+        <p><a href="${resetUrl}" style="color: #007bff; text-decoration: none; font-weight: bold;">${msgContent.buttonText}</a></p>
+        <p>${msgContent.ignoreMessage}</p>
+        <p><strong>${msgContent.expires}</strong></p>
         <br>
-        <p>Saludos,</p>
-        <p><strong>El equipo de Lifeguard S.L.</strong></p>
+        <p>${msgContent.regards}</p>
+        <p><strong>${msgContent.team}</strong></p>
       `,
   };
 

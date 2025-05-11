@@ -468,7 +468,9 @@
     "distribution-age": "Distribution by Type/Age",
     "age-dist": "Age distribution for",
     "incidents-time": "Incidents at",
-    "all": "all"
+    "all": "all",
+    "no-facilities-selected": "No facilities selected.",
+    "select-all": "Select all facilities"
   },
 
   "profile-view": {

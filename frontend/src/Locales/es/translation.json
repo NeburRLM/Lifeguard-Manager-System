@@ -468,7 +468,9 @@
     "distribution-age": "Distribución por Tipo/Edad",
     "age-dist": "Distribución por edad de",
     "incidents-time": "Incidentes a las",
-    "all": "todo"
+    "all": "todo",
+    "no-facilities-selected": "No se han seleccionado instalaciones.",
+    "select-all": "Seleccionar todas las instalaciones"
   },
 
   "profile-view": {

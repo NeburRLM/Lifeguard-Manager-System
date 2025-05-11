@@ -468,7 +468,9 @@
     "distribution-age": "Distribució per Tipus/Edat",
     "age-dist": "Distribució per edat de",
     "incidents-time": "Incidents a les",
-    "all": "tot"
+    "all": "tot",
+    "no-facilities-selected": "No s'han seleccionat instal·lacions.",
+    "select-all": "Seleccionar totes les instal·lacions"
   },
 
   "profile-view": {

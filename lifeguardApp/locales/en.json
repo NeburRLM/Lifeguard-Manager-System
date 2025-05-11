@@ -62,7 +62,12 @@
     "startTime": "Start",
     "endTime": "End",
     "facility": "Facility",
-    "freeDay": "Today is a free day!"
+    "freeDay": "Today is a free day!",
+    "checkIn": "Check-In Time",
+    "checkOut": "Check-Out Time",
+    "status": "Status",
+    "notAvailable": "Not Available",
+    "noAttendance": "No attendance recorded"
   },
 
   "fichar": {

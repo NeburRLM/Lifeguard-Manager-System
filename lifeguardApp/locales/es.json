@@ -62,7 +62,12 @@
     "startTime": "Inicio",
     "endTime": "Fin",
     "facility": "Instalación",
-    "freeDay": "¡Hoy es día libre!"
+    "freeDay": "¡Hoy es día libre!",
+    "checkIn": "Hora de entrada",
+    "checkOut": "Hora de salida",
+    "status": "Estado",
+    "notAvailable": "No disponible",
+    "noAttendance": "No hay asistencia registrada"
   },
 
   "fichar": {
