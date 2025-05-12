@@ -15,6 +15,11 @@
     margin-bottom: 20px;
 }
 
+.tabs-content {
+    min-height: 700px; /* Ajusta según el contenido más alto */
+    overflow: visible; /* Evita que el contenido desborde */
+}
+
 .filter-container {
     display: flex;
     justify-content: space-evenly;

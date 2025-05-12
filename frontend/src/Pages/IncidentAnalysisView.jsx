@@ -15,36 +15,38 @@ const { TabPane } = Tabs;
 function HeatmapLayer({ points, maxIntensity }) {
     const map = useMap();
 
-useEffect(() => {
-    // Capa para la acumulación de incidentes (todos con intensidad 1)
-    const accumulationLayer = L.heatLayer(
-        points.map(incident => [incident[0], incident[1], 1]), // Acumulación con intensidad 1
-        {
-            radius: 25,
-            blur: 15,
-            max: maxIntensity,
-            gradient: { 0.1: 'blue', 0.5: 'yellow', 1: 'blue' }
-        }
-    ).addTo(map);
+    useEffect(() => {
+        // Verificar si el mapa está listo
+        if (!map || !points.length) return;
 
-    // Capa para los incidentes graves (por ejemplo, ahogamientos con intensidad 3)
-    const severityLayer = L.heatLayer(
-        points.filter(incident => incident[2] === 3).map(incident => [incident[0], incident[1], 3]), // Filtrar solo incidentes graves
-        {
-            radius: 25,
-            blur: 15,
-            max: maxIntensity,
-            gradient: { 0.1: 'red', 0.5: 'red', 1: 'red' } // Un gradiente diferente o más enfocado a incidentes graves
-        }
-    ).addTo(map);
+        // Capa para la acumulación de incidentes (todos con intensidad 1)
+        const accumulationLayer = L.heatLayer(
+            points.map(incident => [incident[0], incident[1], 1]), // Acumulación con intensidad 1
+            {
+                radius: 25,
+                blur: 15,
+                max: maxIntensity,
+                gradient: { 0.1: 'blue', 0.5: 'yellow', 1: 'blue' }
+            }
+        ).addTo(map);
 
-    // Cleanup function para remover las capas cuando el mapa se actualice
-    return () => {
-        map.removeLayer(accumulationLayer);
-        map.removeLayer(severityLayer);
-    };
-}, [map, points, maxIntensity]);
+        // Capa para los incidentes graves (por ejemplo, ahogamientos con intensidad 3)
+        const severityLayer = L.heatLayer(
+            points.filter(incident => incident[2] === 3).map(incident => [incident[0], incident[1], 3]), // Filtrar solo incidentes graves
+            {
+                radius: 25,
+                blur: 15,
+                max: maxIntensity,
+                gradient: { 0.1: 'red', 0.5: 'red', 1: 'red' } // Un gradiente diferente o más enfocado a incidentes graves
+            }
+        ).addTo(map);
 
+        // Cleanup function para remover las capas cuando el mapa se actualice
+        return () => {
+            if (map.hasLayer(accumulationLayer)) map.removeLayer(accumulationLayer);
+            if (map.hasLayer(severityLayer)) map.removeLayer(severityLayer);
+        };
+    }, [map, points, maxIntensity]);
 
     return null;
 }
@@ -68,6 +70,7 @@ function IncidentAnalysisView() {
     const [selectedHourIncidents, setSelectedHourIncidents] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [activeTab, setActiveTab] = useState("1");
+    const [debouncedTab, setDebouncedTab] = useState(activeTab);
     const [heatmapSelectedIncidentType, setHeatmapSelectedIncidentType] = useState("all");
     const [selectedIncidentForAge, setSelectedIncidentForAge] = useState(null);
 
@@ -135,29 +138,45 @@ function IncidentAnalysisView() {
         return false;
     };
 
-    useEffect(() => {
-        fetch("http://localhost:4000/incidents")
-            .then((response) => response.json())
-            .then((data) => {
-                setIncidents(data);
-                setFilteredIncidents(data);
-                setComparisonFilteredIncidents(data);
-            })
-            .catch((error) => console.log("Error fetching incidents:", error));
+   useEffect(() => {
+       // Cargar datos de instalaciones y tipos de incidencias
+       fetch("http://localhost:4000/facility")
+           .then((response) => response.json())
+           .then((data) => {
+               setFacilities(data);
+           })
+           .catch((error) => console.log("Error fetching facilities:", error));
 
-        fetch("http://localhost:4000/facility")
-            .then((response) => response.json())
-            .then((data) => setFacilities(data))
-            .catch((error) => console.log("Error fetching facilities:", error));
+       fetch("http://localhost:4000/incident-types")
+           .then((response) => response.json())
+           .then((data) => {
+               setIncidentTypes(data);
+               generateColors(data);
+           })
+           .catch((error) => console.log("Error fetching incident types:", error));
+   }, [generateColors]);
 
-        fetch("http://localhost:4000/incident-types")
-            .then((response) => response.json())
-            .then((data) => {
-                setIncidentTypes(data);
-                generateColors(data);
-            })
-            .catch((error) => console.log("Error fetching incident types:", error));
-    }, [generateColors]);
+   // Cargar incidentes solo de las instalaciones seleccionadas
+   useEffect(() => {
+       if (selectedFacilities.length > 0) {
+           const selectedFacilitiesIds = facilities
+               .filter(facility => selectedFacilities.includes(facility.name))
+               .map(facility => facility.id);
+
+           fetch(`http://localhost:4000/incidents?facilityIds=${selectedFacilitiesIds.join(",")}`)
+               .then((response) => response.json())
+               .then((data) => {
+                   setIncidents(data);
+                   setFilteredIncidents(data);
+                   setComparisonFilteredIncidents(data);
+               })
+               .catch((error) => console.log("Error fetching incidents:", error));
+       } else {
+           setIncidents([]);
+           setFilteredIncidents([]);
+           setComparisonFilteredIncidents([]);
+       }
+   }, [selectedFacilities, facilities]);
 
     const handleFacilityChange = (value) => {
             if (value.includes("all")) {
@@ -503,9 +522,9 @@ const handleLineChartClick = (e) => {
 
 
 const getHeatmapData = () => {
-    if (selectedFacilities.length === 0) {
-        return [];
-    }
+    if (selectedFacilities.length === 0 || !filteredIncidents.length) {
+            return [];
+        }
     // Filtrar instalaciones seleccionadas
     const facilitiesFiltered = selectedFacilities.length === 0
         ? facilities // Si no hay instalaciones seleccionadas, usar todas
@@ -531,7 +550,10 @@ const getHeatmapData = () => {
         });
 };
 
-
+useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedTab(activeTab), 300); // Esperar 300ms antes de cambiar
+    return () => clearTimeout(timeout);
+}, [activeTab]);
 
 const maxIntensity = Math.max(...filteredIncidents.map(incident => {
     if (incident.type === "Ahogamiento en la playa") {
@@ -690,107 +712,114 @@ const getAgePieChartData = () => {
                 </div>
             )}
 
-            <Tabs defaultActiveKey="1" onChange={key => setActiveTab(key)}>
+            <Tabs className="tabs-content" defaultActiveKey="1" onChange={key => setActiveTab(key)}>
                 <TabPane tab={t("incidentAnalysis-view.distribution-title")} key="1">
-                    {selectedFacilities.length === 0 ? (
-                        <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
-                        </div>
-                    ) : (
-                    <div className="chart-container">
-                        <BarChart width={Math.max(1200, facilities.length * 50)} height={650} data={getSiteChartData()}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={250} />
-                            <YAxis />
-                            <Tooltip />
-                            {incidentTypes.length > 0 && <Legend
-                                payload={incidentTypes.map(incidentType => ({
-                                    value: incidentType.type,
-                                    type: "square",
-                                    color: colors[incidentType.type]
-                                }))}
-                            />}
-                            {incidentTypes.map((incidentType) => (
-                                <Bar key={incidentType.type} dataKey={incidentType.type} stackId="a" fill={colors[incidentType.type]} name={incidentType.type} />
-                            ))}
-                            {isComparisonMode && incidentTypes.map((incidentType) => (
-                                <Bar key={`${incidentType.type}_comparison`} dataKey={`${incidentType.type}_comparison`} stackId="b" fill={colors[incidentType.type]} name={incidentType.type} />
-                            ))}
-                        </BarChart>
-                    </div>
-                    )}
-                </TabPane>
-
-                <TabPane tab={t("incidentAnalysis-view.frequency-title")} key="2">
-                    {selectedFacilities.length === 0 ? (
-                        <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
-                        </div>
-                    ) : (
+                    {debouncedTab === "1" && (
                         <div className="chart-container">
-                            <BarChart width={Math.max(1200, incidentTypes.length * 50)} height={650} data={getTypeChartData()}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="type" angle={-45} textAnchor="end" interval={0} height={250} />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#82ca9d" name={t("incidentAnalysis-view.incident-count")} />
-                                {isComparisonMode && (
-                                    <Bar dataKey="count_comparison" fill="#8884d8" name={t("incidentAnalysis-view.comparison-count")} />
-                                )}
-                            </BarChart>
+                            {selectedFacilities.length === 0 ? (
+                                <div style={{ textAlign: "center", marginTop: "20px" }}>
+                                    <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
+                                </div>
+                            ) : (
+                                <BarChart width={Math.max(1200, facilities.length * 50)} height={650} data={getSiteChartData()}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={250} />
+                                    <YAxis />
+                                    <Tooltip />
+                                    {incidentTypes.length > 0 && (
+                                        <Legend
+                                            payload={incidentTypes.map(incidentType => ({
+                                                value: incidentType.type,
+                                                type: "square",
+                                                color: colors[incidentType.type]
+                                            }))}
+                                        />
+                                    )}
+                                    {incidentTypes.map((incidentType) => (
+                                        <Bar key={incidentType.type} dataKey={incidentType.type} stackId="a" fill={colors[incidentType.type]} name={incidentType.type} />
+                                    ))}
+                                    {isComparisonMode && incidentTypes.map((incidentType) => (
+                                        <Bar key={`${incidentType.type}_comparison`} dataKey={`${incidentType.type}_comparison`} stackId="b" fill={colors[incidentType.type]} name={incidentType.type} />
+                                    ))}
+                                </BarChart>
+                            )}
                         </div>
                     )}
                 </TabPane>
 
-                <TabPane tab={t("incidentAnalysis-view.temporal-title")} key="3">
-                    {selectedFacilities.length === 0 ? (
-                        <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
-                        </div>
-                    ) : (
-                        <div className="chart-container" style={{ overflowX: "auto", textAlign: "center" }}>
-                            <div className="zoom-controls" style={{ marginBottom: 10 }}>
-                                <ZoomInOutlined onClick={handleZoomIn} style={{ fontSize: 20, cursor: "pointer" }} />
-                                <ZoomOutOutlined onClick={handleZoomOut} style={{ fontSize: 20, cursor: "pointer", marginLeft: 10 }} />
-                            </div>
-
-                            <LineChart
-                                width={Math.min(1200 * zoomLevel, 2000)}
-                                height={600 * zoomLevel}
-                                data={getTrendChartData()}
-                                margin={{ top: 20, right: 30, left: 40, bottom: 70 }}
-                                onClick={handleLineChartClick}
-                            >
-                                <XAxis dataKey="key" label={{ value: t("incidentAnalysis-view.time"), position: "insideBottom", offset: -10 }} />
-                                 <YAxis
-                                                                label={{ value: t("incidentAnalysis-view.quantity"), angle: -90, position: "insideLeft" }}
-                                                                domain={[0, "dataMax + 10"]}
-                                                            />
-                                <Tooltip />
-
-                                <Legend formatter={(value) =>
-                                                                value === t("incidentAnalysis-view.count")
-                                                                    ? `${selectedDay}-${selectedMonth}-${selectedYear}`
-                                                                    : `${selectedDay}-${selectedMonth}-${comparisonYear}`
-                                                            } />
-                                <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={3} />
-                                {isComparisonMode && (
-                                    <Line type="monotone" dataKey="comparisonCount" stroke="#82ca9d" strokeDasharray="5 5" strokeWidth={3} />
-                                )}
-                                <Brush height={30} y={560 * zoomLevel} />
-                            </LineChart>
+                <TabPane className="tabs-content" tab={t("incidentAnalysis-view.frequency-title")} key="2">
+                    {debouncedTab === "2" && (
+                        <div className="chart-container">
+                            {selectedFacilities.length === 0 ? (
+                                <div style={{ textAlign: "center", marginTop: "20px" }}>
+                                    <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
+                                </div>
+                            ) : (
+                                <BarChart width={Math.max(1200, incidentTypes.length * 50)} height={650} data={getTypeChartData()}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="type" angle={-45} textAnchor="end" interval={0} height={250} />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="count" fill="#82ca9d" name={t("incidentAnalysis-view.incident-count")} />
+                                    {isComparisonMode && (
+                                        <Bar dataKey="count_comparison" fill="#8884d8" name={t("incidentAnalysis-view.comparison-count")} />
+                                    )}
+                                </BarChart>
+                            )}
                         </div>
                     )}
                 </TabPane>
 
-
-
-                <TabPane tab={t("incidentAnalysis-view.heat-map-title")} key="4">
-                    {selectedFacilities.length === 0 ? (
-                        <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
-                        </div>
+                <TabPane className="tabs-content" tab={t("incidentAnalysis-view.temporal-title")} key="3">
+                  {debouncedTab === "3" && (
+                    selectedFacilities.length === 0 ? (
+                      <div style={{ textAlign: "center", marginTop: "20px" }}>
+                        <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
+                      </div>
                     ) : (
+                      <div className="chart-container" style={{ overflowX: "auto", textAlign: "center" }}>
+                        <div className="zoom-controls" style={{ marginBottom: 10 }}>
+                          <ZoomInOutlined onClick={handleZoomIn} style={{ fontSize: 20, cursor: "pointer" }} />
+                          <ZoomOutOutlined onClick={handleZoomOut} style={{ fontSize: 20, cursor: "pointer", marginLeft: 10 }} />
+                        </div>
+
+                        <LineChart
+                          width={Math.min(1200 * zoomLevel, 2000)}
+                          height={600 * zoomLevel}
+                          data={getTrendChartData()}
+                          margin={{ top: 20, right: 30, left: 40, bottom: 70 }}
+                          onClick={handleLineChartClick}
+                        >
+                          <XAxis dataKey="key" label={{ value: t("incidentAnalysis-view.time"), position: "insideBottom", offset: -10 }} />
+                          <YAxis
+                            label={{ value: t("incidentAnalysis-view.quantity"), angle: -90, position: "insideLeft" }}
+                            domain={[0, "dataMax + 10"]}
+                          />
+                          <Tooltip />
+                          <Legend formatter={(value) =>
+                            value === t("incidentAnalysis-view.count")
+                              ? `${selectedDay}-${selectedMonth}-${selectedYear}`
+                              : `${selectedDay}-${selectedMonth}-${comparisonYear}`
+                          } />
+                          <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={3} />
+                          {isComparisonMode && (
+                            <Line type="monotone" dataKey="comparisonCount" stroke="#82ca9d" strokeDasharray="5 5" strokeWidth={3} />
+                          )}
+                          <Brush height={30} y={560 * zoomLevel} />
+                        </LineChart>
+                      </div>
+                    )
+                  )}
+                </TabPane>
+
+
+                <TabPane className="tabs-content" tab={t("incidentAnalysis-view.heat-map-title")} key="4">
+                    {debouncedTab === "4" && (
+                    selectedFacilities.length === 0 ? (
+                          <div style={{ textAlign: "center", marginTop: "20px" }}>
+                            <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
+                          </div>
+                        ) : (
                         <div className="chart-container">
                             <MapContainer center={[41.066797, 1.070257]} zoom={13} style={{ height: "600px", width: "100%" }}>
                                 <TileLayer
@@ -802,7 +831,6 @@ const getAgePieChartData = () => {
                                     maxIntensity={maxIntensity}
                                 />
                             </MapContainer>
-                            {/* Botón flotante para seleccionar el tipo de incidente */}
                             <div style={{ position: "absolute", top: "10px", right: "10px", background: "#007BFF", padding: "10px", borderRadius: "5px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", zIndex: 1000 }}>
                                 <Select defaultValue="all" style={{ width: 200 }} onChange={setHeatmapSelectedIncidentType}>
                                     <Option value="all">{t("incidentAnalysis-view.all-incidents")}</Option>
@@ -812,12 +840,13 @@ const getAgePieChartData = () => {
                                 </Select>
                             </div>
                         </div>
+                        )
                     )}
                 </TabPane>
 
 
 
-                <TabPane tab={t("incidentAnalysis-view.distribution-age")} key="5">
+                <TabPane className="tabs-content" tab={t("incidentAnalysis-view.distribution-age")} key="5">
                     {selectedFacilities.length === 0 ? (
                         <div style={{ textAlign: "center", marginTop: "20px" }}>
                             <h3>{t("incidentAnalysis-view.no-facilities-selected")}</h3>
