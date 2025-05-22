@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -23,6 +23,7 @@ const FacilityView = () => {
   const [editedFacility, setEditedFacility] = useState({});
   const [facilitiesTypes, setFacilitiesTypes] = useState([]);
   const [fetchError, setFetchError] = useState(null);
+  const [mapKey, setMapKey] = useState(0);
   const { t } = useTranslation();
 
 
@@ -94,6 +95,8 @@ const FacilityView = () => {
       if (response.ok) {
         setFacility(editedFacility);
         setEditing(false);
+        setCoordinates([parseFloat(editedFacility.latitude), parseFloat(editedFacility.longitude)]);
+        setMapKey((prevKey) => prevKey + 1);
       } else {
         alert(t("facility-view.error-update"));
       }
@@ -102,6 +105,55 @@ const FacilityView = () => {
       alert("facility-view.error-server");
     }
   };
+
+const initializeMap = useCallback(() => {
+  // Verifica si ya existe un mapa en el contenedor y elimínalo
+  const mapContainer = document.getElementById("edit-map");
+  if (mapContainer._leaflet_id) {
+    mapContainer._leaflet_id = null; // Limpia el identificador del mapa
+  }
+
+  const map = L.map("edit-map");
+
+  const initialCoords = coordinates || [41.3851, 2.1734]; // Coordenadas por defecto
+  const initialZoom = coordinates ? 15 : 7;
+
+  map.setView(initialCoords, initialZoom);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  let marker = null;
+  if (coordinates) {
+    marker = L.marker(initialCoords, { draggable: true }).addTo(map);
+  }
+
+  map.on("click", (e) => {
+    const { lat, lng } = e.latlng;
+    setEditedFacility((prev) => ({
+      ...prev,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6),
+    }));
+
+    if (!marker) {
+      marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    } else {
+      marker.setLatLng([lat, lng]);
+    }
+  });
+
+  return () => {
+    map.remove();
+  };
+}, [coordinates]);
+
+    useEffect(() => {
+      if (editing) {
+        initializeMap();
+      }
+    }, [editing, initializeMap]);
 
 
   if (!facility) return <div className="loading">{t("facility-view.loading")}</div>;
@@ -112,7 +164,7 @@ const FacilityView = () => {
         <div className="facility-view">
           <aside className="facility-map">
             {coordinates ? (
-              <MapContainer center={coordinates} zoom={17} className="map" style={{ height: "600px", width: "100%" }}>
+              <MapContainer key={mapKey} center={coordinates} zoom={17} className="map" style={{ height: "600px", width: "100%" }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={coordinates} icon={customIcon}>
                   <Popup>{facility.name}</Popup>
@@ -149,6 +201,7 @@ const FacilityView = () => {
                     value={editedFacility.facility_type}
                     onChange={handleChange}
                     required
+                    className="edit-input"
                   >
                     <option value="">{t("facility-view.type")}</option>
                     {facilitiesTypes.map((facility) => (
@@ -167,6 +220,9 @@ const FacilityView = () => {
                   <label>Longitud:</label>
                   <input name={t("facility-view.longitude")} value={editedFacility.longitude} onChange={handleChange} />
                 </div>
+
+                <div id="edit-map" style={{ height: "400px", width: "100%", marginTop: "20px" }}></div>
+
                 <div className="edit-buttons">
                   <button className="save-btn" onClick={handleSaveClick}><FaSave /> {t("facility-view.save")}</button>
                   <button className="cancel-btn" onClick={handleCancelClick}><FaTimes /> {t("facility-view.cancel")}</button>

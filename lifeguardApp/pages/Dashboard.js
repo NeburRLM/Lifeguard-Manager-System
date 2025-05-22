@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ImageBackground, Text, View, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CurrentForecast from "../components/CurrentForecast";
+import CurrentForecast from "../components/CurrentWeather";
 import styled from "styled-components/native";
 import bgImg from "../assets/4.png";
 import { useNavigation } from "@react-navigation/native"; // 👈 para navegar

@@ -196,7 +196,7 @@ const AddEmployee = () => {
               <option value="">{t("add-employee.select-role")}</option>
               {roles.map((role) => (
                 <option key={role.id} value={role.type}>
-                  {role.type}
+                  {t(`roles.${role.type}`, role.type)}
                 </option>
               ))}
             </select>

@@ -5,6 +5,8 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
 }
 
 h1, h2, h3 {
@@ -37,6 +39,8 @@ ul {
   flex: 1;
   gap: 40px; /* Añade espacio entre el mapa y los detalles de la instalación */
   padding: 20px; /* Añadimos padding para que no toquen los bordes */
+  height: 100vh;
+    overflow-y: auto;
 }
 
 .main-content {
@@ -50,6 +54,8 @@ ul {
   flex-direction: column; /* Cambiamos flex-direction a column */
   width: 100%;
   max-width: 1200px; /* Añadimos un max-width para limitar el ancho máximo */
+    max-height: 100vh; /* Importante */
+    overflow-y: auto;   /* Importante */
 }
 
 .facility-map {
@@ -202,6 +208,14 @@ ul {
 }
 
 .edit-fields input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.edit-fields select {
   width: 100%;
   padding: 6px;
   border: 1px solid #ccc;

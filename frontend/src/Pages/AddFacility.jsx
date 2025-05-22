@@ -219,7 +219,7 @@ const openMapModal = () => {
               <option value="">{t("add-facility.select-type")}</option>
               {facilities.map((facility) => (
                 <option key={facility.id} value={facility.type}>
-                  {facility.type}
+                  {t(`type-facilities.${facility.type}`, facility.type)}
                 </option>
               ))}
             </select>

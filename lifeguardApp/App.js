@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { NavigationContainer, useRoute } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import * as Linking from 'expo-linking';
 import './i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
@@ -10,19 +9,9 @@ import Profile from './pages/Profile';
 import AppDrawer from './pages/AppDrawer';
 import ScreenWrapper from './pages/ScreenWrapper';
 import ChangePassword from './pages/ChangePassword';
-import ResetPassword from './pages/ResetPassword';
 
 const Stack = createStackNavigator();
 
-const linking = {
-  prefixes: ['lifeguardapp://'],
-  config: {
-    screens: {
-      ResetPassword: 'reset-password',
-      // otras rutas si las necesitas
-    },
-  },
-};
 
 export default function App() {
   const [isLanguageLoaded, setIsLanguageLoaded] = useState(false);
@@ -47,7 +36,7 @@ export default function App() {
 
   return (
      <NavigationContainer
-       linking={linking}
+
        //onReady={() => console.log('Navegación lista')}
        //onStateChange={(state) => console.log('Nuevo estado de navegación:', JSON.stringify(state))}
      >
@@ -62,7 +51,6 @@ export default function App() {
           children={() => <ScreenWrapper><Profile /></ScreenWrapper>}
         />
         <Stack.Screen name="ChangePassword" component={ChangePassword} />
-        <Stack.Screen name="ResetPassword" component={ResetPassword} />
       </Stack.Navigator>
     </NavigationContainer>
   );
