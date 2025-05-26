@@ -542,7 +542,7 @@ const getHeatmapData = () => {
             let intensity = 2; // Intensidad por defecto para la acumulación de incidentes
 
             // Aumentar la intensidad para los incidentes graves
-            if (incident.type === "Ahogamiento en la playa") {
+            if (incident.type === "Ahogamiento") {
                 intensity = 3;  // Mayor intensidad para incidentes graves
             }
 
@@ -556,7 +556,7 @@ useEffect(() => {
 }, [activeTab]);
 
 const maxIntensity = Math.max(...filteredIncidents.map(incident => {
-    if (incident.type === "Ahogamiento en la playa") {
+    if (incident.type === "Ahogamiento") {
         return 3; // Alta intensidad para ahogamientos
     }
     return 1; // Intensidad baja para otros incidentes

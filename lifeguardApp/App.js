@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import './i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import AppDrawer from './pages/AppDrawer';
@@ -35,6 +36,7 @@ export default function App() {
 
 
   return (
+     <SafeAreaProvider>
      <NavigationContainer
 
        //onReady={() => console.log('Navegación lista')}
@@ -53,5 +55,6 @@ export default function App() {
         <Stack.Screen name="ChangePassword" component={ChangePassword} />
       </Stack.Navigator>
     </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

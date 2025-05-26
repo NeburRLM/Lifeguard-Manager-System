@@ -12,10 +12,10 @@ const Header = () => {
     <View style={styles.header}>
       {/* Botón menú */}
       <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.menuButton}>
-        <Ionicons name="menu" size={wp('7%')} color="black" />
+        <Ionicons name="menu" size={wp('6%')} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Mi App</Text>
+      <Text style={styles.title}>Lifeguard App</Text>
 
       {/* Avatar con dropdown */}
       <UserAvatarDropdown />
@@ -25,8 +25,8 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: hp('8%'), // Altura del 8% del alto de la pantalla
-    paddingTop: hp('1.5%'), // Padding top del 1.5% del alto de la pantalla
+    height: hp('6.5%'), // Altura del 8% del alto de la pantalla
+    paddingTop: hp('0.5%'), // Padding top del 1.5% del alto de la pantalla
     paddingHorizontal: wp('4%'), // Padding horizontal del 4% del ancho de la pantalla
     backgroundColor: '#f8f9fa',
     flexDirection: 'row',

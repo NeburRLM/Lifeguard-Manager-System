@@ -24,7 +24,7 @@ function CurrentAttendance() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pdfUrl, setPdfUrl] = useState("");
   const { t } = useTranslation();
-  const [todayStr, setTodayStr] = useState(new Date().toLocaleDateString('sv-SE'));
+  const [todayStr] = useState(new Date().toLocaleDateString('sv-SE'));
   const month = new Date().getMonth() + 1;
   const year = new Date().getFullYear();
 
