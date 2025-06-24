@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaCalendarAlt, FaEdit, FaSave, FaPlus, FaSort, FaTimes } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { UserContext } from "../Context/UserContext";
 import "./EmployeeView.css";
 
 const EmployeeView = () => {
@@ -9,7 +10,7 @@ const EmployeeView = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [roles, setRoles] = useState([]);
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useContext(UserContext);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -41,7 +42,18 @@ const EmployeeView = () => {
 
 
   useEffect(() => {
-    fetchData();
+    const fetchData = () => {
+        const userId = sessionStorage.getItem("userId");
+        if (userId) {
+          fetch(`http://localhost:4000/employee/${userId}`)
+            .then((response) => response.json())
+            .then((data) => setUser(data))
+            .catch((err) => console.log("Error fetching user data:", err));
+        }
+      };
+
+       fetchData();
+
     fetch(`http://localhost:4000/employee/${id}`)
       .then((response) => response.json())
       .then((data) => {
@@ -49,7 +61,7 @@ const EmployeeView = () => {
         setFormData(data);
       })
       .catch((error) => console.log("Error fetching employee data:", error));
-  }, [id]);
+  }, [id, setUser]);
 
   useEffect(() => {
     fetch("http://localhost:4000/roles-types")
@@ -69,15 +81,7 @@ const EmployeeView = () => {
 
 
 
-  const fetchData = () => {
-    const userId = sessionStorage.getItem("userId");
-    if (userId) {
-      fetch(`http://localhost:4000/employee/${userId}`)
-        .then((response) => response.json())
-        .then((data) => setUser(data))
-        .catch((err) => console.log("Error fetching user data:", err));
-    }
-  };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { FaEdit, FaSave, FaTimes, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
+import { UserContext } from "../Context/UserContext";
 import "./ProfileView.css";
 
 function ProfileView() {
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useContext(UserContext);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [roles, setRoles] = useState([]);
@@ -30,7 +31,7 @@ function ProfileView() {
         })
         .catch((err) => console.error("Error fetching user data:", err));
     }
-  }, []);
+  }, [setUser]);
 
     useEffect(() => {
       fetch("http://localhost:4000/roles-types")

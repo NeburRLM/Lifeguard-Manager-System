@@ -5,7 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:postman": "newman run postman-collection.json",
+    "test:postman-report": "newman run postman-collection.json --reporters html --reporter-html-export test-results.html"
   },
   "keywords": [],
   "author": "",

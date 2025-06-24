@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useContext } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import "./Dashboard.css"; // Usa el mismo CSS de Dashboard
 import { useTranslation } from 'react-i18next';
+import { UserContext } from "../Context/UserContext";
 
 
 function Layout() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useContext(UserContext);
   const { t, i18n } = useTranslation();
 
   useEffect(() => {
@@ -18,11 +19,12 @@ function Layout() {
         .then((data) => setUser(data))
         .catch((err) => console.log("Error fetching user data:", err));
     }
-  }, [user]);
+  }, [setUser]);
 
   const signOut = () => {
     sessionStorage.removeItem("Token");
     sessionStorage.removeItem("userId");
+    setUser(null);
     navigate("/", { replace: true });
     window.history.pushState(null, "", "/");
   };

@@ -107,7 +107,7 @@ const storageReports = multer.diskStorage({
     }
 });
 
-// Middleware para subir un archivo llamado "justification"
+// Crea el objeto 'uploadReport' utilizando la configuración definida para Multer
 const uploadReport = multer({ storage: storageReports });
 
 
@@ -636,6 +636,26 @@ app.get('/roles-types', async (req, res) => {
     }
 });
 
+app.delete('/roles-types/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const roleTypeRepository = dataSource.getRepository(RoleTypesSchema);
+
+    const roleType = await roleTypeRepository.findOne({ where: { id } });
+
+    if (!roleType) {
+      return res.status(404).json({ message: "Tipo de rol no encontrado." });
+    }
+
+    await roleTypeRepository.remove(roleType);
+
+    res.status(200).json({ message: "Tipo de rol eliminado correctamente." });
+  } catch (error) {
+    console.error("Error al eliminar el tipo de rol:", error);
+    res.status(500).json({ message: "Error al eliminar el tipo de rol.", error: error.message });
+  }
+});
 
 
 app.post('/facility-type', async (req, res) => {
@@ -673,6 +693,30 @@ app.post('/facility-type', async (req, res) => {
     } catch (error) {
         console.error("Error al crear el tipo de instalación:", error);
         res.status(500).json({ message: "Error al crear el tipo de instalación.", error: error.message });
+    }
+});
+
+
+app.delete('/facility-type/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const facilityTypeRepository = dataSource.getRepository(FacilityTypesSchema);
+
+        // Buscar el tipo de instalación por ID
+        const facilityType = await facilityTypeRepository.findOne({ where: { id } });
+
+        if (!facilityType) {
+            return res.status(404).json({ message: "Tipo de instalación no encontrado." });
+        }
+
+        // Eliminar el tipo de instalación
+        await facilityTypeRepository.remove(facilityType);
+
+        res.status(200).json({ message: `Tipo de instalación con id ${id} eliminado correctamente.` });
+    } catch (error) {
+        console.error("Error al eliminar el tipo de instalación:", error);
+        res.status(500).json({ message: "Error al eliminar el tipo de instalación.", error: error.message });
     }
 });
 
@@ -2748,7 +2792,7 @@ app.delete('/employee/:employeeId/work_schedule/:scheduleId/schedule/:scheduleSp
 
 
 
-sgMail.setApiKey('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');
+sgMail.setApiKey('');
 
 
 

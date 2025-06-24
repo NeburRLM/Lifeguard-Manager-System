@@ -1,0 +1,1430 @@
+{
+  "info": {
+    "name": "Lifeguard Manager API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Employee Count Test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employeeCount",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employeeCount"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has employee property', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('employee');",
+              "});",
+              "",
+              "pm.test('Employee count is a number', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.employee).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Boss Count Test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/bossCount",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["bossCount"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has boss property', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('boss');",
+              "});",
+              "",
+              "pm.test('Boss count is a number', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.boss).to.be.a('number');",
+              "});",
+              "",
+              "// Log response time for this request",
+              "console.log(`Boss Count Test response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Facility Count Test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facilityCount",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facilityCount"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has facility property', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('facility');",
+              "});",
+              "",
+              "pm.test('Facility count is a number', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.facility).to.be.a('number');",
+              "});",
+              "",
+              "// Log response time for this request",
+              "console.log(`Facility Count Test response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get All Employees",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employees",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employees"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Array is not empty (optional)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Employee by DNI",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee/12345678A",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee", "12345678A"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has id property', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "pm.test('ID matches expected', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.eql('12345678A');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Employee by Nonexistent DNI",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee/00000000Z",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee", "00000000Z"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Response contains error message', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message.toLowerCase()).to.include('not found');",
+              "});",
+              "",
+              "// Log response time for negative test",
+              "console.log(`Negative DNI Test response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Role Salaries",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/role_salary",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "4000",
+          "path": ["role_salary"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array with expected roles', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    const roles = jsonData.map(item => item.role);",
+              "    pm.expect(roles).to.include.members(['Boss', 'Coordinator', 'Lifeguard']);",
+              "});",
+              "",
+              "pm.test('Each item contains role, base_salary, earnings, and deductions', function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.forEach(item => {",
+              "        pm.expect(item).to.have.property('role');",
+              "        pm.expect(item).to.have.property('base_salary');",
+              "        pm.expect(item).to.have.property('earnings');",
+              "        pm.expect(item).to.have.property('deductions');",
+              "        pm.expect(item.earnings).to.be.an('object');",
+              "        pm.expect(item.deductions).to.be.an('object');",
+              "    });",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Role Salary Test response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Salary by Payroll of Employee",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/role_salary/9ae460db-cad3-4068-9570-b34be7a54f8d",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["role_salary", "9ae460db-cad3-4068-9570-b34be7a54f8d"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has all expected payroll fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    const keys = ['base_salary', 'earnings', 'deductions', 'total_hours', 'amount_hours', 'total_amount', 'month', 'year', 'employee_id'];",
+              "    keys.forEach(k => pm.expect(jsonData).to.have.property(k));",
+              "    pm.expect(jsonData.earnings).to.be.an('object');",
+              "    pm.expect(jsonData.deductions).to.be.an('object');",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Payroll by ID response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Create New Role Type",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"Supervisor\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/role-type",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["role-type"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains the new role type', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('type');",
+              "    pm.expect(jsonData.type).to.eql('Supervisor');",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Role type creation response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get All Role Types",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/roles-types",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["roles-types"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Each item has a type property', function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.forEach(roleType => {",
+              "        pm.expect(roleType).to.have.property('type');",
+              "    });",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Role types fetch response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Create Facility Type",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"Boat pool\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility-type",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility-type"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains type field', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('type');",
+              "    pm.expect(jsonData.type).to.eql('Boat pool');",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Facility type creation response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get All Facility Types",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facilities-types",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facilities-types"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Array is not empty', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.length).to.be.above(0);",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Get facilities-types response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Login as Boss",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:4000/login",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"45678901D\",\n  \"password\": \"45678901D\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Guardar token en variable de entorno",
+              "const jsonData = pm.response.json();",
+              "if (jsonData.Status === 'Success' && jsonData.Token) {",
+              "    pm.environment.set('jwt_token', jsonData.Token);",
+              "    console.log('Token guardado en jwt_token');",
+              "} else {",
+              "    console.error('Login failed, no token received');",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Create Employee 87201234N - Sin token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"87201234N\",\n  \"name\": \"Juan Pérez\",\n  \"role\": \"Lifeguard\",\n  \"email\": \"juan.perez@example.com\",\n  \"birthdate\": \"1990-05-15\",\n  \"phone_number\": \"623109212\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Response contains unauthorized message', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message.toLowerCase()).to.include('unauthorized');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Create Employee 87201234N",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"87201234N\",\n  \"name\": \"Juan Pérez\",\n  \"role\": \"Lifeguard\",\n  \"email\": \"juan.perez@example.com\",\n  \"birthdate\": \"1990-05-15\",\n  \"phone_number\": \"623109212\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Delete Employee 87201234N",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee/87201234N",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee", "87201234N"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Create Facility",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Piscina Central\",\n  \"location\": \"Parque Acuático\",\n  \"facility_type\": \"Pool\",\n  \"latitude\": 40.416775,\n  \"longitude\": -3.703790\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains success message', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'Success');",
+              "    pm.expect(jsonData).to.have.property('message').that.includes('guardadas correctamente');",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Facility creation response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get All Facilities",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "// Log number of facilities received",
+              "console.log(`Received ${pm.response.json().length} facilities.`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Facility by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility/dca11c9c-e7fc-4caf-9e39-61e530afe0f0",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility", "dca11c9c-e7fc-4caf-9e39-61e530afe0f0"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has id property matching request', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData.id).to.eql('dca11c9c-e7fc-4caf-9e39-61e530afe0f0');",
+              "});",
+              "",
+              "// Log the name of the facility",
+              "console.log(`Facility name: ${pm.response.json().name}`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Delete Facility by ID",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility/c9159abd-d31b-4a07-a617-76465d569fa8",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility", "c9159abd-d31b-4a07-a617-76465d569fa8"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response message confirms deletion', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.eql('Facility eliminada correctamente');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Create Work Schedule for Employee",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"month\": 6,\n  \"year\": 2025,\n  \"schedules\": [\n    {\n      \"date\": \"2025-06-05\",\n      \"start_time\": \"08:00\",\n      \"end_time\": \"16:00\",\n      \"facilityId\": \"19565f20-6cce-48ea-bc60-c2360cc122a6\"\n    },\n    {\n      \"date\": \"2025-06-10\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"18:00\",\n      \"facilityId\": \"19565f20-6cce-48ea-bc60-c2360cc122a6\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee/21160451K/work-schedule",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee", "21160451K", "work-schedule"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains month and year', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('month');",
+              "    pm.expect(jsonData.month).to.eql(6);",
+              "    pm.expect(jsonData).to.have.property('year');",
+              "    pm.expect(jsonData.year).to.eql(2025);",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Work schedule creation response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+
+
+
+
+
+    {
+      "name": "Get Incident Types",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/incident-types",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incident-types"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array with incident types', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('id');",
+              "        pm.expect(jsonData[0]).to.have.property('type');",
+              "    }",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Incident types retrieval response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Create Incident",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"type\": \"Ahogamiento\",\n    \"description\": \"Caída de un niño en un barquito con pedales y no sabía nadar\",\n    \"facilityId\": \"19565f20-6cce-48ea-bc60-c2360cc122a6\",\n    \"reportedById\": \"21160451K\",\n    \"latitude\": 40.416775,\n    \"longitude\": -3.703790,\n    \"firstName\": \"Juan\",\n    \"lastName\": \"Pérez\",\n    \"dni\": \"12345678Z\",\n    \"age\": 34,\n    \"cityOfOrigin\": \"Madrid\",\n    \"countryOfOrigin\": \"España\",\n    \"gender\": \"M\",\n    \"language\": \"Español\"\n  }\n]"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/incident",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incident"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains created incident', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData[0]).to.have.property('description', 'Caída en la piscina debido a suelo mojado');",
+              "    pm.expect(jsonData[0]).to.have.property('firstName', 'Juan');",
+              "    pm.expect(jsonData[0]).to.have.property('facility');",
+              "    pm.expect(jsonData[0]).to.have.property('reported_by');",
+              "});",
+              "",
+              "// Log response time",
+              "console.log(`Incident creation response time: ${pm.response.responseTime} ms`);"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Get All Incidents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/incidents",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incidents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array and not empty', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array').that.is.not.empty;",
+              "});",
+              "",
+              "// Log number of incidents retrieved",
+              "console.log(`Number of incidents retrieved: ${pm.response.json().length}`);"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Incident by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/incidents/78314099-7d51-4d1b-a3c5-76eab7527b44",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incidents", "78314099-7d51-4d1b-a3c5-76eab7527b44"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response contains incident data', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id', '6e985434-0814-41cc-9e7c-88960f9cddbc');",
+              "    pm.expect(jsonData).to.have.property('facility');",
+              "    pm.expect(jsonData).to.have.property('reported_by');",
+              "});",
+              "",
+              "// Log incident details",
+              "console.log('Incident data:', pm.response.json());"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Incidents by Facility ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/facility/19565f20-6cce-48ea-bc60-c2360cc122a6/incidents",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["facility", "19565f20-6cce-48ea-bc60-c2360cc122a6", "incidents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response contains incidents array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('facility');",
+              "        pm.expect(jsonData[0]).to.have.property('reported_by');",
+              "    }",
+              "});",
+              "",
+              "// Log incidents for the facility",
+              "console.log('Incidents for facility:', pm.response.json());"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Incidents by Type - Ahogamiento",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/incidents/type/Ahogamiento",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incidents", "type", "Ahogamiento"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array of incidents', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('type', 'Ahogamiento');",
+              "        pm.expect(jsonData[0]).to.have.property('facility');",
+              "        pm.expect(jsonData[0]).to.have.property('reported_by');",
+              "        pm.expect(jsonData[0]).to.have.property('date');",
+              "    }",
+              "});",
+              "",
+              "// Log incidents of type Ahogamiento",
+              "console.log('Incidents of type Ahogamiento:', pm.response.json());"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Incidents by Type - TipoInventado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/incidents/type/TipoInventado",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["incidents", "type", "TipoInventado"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Response contains error message for invalid type', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.eql('Tipo de incidente no válido.');",
+              "});",
+              "",
+              "// Log error message",
+              "console.log('Error response:', pm.response.json());"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Post Attendance - Registro exitoso",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "employeeId",
+              "value": "21160451K",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2025-05-29",
+              "type": "text"
+            },
+            {
+              "key": "check_in",
+              "value": "15:00",
+              "type": "text"
+            },
+            {
+              "key": "check_out",
+              "value": "18:00",
+              "type": "text"
+            },
+            {
+              "key": "facilityId",
+              "value": "19565f20-6cce-48ea-bc60-c2360cc122a6",
+              "type": "text"
+            },
+            {
+              "key": "note_in",
+              "value": "Entrada puntual",
+              "type": "text"
+            },
+            {
+              "key": "note_out",
+              "value": "Salida sin incidencias",
+              "type": "text"
+            },
+            {
+              "key": "status",
+              "value": "present",
+              "type": "text"
+            },
+            {
+              "key": "justified",
+              "value": "false",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/attendance",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["attendance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response contains created attendance with correct employee ID', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('employee');",
+              "    pm.expect(jsonData.employee.id).to.eql('21160451K');",
+              "});",
+              "",
+              "pm.test('Attendance status is present', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql('present');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Put Attendance - Check-out exitoso",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"21160451K\",\n  \"date\": \"2025-05-29\",\n  \"check_out\": \"18:00\",\n  \"note_out\": \"Salida registrada correctamente\",\n  \"status\": \"present\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/attendance/checkout",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["attendance", "checkout"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response contains updated attendance with check_out', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('attendance');",
+              "    pm.expect(jsonData.attendance).to.have.property('check_out');",
+              "    pm.expect(jsonData.attendance.check_out).to.eql('18:00');",
+              "});",
+              "",
+              "pm.test('Check-out message is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.eql('Check-out registrado con éxito.');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Generate Monthly Payroll - Mayo 2025",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"month\": 5,\n  \"year\": 2025\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/payroll/generate-monthly",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["payroll", "generate-monthly"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 or 207', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([201, 207]);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "if (pm.response.code === 201) {",
+              "    pm.test('Nóminas generadas correctamente', function () {",
+              "        pm.expect(jsonData.message).to.eql('Nóminas generadas correctamente.');",
+              "        pm.expect(jsonData).to.have.property('payrolls');",
+              "    });",
+              "} else if (pm.response.code === 207) {",
+              "    pm.test('Algunas nóminas no se generaron', function () {",
+              "        pm.expect(jsonData.message).to.eql('Algunas nóminas no se generaron.');",
+              "        pm.expect(jsonData).to.have.property('errors');",
+              "        pm.expect(jsonData).to.have.property('payrolls');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Get Payrolls by Employee - 21160451K",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:4000/payroll/21160451K",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["payroll", "21160451K"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is array (payroll list)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "if (pm.response.json().length > 0) {",
+              "    pm.test('Each payroll has required properties', function () {",
+              "        const item = pm.response.json()[0];",
+              "        pm.expect(item).to.have.property('month');",
+              "        pm.expect(item).to.have.property('year');",
+              "        pm.expect(item).to.have.property('total_amount');",
+              "        pm.expect(item).to.have.property('employee_id');",
+              "    });",
+              "} else {",
+              "    console.log('No payrolls found for employee 21160451K');",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+
+
+    {
+      "name": "Forgot Password - Valid Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept-Language",
+            "value": "es"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nebur.rlm@hotmail.com\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/employee/forgot-password",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "4000",
+          "path": ["employee", "forgot-password"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response contains success message', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('email');",
+              "});",
+              "",
+              "// Log the full response for debugging",
+              "console.log('Forgot password response:', pm.response.json());"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reset Password - Valid Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NTY3ODkwMUQiLCJpYXQiOjE3NDg1NDgyMDcsImV4cCI6MTc0ODU1MDAwN30.IgX9COZ7AwJoaIvPgCp2EzQH67N54Ko8yrluDYlYtqQ\",\n  \"password\": \"12345678A\"\n}"
+
+        },
+        "url": {
+          "raw": "http://127.0.0.1:4000/reset-password",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "4000",
+          "path": ["reset-password"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response contains success message', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('Contraseña actualizada');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+
+
+  ]
+}
